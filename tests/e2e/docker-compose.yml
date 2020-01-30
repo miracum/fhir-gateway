@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  gateway:
+    image: docker.miracum.org/miracum-etl/fhir-gateway:$IMAGE_TAG
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fhir
+      SPRING_DATASOURCE_URL_USERNAME: postgres
+      SPRING_DATASOURCE_URL_PASSWORD: postgres
+    depends_on:
+      - db
+
+  loader:
+    image: byrnedo/alpine-curl:0.1.8
+    command: -X POST
+      -H "Content-Type:application/json"
+      --retry-connrefuse
+      --connect-timeout 10
+      --max-time 60
+      --retry 5
+      --retry-delay 10
+      --data "@/fhir-resources.json"
+      http://gateway:8080/fhir
+    depends_on:
+      - gateway
+    volumes:
+      - $FHIR_TEST_DATA_PATH:/fhir-resources.json:ro
+
+  db:
+    image: postgres:12.1
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fhir

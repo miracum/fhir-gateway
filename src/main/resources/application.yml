@@ -1,0 +1,17 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health, prometheus"
+      base-path: /
+      path-mapping:
+        health: health
+        prometheus: metrics
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:15432/fhir
+    username: postgres
+    password: postgres
+    schema: classpath:/schema.sql
+    initialization-mode: always

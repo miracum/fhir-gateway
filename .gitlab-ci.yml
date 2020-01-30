@@ -1,0 +1,110 @@
+image: docker:stable
+
+variables:
+  DOCKER_REGISTRY: docker.miracum.org
+  PROJECT_PATH: /miracum-etl/fhir-gateway
+  IMAGE_PATH: $DOCKER_REGISTRY$PROJECT_PATH
+
+.docker_registry:
+  before_script:
+    - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME $DOCKER_REGISTRY --password-stdin
+  after_script:
+    - docker logout $DOCKER_REGISTRY
+
+.job_defaults:
+  only:
+    - master
+    - merge_requests
+
+include:
+  - project: "devops/ci-templates"
+    file: "/preflight/.tidy-files.yml"
+  - project: "devops/ci-templates"
+    file: "/linting/.yamllint.yml"
+  - project: "devops/ci-templates"
+    file: "/linting/.hadolint.yml"
+  - project: "devops/ci-templates"
+    file: "/linting/.markdownlint.yml"
+  - project: "devops/ci-templates"
+    file: "/versioning/.semantic-release-get-version.yml"
+  - project: "devops/ci-templates"
+    file: "/image-scanning/.trivy-scan.yml"
+
+stages:
+  - preflight
+  - lint
+  - version
+  - build
+  - test
+  - release
+  - deploy
+
+check file tidiness:
+  extends: .job_defaults
+
+hadolint:
+  extends: .job_defaults
+
+yamllint:
+  extends: .job_defaults
+
+markdownlint:
+  extends: .job_defaults
+
+get next version:
+  extends: .job_defaults
+
+build:
+  extends:
+    - .job_defaults
+    - .docker_registry
+  stage: build
+  script:
+    - export VERSION=$(cat .VERSION)
+    - docker build -t $IMAGE_PATH:$CI_COMMIT_SHORT_SHA --build-arg VERSION=$VERSION .
+    - docker push $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
+
+trivy:
+  extends: .job_defaults
+  allow_failure: true
+  variables:
+    IMAGE_FQN: $DOCKER_REGISTRY$PROJECT_PATH:$CI_COMMIT_SHORT_SHA
+
+e2e:
+  extends:
+    - .job_defaults
+    - .docker_registry
+  stage: test
+  image:
+    name: docker/compose:1.25.3
+    entrypoint: [""]
+  before_script:
+    - mkdir -p /cache/$CI_PROJECT_NAME
+    - cp -r tests/e2e/ /cache/$CI_PROJECT_NAME/
+    - export FHIR_TEST_DATA_PATH=/cache/$CI_PROJECT_NAME/fhir-resources.json
+    - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
+  script:
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml up --abort-on-container-exit
+  after_script:
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+
+push to harbor:
+  extends: .docker_registry
+  stage: release
+  script:
+    - IMAGE_TAG=$(cat .VERSION)
+    - docker pull $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
+    - docker tag $IMAGE_PATH:$CI_COMMIT_SHORT_SHA $IMAGE_PATH:$IMAGE_TAG
+    - docker tag $IMAGE_PATH:$CI_COMMIT_SHORT_SHA $IMAGE_PATH:v$IMAGE_TAG
+    - docker push $IMAGE_PATH:$IMAGE_TAG
+    - docker push $IMAGE_PATH:v$IMAGE_TAG
+  only:
+    - master
+
+create gitlab release:
+  image: docker.miracum.org/miracum-devops/semantic-release
+  stage: release
+  script:
+    - npx semantic-release
+  only:
+    - master
