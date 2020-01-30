@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  gateway:
+    image: docker.miracum.org/miracum-etl/fhir-gateway:$IMAGE_TAG
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: $SINK_DB_URL
+      SPRING_DATASOURCE_URL_USERNAME: $SINK_DB_USERNAME
+      SPRING_DATASOURCE_URL_PASSWORD: $SINK_DB_PASSWORD
