@@ -19,7 +19,7 @@ services:
       --max-time 60
       --retry 5
       --retry-delay 10
-      --data "@/data/fhir-resources.json"
+      --data "@/data/fhir-bundle.json"
       --fail
       http://gateway:8080/fhir
     depends_on:
