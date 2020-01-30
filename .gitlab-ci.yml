@@ -80,8 +80,8 @@ e2e:
     entrypoint: [""]
   before_script:
     - mkdir -p /cache/$CI_PROJECT_NAME
-    - cp -r tests/e2e/ /cache/$CI_PROJECT_NAME/
-    - export FHIR_TEST_DATA_PATH=/cache/$CI_PROJECT_NAME/fhir-resources.json
+    - cp -r tests/e2e/data/ /cache/$CI_PROJECT_NAME/
+    - export FHIR_TEST_DATA_DIR=/cache/$CI_PROJECT_NAME/data
     - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
   script:
     - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml up --abort-on-container-exit
