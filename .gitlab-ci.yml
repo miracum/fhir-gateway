@@ -40,6 +40,8 @@ stages:
   - deploy
 
 check file tidiness:
+  variables:
+    IGNORE: ".git,*.min.js,*.min.css,*.drawio"
   extends: .job_defaults
 
 hadolint:
