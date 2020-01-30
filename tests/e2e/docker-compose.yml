@@ -19,12 +19,13 @@ services:
       --max-time 60
       --retry 5
       --retry-delay 10
-      --data "@/fhir-resources.json"
+      --data "@/data/fhir-resources.json"
+      --fail
       http://gateway:8080/fhir
     depends_on:
       - gateway
     volumes:
-      - $FHIR_TEST_DATA_PATH:/fhir-resources.json:ro
+      - $FHIR_TEST_DATA_DIR:/data:ro
 
   db:
     image: postgres:12.1
