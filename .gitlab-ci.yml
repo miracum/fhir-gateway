@@ -78,7 +78,7 @@ e2e:
     - .docker_registry
   stage: test
   image:
-    name: docker/compose:1.25.3
+    name: docker/compose:1.25.4
     entrypoint: [""]
   before_script:
     - mkdir -p /cache/$CI_PROJECT_NAME
