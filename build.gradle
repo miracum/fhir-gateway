@@ -40,7 +40,7 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:$hapiFhirVersion"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:$hapiFhirVersion"
     developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.M1"
-    runtimeOnly "org.postgresql:postgresql:42.2.9"
+    runtimeOnly "org.postgresql:postgresql:42.2.10"
     runtimeOnly "com.h2database:h2:1.4.200"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.3.0.M1"
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.0.M1") {
