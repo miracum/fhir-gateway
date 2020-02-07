@@ -5,7 +5,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
-import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
+import org.miracum.etl.fhirgateway.processors.ResourcePipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,20 +28,20 @@ public class FhirController {
 
     private final IParser fhirParser;
     private final RetryTemplate retryTemplate;
-    private final FhirResourceRepository store;
+    private final ResourcePipeline pipeline;
 
     @Autowired
     public FhirController(
             RetryTemplate retryTemplate,
             FhirContext fhirContext,
-            FhirResourceRepository store) {
+            ResourcePipeline pipeline) {
         this.retryTemplate = retryTemplate;
         this.fhirParser = fhirContext.newJsonParser();
-        this.store = store;
+        this.pipeline = pipeline;
     }
 
     @RequestMapping(method = {RequestMethod.POST})
-    public ResponseEntity<String> fhirRoot(@RequestBody String body) {
+    public ResponseEntity<String> fhirRoot(@RequestBody String body) throws Exception {
         if (body == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -59,7 +59,7 @@ public class FhirController {
                 .map(e -> (IBaseResource) e.getResource())
                 .collect(Collectors.toList());
 
-        store.save(resources);
+        pipeline.process(resources);
 
         return ResponseEntity.ok(fhirParser.encodeResourceToString(bundle));
     }
@@ -68,13 +68,15 @@ public class FhirController {
     public Object getCapabilities() throws IOException {
         var resource = new ClassPathResource("/static/fhir-metadata.json");
         var mapper = new ObjectMapper();
+
         return mapper.readValue(resource.getInputStream(), Object.class);
     }
 
-    @RequestMapping(value = "/{resourceName}", method = {RequestMethod.PUT, RequestMethod.POST})
+    @RequestMapping(value = {"/{resourceName}", "/{resourceName}/{id}"}, method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<String> fhirResource(@PathVariable(value = "resourceName") String resourceName,
+                                               @PathVariable(value = "id") String id,
                                                @RequestBody String body
-    ) {
+    ) throws Exception {
         if (body == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -83,7 +85,7 @@ public class FhirController {
 
         log.debug("Got resource {}", resource);
 
-        store.save(List.of(resource));
+        pipeline.process(List.of(resource));
 
         return ResponseEntity.ok(fhirParser.encodeResourceToString(resource));
     }

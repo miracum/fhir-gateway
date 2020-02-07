@@ -8,3 +8,8 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
+
+  loinc-converter:
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.0
+    ports:
+      - "8083:8080"
