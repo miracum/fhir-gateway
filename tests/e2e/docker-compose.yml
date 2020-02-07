@@ -8,7 +8,7 @@ services:
       SPRING_DATASOURCE_URL_USERNAME: postgres
       SPRING_DATASOURCE_URL_PASSWORD: postgres
       SERVICES_LOINC_CONVERSIONS_URL: http://loinc-converter:8080/conversions
-      SERVICES_LOINC_CONVERSIONS_HEALTH_CHECK: http://loinc-converter:8080/health
+      SERVICES_LOINC_CONVERSIONS_HEALTHCHECK: http://loinc-converter:8080/health
     depends_on:
       - db
       - loinc-converter
