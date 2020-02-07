@@ -7,6 +7,9 @@ management:
       path-mapping:
         health: health
         prometheus: metrics
+  endpoint:
+    health:
+      show-details: always
 
 spring:
   datasource:
@@ -15,3 +18,9 @@ spring:
     password: postgres
     schema: classpath:/schema.sql
     initialization-mode: always
+
+services:
+  loinc:
+    conversions:
+      url: "http://localhost:8083/conversions"
+      healthCheck: "http://localhost:8083/health"

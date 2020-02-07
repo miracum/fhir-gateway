@@ -7,28 +7,24 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fhir
       SPRING_DATASOURCE_URL_USERNAME: postgres
       SPRING_DATASOURCE_URL_PASSWORD: postgres
+      SERVICES_LOINC_CONVERSIONS_URL: http://loinc-converter:8080/conversions
+      SERVICES_LOINC_CONVERSIONS_HEALTH_CHECK: http://loinc-converter:8080/health
     depends_on:
       - db
-
-  loader:
-    image: byrnedo/alpine-curl:0.1.8
-    command: -X POST
-      -H "Content-Type:application/json"
-      --retry-connrefuse
-      --connect-timeout 10
-      --max-time 60
-      --retry 5
-      --retry-delay 10
-      --data "@/data/fhir-bundle.json"
-      --fail
-      http://gateway:8080/fhir
-    depends_on:
-      - gateway
-    volumes:
-      - $FHIR_TEST_DATA_DIR:/data:ro
+      - loinc-converter
 
   db:
     image: postgres:12.1
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
+
+  loinc-converter:
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.0
+
+  tester:
+    build: .
+    environment:
+      FHIR_SERVER_URL: "http://gateway:8080/fhir"
+    depends_on:
+      - gateway

@@ -13,3 +13,10 @@ ARG VERSION=0.0.0
 ENV APP_VERSION=${VERSION}
 HEALTHCHECK CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
 ENTRYPOINT ["java", "-jar", "/opt/fhir-gateway/fhir-gateway.jar"]
+
+LABEL maintainer="MIRACUM" \
+    org.label-schema.schema-version="1.0" \
+    org.label-schema.vendor="miracum.org" \
+    org.label-schema.name="fhir-gateway" \
+    org.label-schema.description="Gateway between FHIR REST clients and various processing and persistence stages." \
+    org.label-schema.vcs-url="https://gitlab.miracum.org/miracum/etl/fhir-gateway"
