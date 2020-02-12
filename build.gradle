@@ -39,6 +39,14 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:$hapiFhirVersion"
     implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:$hapiFhirVersion"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:$hapiFhirVersion"
+
+    implementation files('libs/psn-commons-1.9.0.jar')
+    implementation 'com.sun.xml.ws:jaxws-ri:2.3.2'
+    implementation 'com.sun.xml.bind:jaxb-ri:2.3.2'
+    implementation group: 'org.apache.cxf', name: 'cxf-rt-frontend-jaxws', version: '3.2.4'
+    implementation group: 'org.apache.cxf', name: 'cxf-rt-transports-http', version: '3.2.4'
+    implementation group: 'javax.activation', name: 'activation', version: '1.1.1'
+
     developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.M1"
     runtimeOnly "org.postgresql:postgresql:42.2.10"
     runtimeOnly "com.h2database:h2:1.4.200"

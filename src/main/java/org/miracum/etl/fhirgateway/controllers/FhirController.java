@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -27,15 +26,12 @@ public class FhirController {
     private static final Logger log = LoggerFactory.getLogger(FhirController.class);
 
     private final IParser fhirParser;
-    private final RetryTemplate retryTemplate;
     private final ResourcePipeline pipeline;
 
     @Autowired
     public FhirController(
-            RetryTemplate retryTemplate,
             FhirContext fhirContext,
             ResourcePipeline pipeline) {
-        this.retryTemplate = retryTemplate;
         this.fhirParser = fhirContext.newJsonParser();
         this.pipeline = pipeline;
     }
@@ -74,7 +70,7 @@ public class FhirController {
 
     @RequestMapping(value = {"/{resourceName}", "/{resourceName}/{id}"}, method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<String> fhirResource(@PathVariable(value = "resourceName") String resourceName,
-                                               @PathVariable(value = "id") String id,
+                                               @PathVariable(value = "id", required = false) String id,
                                                @RequestBody String body
     ) throws Exception {
         if (body == null) {

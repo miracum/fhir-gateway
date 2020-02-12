@@ -24,3 +24,17 @@ services:
     conversions:
       url: "http://localhost:8083/conversions"
       healthCheck: "http://localhost:8083/health"
+  gpas:
+    domains:
+      patient: "PSN_REPO_PID"
+      case: "PSN_REPO_CID"
+      report: "PSN_REPO_REPID"
+    api:
+      url: "https://gpas-qs.ths.uk-erlangen.de/gpas/gpasService?wsdl"
+
+fhir:
+  systems:
+    encounterId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/EncounterId"
+    patientId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/PatientId"
+    insuranceNumber: "http://fhir.de/CodeSystem/identifier-type-de-basis"
+    reportId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/ReportId"

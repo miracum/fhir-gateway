@@ -27,7 +27,7 @@ public class LoincHarmonizer {
         this.retryTemplate = retryTemplate;
     }
 
-    public Observation process(Observation observation) throws Exception {
+    public Observation process(Observation observation) {
         var loincCode = observation.getCode()
                 .getCoding()
                 .stream()
@@ -47,7 +47,7 @@ public class LoincHarmonizer {
                     LoincConversion[].class));
 
             if (response.length == 0) {
-                throw new Exception("LOINC conversion service returned empty result.");
+                throw new RuntimeException("LOINC conversion service returned empty result.");
             }
 
             var conversionResult = response[0];

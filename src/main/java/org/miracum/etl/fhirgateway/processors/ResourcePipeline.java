@@ -5,28 +5,30 @@ import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ResourcePipeline {
     private final FhirResourceRepository store;
     private LoincHarmonizer loincHarmonizer;
+    private GpasPseudonymizer gpasPseudonymizer;
 
-    public ResourcePipeline(FhirResourceRepository store, LoincHarmonizer loincHarmonizer) {
+    public ResourcePipeline(FhirResourceRepository store, LoincHarmonizer loincHarmonizer, GpasPseudonymizer gpasPseudonymizer) {
         this.store = store;
         this.loincHarmonizer = loincHarmonizer;
+        this.gpasPseudonymizer = gpasPseudonymizer;
     }
 
     public void process(List<IBaseResource> resources) throws Exception {
-        var processed = new ArrayList<IBaseResource>();
+        // pseudonymization should be the first task to ensure all other processors only
+        // ever work with de-identified data.
+        var pseudonymized = gpasPseudonymizer.process(resources);
 
-        for (IBaseResource resource : resources) {
-            IBaseResource iBaseResource = resource instanceof Observation ?
-                    loincHarmonizer.process((Observation) resource) : resource;
-            processed.add(iBaseResource);
-        }
+        var harmonized = pseudonymized.stream()
+                .map(resource -> resource instanceof Observation ? loincHarmonizer.process((Observation) resource) : resource)
+                .collect(Collectors.toList());
 
-        store.save(processed);
+        store.save(harmonized);
     }
 }
