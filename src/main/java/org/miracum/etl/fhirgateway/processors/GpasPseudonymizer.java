@@ -51,24 +51,51 @@ public class GpasPseudonymizer {
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
                 caseIds.add(encounter.getId());
-                patIds.add(getIdFromReference(encounter.getSubject()));
+
+                if (encounter.hasSubject()) {
+                    patIds.add(getIdFromReference(encounter.getSubject()));
+                }
             } else if (resource instanceof Observation) {
                 var observation = (Observation) resource;
-                patIds.add(getIdFromReference(observation.getSubject()));
-                caseIds.add(getIdFromReference(observation.getEncounter()));
+
+                if (observation.hasSubject()) {
+                    patIds.add(getIdFromReference(observation.getSubject()));
+                }
+
+                if (observation.hasSubject()) {
+                    caseIds.add(getIdFromReference(observation.getSubject()));
+                }
             } else if (resource instanceof Procedure) {
                 var procedure = (Procedure) resource;
-                patIds.add(getIdFromReference(procedure.getSubject()));
-                caseIds.add(getIdFromReference(procedure.getEncounter()));
+
+                if (procedure.hasSubject()) {
+                    patIds.add(getIdFromReference(procedure.getSubject()));
+                }
+
+                if (procedure.hasEncounter()) {
+                    caseIds.add(getIdFromReference(procedure.getEncounter()));
+                }
             } else if (resource instanceof Condition) {
                 var condition = (Condition) resource;
-                patIds.add(getIdFromReference(condition.getSubject()));
-                caseIds.add(getIdFromReference(condition.getEncounter()));
+
+                if (condition.hasSubject()) {
+                    patIds.add(getIdFromReference(condition.getSubject()));
+                }
+
+                if (condition.hasEncounter()) {
+                    caseIds.add(getIdFromReference(condition.getEncounter()));
+                }
             } else if (resource instanceof DiagnosticReport) {
                 var report = (DiagnosticReport) resource;
                 reportIds.add(report.getId());
-                patIds.add(getIdFromReference(report.getSubject()));
-                caseIds.add(getIdFromReference(report.getEncounter()));
+
+                if (report.hasSubject()) {
+                    patIds.add(getIdFromReference(report.getSubject()));
+                }
+
+                if (report.hasEncounter()) {
+                    caseIds.add(getIdFromReference(report.getEncounter()));
+                }
             }
         }
 
@@ -97,7 +124,7 @@ public class GpasPseudonymizer {
                 patient.setId(pseudoPatId);
 
                 for (var identifier : patient.getIdentifier()) {
-                    if (identifier.getSystem().equals(fhirSystems.getPatientId())) {
+                    if (identifier.hasSystem() && identifier.getSystem().equals(fhirSystems.getPatientId())) {
                         identifier.setValue(pseudoPatId);
                     }
                 }
@@ -105,58 +132,82 @@ public class GpasPseudonymizer {
                 // remove IDAT: Insurance-ID
                 var withoutInsuranceId = patient.getIdentifier()
                         .stream()
+                        .filter(Identifier::hasSystem)
                         .filter(id -> !id.getSystem().equals(fhirSystems.getInsuranceNumber()))
                         .collect(Collectors.toList());
                 patient.setIdentifier(withoutInsuranceId);
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
                 var pseudoCid = pseudoCaseIds.get(encounter.getId());
-                var pseudoPid = pseudoPatIds.get(getIdFromReference(encounter.getSubject()));
                 encounter.setId(pseudoCid);
 
                 for (var identifier : encounter.getIdentifier()) {
-                    if (identifier.getSystem().equals(fhirSystems.getEncounterId())) {
+                    if (identifier.hasSystem() && identifier.getSystem().equals(fhirSystems.getEncounterId())) {
                         identifier.setValue(pseudoCid);
                     }
                 }
 
-                encounter.getSubject().setReference("Patient/" + pseudoPid);
+                if (encounter.hasSubject()) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(encounter.getSubject()));
+                    encounter.getSubject().setReference("Patient/" + pseudoPid);
+                }
             } else if (resource instanceof Observation) {
                 var observation = (Observation) resource;
-                var pseudoCid = pseudoCaseIds.get(getIdFromReference(observation.getEncounter()));
-                var pseudoPid = pseudoPatIds.get(getIdFromReference(observation.getSubject()));
 
-                observation.getEncounter().setReference("Encounter/" + pseudoCid);
-                observation.getSubject().setReference("Patient/" + pseudoPid);
+                if (observation.hasSubject()) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(observation.getSubject()));
+                    observation.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (observation.hasEncounter()) {
+                    var pseudoCid = pseudoCaseIds.get(getIdFromReference(observation.getEncounter()));
+                    observation.getEncounter().setReference("Encounter/" + pseudoCid);
+                }
             } else if (resource instanceof Procedure) {
                 var procedure = (Procedure) resource;
-                var pseudoCid = pseudoCaseIds.get(getIdFromReference(procedure.getEncounter()));
-                var pseudoPid = pseudoPatIds.get(getIdFromReference(procedure.getSubject()));
 
-                procedure.getEncounter().setReference("Encounter/" + pseudoCid);
-                procedure.getSubject().setReference("Patient/" + pseudoPid);
+                if (procedure.hasSubject()) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(procedure.getSubject()));
+                    procedure.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (procedure.hasEncounter()) {
+                    var pseudoCid = pseudoCaseIds.get(getIdFromReference(procedure.getEncounter()));
+                    procedure.getEncounter().setReference("Encounter/" + pseudoCid);
+                }
             } else if (resource instanceof Condition) {
                 var condition = (Condition) resource;
-                var pseudoCid = pseudoCaseIds.get(getIdFromReference(condition.getEncounter()));
-                var pseudoPid = pseudoPatIds.get(getIdFromReference(condition.getSubject()));
 
-                condition.getEncounter().setReference("Encounter/" + pseudoCid);
-                condition.getSubject().setReference("Patient/" + pseudoPid);
+                if (condition.hasSubject()) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(condition.getSubject()));
+                    condition.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (condition.hasEncounter()) {
+                    var pseudoCid = pseudoCaseIds.get(getIdFromReference(condition.getEncounter()));
+                    condition.getEncounter().setReference("Encounter/" + pseudoCid);
+                }
             } else if (resource instanceof DiagnosticReport) {
                 var report = (DiagnosticReport) resource;
+
                 var pseudoRepid = pseudoReportIds.get(report.getId());
-                var pseudoCid = pseudoCaseIds.get(getIdFromReference(report.getEncounter()));
-                var pseudoPid = pseudoPatIds.get(getIdFromReference(report.getSubject()));
                 report.setId(pseudoRepid);
 
                 for (var identifier : report.getIdentifier()) {
-                    if (identifier.getSystem().equals(fhirSystems.getReportId())) {
+                    if (identifier.hasSystem() && identifier.getSystem().equals(fhirSystems.getReportId())) {
                         identifier.setValue(pseudoRepid);
                     }
                 }
 
-                report.getEncounter().setReference("Encounter/" + pseudoCid);
-                report.getSubject().setReference("Patient/" + pseudoPid);
+                if (report.hasSubject()) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(report.getSubject()));
+                    report.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (report.hasEncounter()) {
+                    var pseudoCid = pseudoCaseIds.get(getIdFromReference(report.getEncounter()));
+                    report.getEncounter().setReference("Encounter/" + pseudoCid);
+                }
             }
         }
 
