@@ -8,21 +8,19 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.math.BigDecimal;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-        "loinc",
-        "unit",
-        "value",
-        "id"
-})
+@JsonPropertyOrder({"loinc", "unit", "value", "id"})
 public class LoincConversion {
 
     @JsonProperty("loinc")
     private String loinc;
+
     @JsonProperty("unit")
     private String unit;
+
     @JsonProperty("value")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private BigDecimal value;
+
     @JsonProperty("id")
     private String id;
 
@@ -68,11 +66,18 @@ public class LoincConversion {
 
     @Override
     public String toString() {
-        return "LoincConversion{" +
-                "loinc='" + loinc + '\'' +
-                ", unit='" + unit + '\'' +
-                ", value=" + value +
-                ", id='" + id + '\'' +
-                '}';
+        return "LoincConversion{"
+                + "loinc='"
+                + loinc
+                + '\''
+                + ", unit='"
+                + unit
+                + '\''
+                + ", value="
+                + value
+                + ", id='"
+                + id
+                + '\''
+                + '}';
     }
 }

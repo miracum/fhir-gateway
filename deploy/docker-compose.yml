@@ -4,8 +4,34 @@ services:
   gateway:
     image: docker.miracum.org/miracum-etl/fhir-gateway:$IMAGE_TAG
     ports:
-      - 8080:8080
+      - 18080:8080
     environment:
-      SPRING_DATASOURCE_URL: $SINK_DB_URL
-      SPRING_DATASOURCE_URL_USERNAME: $SINK_DB_USERNAME
-      SPRING_DATASOURCE_URL_PASSWORD: $SINK_DB_PASSWORD
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
+      SERVICES_GPAS_API_URL: ${SERVICES_GPAS_API_URL:-http://gpas:8080/gpas/gpasService?wsdl}
+      SERVICES_GPAS_DOMAINS_PATIENT: ${SERVICES_GPAS_DOMAINS_PATIENT:-TEST}
+      SERVICES_GPAS_DOMAINS_CASE: ${SERVICES_GPAS_DOMAINS_CASE:-TEST}
+      SERVICES_GPAS_DOMAINS_REPORT: ${SERVICES_GPAS_DOMAINS_REPORT:-TEST}
+      SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/conversions}
+      SERVICES_LOINC_CONVERSIONS_HEALTHCHECK: ${SERVICES_LOINC_CONVERSIONS_HEALTHCHECK:-http://loinc-converter:8080/health}
+    depends_on:
+      - loinc-converter
+      - fhir-db
+      - gpas
+
+  loinc-converter:
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.2
+
+  fhir-db:
+    image: postgres:12.2
+    ports:
+      - 15432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fhir
+
+  gpas:
+    image: tmfev/gpas:1.9.1
+    ports:
+      - 18081:8080

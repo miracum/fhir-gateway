@@ -20,10 +20,13 @@ import java.util.stream.Collectors;
 public class GpasPseudonymizer {
     private final PSNManager gpasManager;
     private final FhirSystemsConfig fhirSystems;
+
     @Value("${services.gpas.domains.patient}")
     private String gpasPatientDomain;
+
     @Value("${services.gpas.domains.case}")
     private String gpasCaseDomain;
+
     @Value("${services.gpas.domains.report}")
     private String gpasReportDomain;
 
@@ -36,14 +39,16 @@ public class GpasPseudonymizer {
         return reference.getReference().split("/")[1];
     }
 
-    public List<IBaseResource> process(List<IBaseResource> resources) throws InvalidParameterException, DBException, InvalidGeneratorException, UnknownDomainException {
+    public List<IBaseResource> process(List<IBaseResource> resources)
+            throws InvalidParameterException, DBException, InvalidGeneratorException,
+            UnknownDomainException {
         var patIds = new HashSet<String>();
         var caseIds = new HashSet<String>();
         var reportIds = new HashSet<String>();
 
         // collect IDs for each of the different FHIR Ressource Types
         for (var resource : resources) {
-            //TODO waiting for https://openjdk.java.net/jeps/8213076 to clean this up...
+            // TODO waiting for https://openjdk.java.net/jeps/8213076 to clean this up...
 
             if (resource instanceof Patient) {
                 var patient = (Patient) resource;
@@ -130,11 +135,11 @@ public class GpasPseudonymizer {
                 }
 
                 // remove IDAT: Insurance-ID
-                var withoutInsuranceId = patient.getIdentifier()
-                        .stream()
-                        .filter(Identifier::hasSystem)
-                        .filter(id -> !id.getSystem().equals(fhirSystems.getInsuranceNumber()))
-                        .collect(Collectors.toList());
+                var withoutInsuranceId =
+                        patient.getIdentifier().stream()
+                                .filter(Identifier::hasSystem)
+                                .filter(id -> !id.getSystem().equals(fhirSystems.getInsuranceNumber()))
+                                .collect(Collectors.toList());
                 patient.setIdentifier(withoutInsuranceId);
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
@@ -142,7 +147,8 @@ public class GpasPseudonymizer {
                 encounter.setId(pseudoCid);
 
                 for (var identifier : encounter.getIdentifier()) {
-                    if (identifier.hasSystem() && identifier.getSystem().equals(fhirSystems.getEncounterId())) {
+                    if (identifier.hasSystem()
+                            && identifier.getSystem().equals(fhirSystems.getEncounterId())) {
                         identifier.setValue(pseudoCid);
                     }
                 }

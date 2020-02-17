@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/fhir")
+@RequestMapping(value = "/fhir", produces = MediaType.APPLICATION_JSON_VALUE)
 @ResponseBody
 public class FhirController {
 
@@ -29,9 +30,7 @@ public class FhirController {
     private final ResourcePipeline pipeline;
 
     @Autowired
-    public FhirController(
-            FhirContext fhirContext,
-            ResourcePipeline pipeline) {
+    public FhirController(FhirContext fhirContext, ResourcePipeline pipeline) {
         this.fhirParser = fhirContext.newJsonParser();
         this.pipeline = pipeline;
     }
@@ -50,10 +49,10 @@ public class FhirController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        var resources = bundle.getEntry()
-                .stream()
-                .map(e -> (IBaseResource) e.getResource())
-                .collect(Collectors.toList());
+        var resources =
+                bundle.getEntry().stream()
+                        .map(e -> (IBaseResource) e.getResource())
+                        .collect(Collectors.toList());
 
         pipeline.process(resources);
 
@@ -68,11 +67,14 @@ public class FhirController {
         return mapper.readValue(resource.getInputStream(), Object.class);
     }
 
-    @RequestMapping(value = {"/{resourceName}", "/{resourceName}/{id}"}, method = {RequestMethod.PUT, RequestMethod.POST})
-    public ResponseEntity<String> fhirResource(@PathVariable(value = "resourceName") String resourceName,
-                                               @PathVariable(value = "id", required = false) String id,
-                                               @RequestBody String body
-    ) throws Exception {
+    @RequestMapping(
+            value = {"/{resourceName}", "/{resourceName}/{id}"},
+            method = {RequestMethod.PUT, RequestMethod.POST})
+    public ResponseEntity<String> fhirResource(
+            @PathVariable(value = "resourceName") String resourceName,
+            @PathVariable(value = "id", required = false) String id,
+            @RequestBody String body)
+            throws Exception {
         if (body == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
