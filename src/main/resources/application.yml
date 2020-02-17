@@ -30,7 +30,7 @@ services:
       case: "PSN_REPO_CID"
       report: "PSN_REPO_REPID"
     api:
-      url: "https://gpas-qs.ths.uk-erlangen.de/gpas/gpasService?wsdl"
+      url: "http://localhost:8084/gpas/gpasService?wsdl"
 
 fhir:
   systems:

@@ -52,10 +52,14 @@ public class AppConfig {
     }
 
     @Bean
-    public PSNManager psnManager(@Value("${services.gpas.api.url}") String gpasApiUrl) throws MalformedURLException {
-        var gpasServiceName = new QName("http://psn.ttp.ganimed.icmvc.emau.org/", "PSNManagerBeanService");
+    public PSNManager psnManager(
+            @Value("${services.gpas.api.url}") String gpasApiUrl, RetryTemplate retryTemplate)
+            throws MalformedURLException {
+        var gpasServiceName =
+                new QName("http://psn.ttp.ganimed.icmvc.emau.org/", "PSNManagerBeanService");
         var wsdlUrlGpas = new URL(gpasApiUrl);
-        var serviceGpas = Service.create(wsdlUrlGpas, gpasServiceName);
+
+        var serviceGpas = retryTemplate.execute(ctx -> Service.create(wsdlUrlGpas, gpasServiceName));
         return serviceGpas.getPort(PSNManager.class);
     }
 }

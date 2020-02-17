@@ -13,7 +13,8 @@ public class HealthChecks implements HealthIndicator {
     private RestTemplate restTemplate;
     private URI loincConverterUri;
 
-    public HealthChecks(RestTemplate restTemplate, @Value("${services.loinc.conversions.healthCheck}") URI loincConverterUri) {
+    public HealthChecks(RestTemplate restTemplate,
+                        @Value("${services.loinc.conversions.healthCheck}") URI loincConverterUri) {
         this.restTemplate = restTemplate;
         this.loincConverterUri = loincConverterUri;
     }

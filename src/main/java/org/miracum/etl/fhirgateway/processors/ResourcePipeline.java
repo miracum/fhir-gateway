@@ -14,7 +14,10 @@ public class ResourcePipeline {
     private LoincHarmonizer loincHarmonizer;
     private GpasPseudonymizer gpasPseudonymizer;
 
-    public ResourcePipeline(FhirResourceRepository store, LoincHarmonizer loincHarmonizer, GpasPseudonymizer gpasPseudonymizer) {
+    public ResourcePipeline(
+            FhirResourceRepository store,
+            LoincHarmonizer loincHarmonizer,
+            GpasPseudonymizer gpasPseudonymizer) {
         this.store = store;
         this.loincHarmonizer = loincHarmonizer;
         this.gpasPseudonymizer = gpasPseudonymizer;
@@ -26,7 +29,8 @@ public class ResourcePipeline {
         var pseudonymized = gpasPseudonymizer.process(resources);
 
         var harmonized = pseudonymized.stream()
-                .map(resource -> resource instanceof Observation ? loincHarmonizer.process((Observation) resource) : resource)
+                .map(resource -> resource instanceof Observation ?
+                        loincHarmonizer.process((Observation) resource) : resource)
                 .collect(Collectors.toList());
 
         store.save(harmonized);

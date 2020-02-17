@@ -21,30 +21,32 @@ public class LoincHarmonizer {
     private final URI loincConverterUri;
     private RetryTemplate retryTemplate;
 
-    public LoincHarmonizer(RestTemplate restTemplate, @Value("${services.loinc.conversions.url}") URI loincConverterUri, RetryTemplate retryTemplate) {
+    public LoincHarmonizer(
+            RestTemplate restTemplate,
+            @Value("${services.loinc.conversions.url}") URI loincConverterUri,
+            RetryTemplate retryTemplate) {
         this.restTemplate = restTemplate;
         this.loincConverterUri = loincConverterUri;
         this.retryTemplate = retryTemplate;
     }
 
     public Observation process(Observation observation) {
-        var loincCode = observation.getCode()
-                .getCoding()
-                .stream()
+        var loincCode = observation.getCode().getCoding().stream()
                 .filter(obs -> obs.getSystem().equals("http://loinc.org"))
                 .findFirst();
 
         if (loincCode.isPresent() && observation.hasValueQuantity()) {
-            var conversionRequest = new LoincConversion() {{
-                setId(observation.getId());
-                setLoinc(loincCode.orElse(null).getCode());
-                setValue(observation.getValueQuantity().getValue());
-                setUnit(observation.getValueQuantity().getUnit());
-            }};
+            var conversionRequest = new LoincConversion() {
+                {
+                    setId(observation.getId());
+                    setLoinc(loincCode.orElse(null).getCode());
+                    setValue(observation.getValueQuantity().getValue());
+                    setUnit(observation.getValueQuantity().getUnit());
+                }
+            };
 
-            var response = retryTemplate.execute(ctx -> restTemplate.postForObject(loincConverterUri,
-                    List.of(conversionRequest),
-                    LoincConversion[].class));
+            var response = retryTemplate.execute(ctx ->
+                    restTemplate.postForObject(loincConverterUri, List.of(conversionRequest), LoincConversion[].class));
 
             if (response.length == 0) {
                 throw new RuntimeException("LOINC conversion service returned empty result.");
