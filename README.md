@@ -17,7 +17,7 @@ export IMAGE_TAG=v1.2.6 # may no longer be the most recent version...
 Start the compose:
 
 ```sh
-docker-compose -f deploy/docker-compose.yml
+docker-compose -f deploy/docker-compose.yml up
 ```
 
 This starts the gateway (<http://localhost:18080/fhir>), the LOINC conversion service, a PostgreSQL DB storing the received FHIR resources (<localhost:15432>), and a GPAS pseudonymization service (<http://localhost:18081/gpas-web>).
