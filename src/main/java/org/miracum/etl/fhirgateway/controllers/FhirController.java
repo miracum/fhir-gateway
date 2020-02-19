@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/fhir", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/fhir")
 @ResponseBody
 public class FhirController {
 
