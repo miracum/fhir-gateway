@@ -35,7 +35,8 @@ public class LoincHarmonizer {
                 .filter(obs -> obs.getSystem().equals("http://loinc.org"))
                 .findFirst();
 
-        if (loincCode.isPresent() && observation.hasValueQuantity()) {
+        // only process observation resources with a set quantity and code
+        if (loincCode.isPresent() && observation.hasValueQuantity() && observation.getValueQuantity().hasUnit()) {
             var conversionRequest = new LoincConversion() {
                 {
                     setId(observation.getId());
