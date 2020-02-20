@@ -12,21 +12,21 @@ import java.util.stream.Collectors;
 public class ResourcePipeline {
     private final FhirResourceRepository store;
     private LoincHarmonizer loincHarmonizer;
-    private GpasPseudonymizer gpasPseudonymizer;
+    private AbstractPseudonymizer pseudonymizer;
 
     public ResourcePipeline(
             FhirResourceRepository store,
             LoincHarmonizer loincHarmonizer,
-            GpasPseudonymizer gpasPseudonymizer) {
+            AbstractPseudonymizer pseudonymizer) {
         this.store = store;
         this.loincHarmonizer = loincHarmonizer;
-        this.gpasPseudonymizer = gpasPseudonymizer;
+        this.pseudonymizer = pseudonymizer;
     }
 
     public void process(List<IBaseResource> resources) throws Exception {
         // pseudonymization should be the first task to ensure all other processors only
         // ever work with de-identified data.
-        var pseudonymized = gpasPseudonymizer.process(resources);
+        var pseudonymized = pseudonymizer.process(resources);
 
         var harmonized = pseudonymized.stream()
                 .map(resource -> resource instanceof Observation ?
