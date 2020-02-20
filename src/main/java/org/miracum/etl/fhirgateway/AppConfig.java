@@ -3,8 +3,12 @@ package org.miracum.etl.fhirgateway;
 import ca.uhn.fhir.context.FhirContext;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.emau.icmvc.ganimed.ttp.psn.PSNManager;
+import org.miracum.etl.fhirgateway.processors.AbstractPseudonymizer;
+import org.miracum.etl.fhirgateway.processors.GpasPseudonymizer;
+import org.miracum.etl.fhirgateway.processors.NullPseudonymizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,14 +56,22 @@ public class AppConfig {
     }
 
     @Bean
-    public PSNManager psnManager(
-            @Value("${services.gpas.api.url}") String gpasApiUrl, RetryTemplate retryTemplate)
-            throws MalformedURLException {
-        var gpasServiceName =
-                new QName("http://psn.ttp.ganimed.icmvc.emau.org/", "PSNManagerBeanService");
-        var wsdlUrlGpas = new URL(gpasApiUrl);
+    public AbstractPseudonymizer pseudonymizer(
+            @Value("${services.gpas.enabled}") boolean isGpasEnabled,
+            @Value("${services.gpas.api.url}") String gpasApiUrl,
+            RetryTemplate retryTemplate,
+            FhirSystemsConfig fhirSystems) throws MalformedURLException {
+        if (isGpasEnabled) {
+            var gpasServiceName =
+                    new QName("http://psn.ttp.ganimed.icmvc.emau.org/", "PSNManagerBeanService");
+            var wsdlUrlGpas = new URL(gpasApiUrl);
 
-        var serviceGpas = retryTemplate.execute(ctx -> Service.create(wsdlUrlGpas, gpasServiceName));
-        return serviceGpas.getPort(PSNManager.class);
+            var serviceGpas = retryTemplate.execute(ctx -> Service.create(wsdlUrlGpas, gpasServiceName));
+            var psnManager = serviceGpas.getPort(PSNManager.class);
+            return new GpasPseudonymizer(psnManager, fhirSystems);
+        } else {
+            return new NullPseudonymizer();
+        }
     }
+
 }

@@ -31,6 +31,7 @@ services:
       report: "PSN_REPO_REPID"
     api:
       url: "http://localhost:8084/gpas/gpasService?wsdl"
+    enabled: true
 
 fhir:
   systems:

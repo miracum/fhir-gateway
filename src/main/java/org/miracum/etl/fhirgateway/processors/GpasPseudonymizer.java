@@ -16,9 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@org.springframework.stereotype.Service
-public class GpasPseudonymizer {
-    private final PSNManager gpasManager;
+public class GpasPseudonymizer extends AbstractPseudonymizer {
+
+    private final PSNManager psnManager;
+
     private final FhirSystemsConfig fhirSystems;
 
     @Value("${services.gpas.domains.patient}")
@@ -30,8 +31,8 @@ public class GpasPseudonymizer {
     @Value("${services.gpas.domains.report}")
     private String gpasReportDomain;
 
-    public GpasPseudonymizer(PSNManager gpasManager, FhirSystemsConfig fhirSystems) {
-        this.gpasManager = gpasManager;
+    public GpasPseudonymizer(PSNManager psnManager, FhirSystemsConfig fhirSystems) {
+        this.psnManager = psnManager;
         this.fhirSystems = fhirSystems;
     }
 
@@ -39,6 +40,7 @@ public class GpasPseudonymizer {
         return reference.getReference().split("/")[1];
     }
 
+    @Override
     public List<IBaseResource> process(List<IBaseResource> resources)
             throws InvalidParameterException, DBException, InvalidGeneratorException,
             UnknownDomainException {
@@ -110,15 +112,15 @@ public class GpasPseudonymizer {
         Map<String, String> pseudoReportIds = new HashMap<>();
 
         if (!patIds.isEmpty()) {
-            pseudoPatIds = gpasManager.getOrCreatePseudonymForList(patIds, gpasPatientDomain);
+            pseudoPatIds = psnManager.getOrCreatePseudonymForList(patIds, gpasPatientDomain);
         }
 
         if (!caseIds.isEmpty()) {
-            pseudoCaseIds = gpasManager.getOrCreatePseudonymForList(caseIds, gpasCaseDomain);
+            pseudoCaseIds = psnManager.getOrCreatePseudonymForList(caseIds, gpasCaseDomain);
         }
 
         if (!reportIds.isEmpty()) {
-            pseudoReportIds = gpasManager.getOrCreatePseudonymForList(reportIds, gpasReportDomain);
+            pseudoReportIds = psnManager.getOrCreatePseudonymForList(reportIds, gpasReportDomain);
         }
 
         // substitute identifier and references with pseudonyms
