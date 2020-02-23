@@ -22,6 +22,9 @@
     "reference": "Patient/f001",
     "display": "P. van de Heuvel"
   },
+  "encounter": {
+    "reference": "Encounter/e001"
+  },
   "effectivePeriod": {
     "start": "2013-04-02T09:30:10+01:00"
   },
