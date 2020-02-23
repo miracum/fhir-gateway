@@ -10,6 +10,9 @@ import json
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from retrying import retry
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -46,3 +49,26 @@ def test_observation_loinc_is_harmonized(smart):
 
     assert quantity.value == 113.526
     assert quantity.unit == quantity.code == "mg/dL"
+
+
+def test_observation_is_pseudonymized(smart):
+    with open("data/observation.json", "r") as obs_file:
+        obs_json = json.load(obs_file)
+
+    obs = o.Observation(obs_json)
+    encounter_id_part = obs.encounter.processedReferenceIdentifier().split("/")[1]
+    subject_id_part = obs.subject.processedReferenceIdentifier().split("/")[1]
+
+    response_json = obs.update(smart.server)
+
+    observation_response = o.Observation(response_json)
+
+    assert (
+        not encounter_id_part
+        in observation_response.encounter.processedReferenceIdentifier()
+    )
+
+    assert (
+        not subject_id_part
+        in observation_response.subject.processedReferenceIdentifier()
+    )

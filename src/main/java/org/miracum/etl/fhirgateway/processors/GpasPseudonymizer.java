@@ -37,7 +37,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
     }
 
     private static String getIdFromReference(Reference reference) {
-        return reference.getReference().split("/")[1];
+        return reference.getReferenceElement().getIdPart();
     }
 
     @Override
@@ -54,10 +54,10 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
 
             if (resource instanceof Patient) {
                 var patient = (Patient) resource;
-                patIds.add(patient.getId());
+                patIds.add(patient.getIdElement().getIdPart());
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
-                caseIds.add(encounter.getId());
+                caseIds.add(encounter.getIdElement().getIdPart());
 
                 if (encounter.hasSubject()) {
                     patIds.add(getIdFromReference(encounter.getSubject()));
@@ -69,8 +69,8 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                     patIds.add(getIdFromReference(observation.getSubject()));
                 }
 
-                if (observation.hasSubject()) {
-                    caseIds.add(getIdFromReference(observation.getSubject()));
+                if (observation.hasEncounter()) {
+                    caseIds.add(getIdFromReference(observation.getEncounter()));
                 }
             } else if (resource instanceof Procedure) {
                 var procedure = (Procedure) resource;
@@ -94,7 +94,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 }
             } else if (resource instanceof DiagnosticReport) {
                 var report = (DiagnosticReport) resource;
-                reportIds.add(report.getId());
+                reportIds.add(report.getIdElement().getIdPart());
 
                 if (report.hasSubject()) {
                     patIds.add(getIdFromReference(report.getSubject()));
@@ -127,7 +127,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
         for (var resource : resources) {
             if (resource instanceof Patient) {
                 var patient = (Patient) resource;
-                var pseudoPatId = pseudoPatIds.get(patient.getId());
+                var pseudoPatId = pseudoPatIds.get(patient.getIdElement().getIdPart());
                 patient.setId(pseudoPatId);
 
                 for (var identifier : patient.getIdentifier()) {
@@ -145,7 +145,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 patient.setIdentifier(withoutInsuranceId);
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
-                var pseudoCid = pseudoCaseIds.get(encounter.getId());
+                var pseudoCid = pseudoCaseIds.get(encounter.getIdElement().getIdPart());
                 encounter.setId(pseudoCid);
 
                 for (var identifier : encounter.getIdentifier()) {
@@ -198,7 +198,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
             } else if (resource instanceof DiagnosticReport) {
                 var report = (DiagnosticReport) resource;
 
-                var pseudoRepid = pseudoReportIds.get(report.getId());
+                var pseudoRepid = pseudoReportIds.get(report.getIdElement().getIdPart());
                 report.setId(pseudoRepid);
 
                 for (var identifier : report.getIdentifier()) {

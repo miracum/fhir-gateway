@@ -72,21 +72,22 @@ trivy:
   variables:
     IMAGE_FQN: $DOCKER_REGISTRY$PROJECT_PATH:$CI_COMMIT_SHORT_SHA
 
-#e2e:
-#  extends:
-#    - .job_defaults
-#    - .docker_registry
-#  stage: test
-#  image:
-#    name: docker/compose:1.25.4
-#    entrypoint: [""]
-#  before_script:
-#    - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
-#  script:
-#    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml build
-#    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run tester
-#  after_script:
-#    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+e2e:
+  extends:
+    - .job_defaults
+    - .docker_registry
+  stage: test
+  image:
+    name: docker/compose:1.25.4
+    entrypoint: [""]
+  before_script:
+    - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
+  script:
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml build
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run gpasinit
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run tester
+  after_script:
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
 push to harbor:
   extends: .docker_registry

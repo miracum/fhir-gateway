@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/fhir")
+@RequestMapping(value = "/fhir", produces = {"application/json", "application/fhir+json"})
 @ResponseBody
 public class FhirController {
 

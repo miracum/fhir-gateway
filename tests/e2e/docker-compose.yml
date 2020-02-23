@@ -9,9 +9,14 @@ services:
       SPRING_DATASOURCE_URL_PASSWORD: postgres
       SERVICES_LOINC_CONVERSIONS_URL: http://loinc-converter:8080/conversions
       SERVICES_LOINC_CONVERSIONS_HEALTHCHECK: http://loinc-converter:8080/health
+      SERVICES_GPAS_API_URL: http://gpas:8080/gpas/gpasService?wsdl
+      SERVICES_GPAS_DOMAINS_PATIENT: TEST
+      SERVICES_GPAS_DOMAINS_CASE: TEST
+      SERVICES_GPAS_DOMAINS_REPORT: TEST
     depends_on:
       - db
       - loinc-converter
+      - gpas
 
   db:
     image: postgres:12.1
@@ -20,7 +25,38 @@ services:
       POSTGRES_DB: fhir
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.0
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.2
+
+  gpas:
+    image: tmfev/gpas:1.9.1
+
+  gpasinit:
+    image: byrnedo/alpine-curl:0.1.8
+    command: -X POST
+      -H 'Content-Type:application/xml'
+      -d '<?xml version="1.0" encoding="UTF-8"?>
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:psn="http://psn.ttp.ganimed.icmvc.emau.org/">
+      <soapenv:Header/>
+      <soapenv:Body>
+      <psn:addDomain>
+      <domainDTO>
+      <name>TEST</name>
+      <checkDigitClass>org.emau.icmvc.ganimed.ttp.psn.generator.ReedSolomonLagrange</checkDigitClass>
+      <alphabet>org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol31</alphabet>
+      <properties>PSN_LENGTH=10;PSN_PREFIX=TEST-ID.;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
+      <comment>DEV Domain</comment>
+      </domainDTO>
+      </psn:addDomain>
+      </soapenv:Body>
+      </soapenv:Envelope>'
+      --retry-connrefuse
+      --connect-timeout 10
+      --max-time 60
+      --retry 5
+      --retry-delay 10
+      http://gpas:8080/gpas/DomainService
+    depends_on:
+      - gpas
 
   tester:
     build: .

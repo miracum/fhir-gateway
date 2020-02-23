@@ -26,9 +26,9 @@ services:
       healthCheck: "http://localhost:8083/health"
   gpas:
     domains:
-      patient: "PSN_REPO_PID"
-      case: "PSN_REPO_CID"
-      report: "PSN_REPO_REPID"
+      patient: "DEV"
+      case: "DEV"
+      report: "DEV"
     api:
       url: "http://localhost:8084/gpas/gpasService?wsdl"
     enabled: true

@@ -29,11 +29,11 @@ services:
               <soapenv:Body>
                 <psn:addDomain>
                   <domainDTO>
-                    <name>TEST</name>
+                    <name>DEV</name>
                     <checkDigitClass>org.emau.icmvc.ganimed.ttp.psn.generator.ReedSolomonLagrange</checkDigitClass>
                     <alphabet>org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol31</alphabet>
-                    <properties>PSN_LENGTH=10;PSN_PREFIX=ER-DIZ-PSN-REPO.;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
-                    <comment>TEST Domain</comment>
+                    <properties>PSN_LENGTH=10;PSN_PREFIX=DEV-ID.;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
+                    <comment>DEV Domain</comment>
                   </domainDTO>
                 </psn:addDomain>
               </soapenv:Body>
