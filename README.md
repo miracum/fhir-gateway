@@ -36,7 +36,7 @@ To configure your deployment, you can change the following environment variables
 
 | Variable                               | Description                                                                                    | Default                                   |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| SPRING_DATASOURCE_URL                  | JDBC url of the Postgres DB to store the received FHIR resources                               | postgresql://fhir-db:5432/fhir            |
+| SPRING_DATASOURCE_URL                  | JDBC url of the Postgres DB to store the received FHIR resources                               | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME             | Username of the Postgres DB                                                                    | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD             | Password for the Postgres DB                                                                   | postgres                                  |
 | SERVICES_GPAS_API_URL                  | URL of the GPAS service                                                                        | <http://gpas:8080/gpas/gpasService?wsdl>  |
