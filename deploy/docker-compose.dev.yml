@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: fhir
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.2
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.3.0
     ports:
       - "8083:8080"
 

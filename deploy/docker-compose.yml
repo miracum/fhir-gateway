@@ -21,7 +21,7 @@ services:
       - gpas
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.2.2
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.3.0
 
   fhir-db:
     image: postgres:12.2
