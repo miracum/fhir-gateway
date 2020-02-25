@@ -25,9 +25,8 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
 
     private static final Logger log = LoggerFactory.getLogger(FhirController.class);
 
-    private static final AtomicInteger batchUpadteFailed =
-            Metrics.globalRegistry.gauge("fhirgateway.postgres.batchupdate.error.total", new AtomicInteger(0));
-
+    private static final AtomicInteger batchUpdateFailed =
+            Metrics.globalRegistry.gauge("fhirgateway.postgres.batchupdate.errors.total", new AtomicInteger(0));
 
     private final IParser fhirParser;
     private final JdbcTemplate dataSinkTemplate;
@@ -43,7 +42,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
             @Override
             public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
                 log.warn("Trying to persist data caused error. {} attempt.", context.getRetryCount(), throwable);
-                batchUpadteFailed.incrementAndGet();
+                batchUpdateFailed.incrementAndGet();
             }
         });
     }
