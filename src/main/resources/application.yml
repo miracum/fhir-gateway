@@ -24,6 +24,7 @@ services:
     conversions:
       url: "http://localhost:8083/conversions"
       healthCheck: "http://localhost:8083/health"
+      enabled: true
   gpas:
     domains:
       patient: "DEV"
