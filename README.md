@@ -22,9 +22,13 @@ docker-compose -f deploy/docker-compose.yml up
 
 This starts the gateway (<http://localhost:18080/fhir>), the LOINC conversion service, a PostgreSQL DB storing the received FHIR resources (<localhost:15432>), and a GPAS pseudonymization service (<http://localhost:18081/gpas-web>).
 
-Before it will work, you'll need to setup a GPAS domain. To do so, visit <http://localhost:18081/gpas-web> and create a domain called `TEST`:
+Before it will work, you'll need to setup the required GPAS domains. To do so, visit <http://localhost:18081/gpas-web> and create domains for the patient ids (`PSN-REPO-PID`), encounter ids (`PSN-REPO-CID`), and diagnostic reports respectively (`PSN-REPO-REPID`):
 
-![Overview](docs/img/setup-gpas-domain.png "Setup GPAS TEST Domain")
+![Setup GPAS](docs/img/setup-gpas-domain.png "Setup GPAS domains")
+
+Now repeat the same for the domains `PSN-REPO-CID` and `PSN-REPO-REPID`:
+
+![View all domains](docs/img/gpas-all-domains.png "Overview of all generated domains")
 
 You can now start sending FHIR resources to <http://localhost:18080/fhir>, e.g.
 
