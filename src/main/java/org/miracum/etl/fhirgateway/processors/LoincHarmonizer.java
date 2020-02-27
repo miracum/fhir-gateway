@@ -72,12 +72,13 @@ public class LoincHarmonizer {
 
                 var conversionResult = response[0];
 
-                // TODO: drop the display value if the codes were converted
-
-                observation.getValueQuantity().setValue(conversionResult.getValue());
-                observation.getValueQuantity().setUnit(conversionResult.getUnit());
-                observation.getValueQuantity().setCode(conversionResult.getUnit());
-                observation.getCode().getCodingFirstRep().setCode(conversionResult.getLoinc());
+                // make sure the conversion returned a valid value, unit, and code before overriding the resource
+                if (conversionResult.getValue() != null && conversionResult.getUnit() != null && conversionResult.getLoinc() != null) {
+                    observation.getValueQuantity().setValue(conversionResult.getValue());
+                    observation.getValueQuantity().setUnit(conversionResult.getUnit());
+                    observation.getValueQuantity().setCode(conversionResult.getUnit());
+                    observation.getCode().getCodingFirstRep().setCode(conversionResult.getLoinc());
+                }
             } catch (Exception exc) {
                 log.warn("LOINC Conversion failure for observation {}.", observation.getId());
                 var unit = observation.getValueQuantity().getUnit();
