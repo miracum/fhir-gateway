@@ -6,7 +6,7 @@
   "kind": "instance",
   "software": {
     "name": "HAPI FHIR Server",
-    "version": "4.1.0"
+    "version": "4.2.0"
   },
   "implementation": {
     "description": "HAPI FHIR R4 Server",
