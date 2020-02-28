@@ -8,6 +8,7 @@ import org.miracum.etl.fhirgateway.models.loinc.LoincConversion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
@@ -30,20 +31,22 @@ public class LoincHarmonizer {
     private final URI loincConverterUri;
     private RetryTemplate retryTemplate;
 
-    public LoincHarmonizer(
-            RestTemplate restTemplate,
-            @Value("${services.loinc.conversions.url}") URI loincConverterUri,
-            RetryTemplate retryTemplate) {
+    public LoincHarmonizer(RestTemplate restTemplate,
+                           @Value("${services.loinc.conversions.url}") URI loincConverterUri) {
         this.restTemplate = restTemplate;
         this.loincConverterUri = loincConverterUri;
-        this.retryTemplate = retryTemplate;
+        this.retryTemplate = new RetryTemplate();
+
+        var fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(5_000);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
 
         var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>() {{
             put(HttpClientErrorException.class, false);
             put(HttpServerErrorException.class, true);
         }};
 
-        this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5, retryableExceptions));
+        retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5, retryableExceptions));
     }
 
     public Observation process(Observation observation) {

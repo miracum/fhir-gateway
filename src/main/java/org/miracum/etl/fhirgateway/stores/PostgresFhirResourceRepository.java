@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.listener.RetryListenerSupport;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +35,17 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
     private RetryTemplate retryTemplate;
 
     @Autowired
-    public PostgresFhirResourceRepository(FhirContext fhirContext, JdbcTemplate dataSinkTemplate, RetryTemplate retryTemplate) {
+    public PostgresFhirResourceRepository(FhirContext fhirContext, JdbcTemplate dataSinkTemplate) {
         this.fhirParser = fhirContext.newJsonParser();
         this.dataSinkTemplate = dataSinkTemplate;
-        this.retryTemplate = retryTemplate;
+
+        this.retryTemplate = new RetryTemplate();
+
+        var fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(5_000);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+        retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5));
 
         this.retryTemplate.registerListener(new RetryListenerSupport() {
             @Override

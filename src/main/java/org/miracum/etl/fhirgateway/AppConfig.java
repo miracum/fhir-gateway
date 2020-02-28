@@ -7,13 +7,10 @@ import org.miracum.etl.fhirgateway.processors.AbstractPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.GpasPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.NullPseudonymizer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -28,7 +25,6 @@ import java.net.URL;
 public class AppConfig {
 
     @Bean
-    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RetryTemplate retryTemplate() {
         var retryTemplate = new RetryTemplate();
 
