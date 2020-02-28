@@ -80,7 +80,7 @@ public class LoincHarmonizer {
                     observation.getCode().getCodingFirstRep().setCode(conversionResult.getLoinc());
                 }
             } catch (Exception exc) {
-                log.warn("LOINC Conversion failure for observation {} (loinc={}; unit={}).",
+                log.debug("LOINC Conversion failure for observation {} (loinc={}; unit={}).",
                         observation.getId(),
                         loincCode.orElse(null).getCode(),
                         observation.getValueQuantity().getUnit());
