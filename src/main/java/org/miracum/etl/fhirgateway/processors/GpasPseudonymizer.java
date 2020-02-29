@@ -103,6 +103,16 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 if (report.hasEncounter()) {
                     caseIds.add(getIdFromReference(report.getEncounter()));
                 }
+            } else if (resource instanceof MedicationStatement) {
+                var medicationStatement = (MedicationStatement) resource;
+
+                if (medicationStatement.hasSubject() && medicationStatement.getSubject().getReferenceElement().getResourceType().equals("Patient")) {
+                    patIds.add(getIdFromReference(medicationStatement.getSubject()));
+                }
+
+                if (medicationStatement.hasContext() && medicationStatement.getContext().getReferenceElement().getResourceType().equals("Encounter")) {
+                    caseIds.add(getIdFromReference(medicationStatement.getContext()));
+                }
             }
         }
 
@@ -215,6 +225,18 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 if (report.hasEncounter()) {
                     var pseudoCid = pseudoCaseIds.get(getIdFromReference(report.getEncounter()));
                     report.getEncounter().setReference("Encounter/" + pseudoCid);
+                }
+            } else if (resource instanceof MedicationStatement) {
+                var medicationStatement = (MedicationStatement) resource;
+
+                if (medicationStatement.hasSubject() && medicationStatement.getSubject().getReferenceElement().getResourceType().equals("Patient")) {
+                    var pseudoPid = pseudoPatIds.get(getIdFromReference(medicationStatement.getSubject()));
+                    medicationStatement.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (medicationStatement.hasContext() && medicationStatement.getContext().getReferenceElement().getResourceType().equals("Encounter")) {
+                    var pseudoCid = pseudoCaseIds.get(getIdFromReference(medicationStatement.getContext()));
+                    medicationStatement.getContext().setReference("Encounter/" + pseudoCid);
                 }
             }
         }
