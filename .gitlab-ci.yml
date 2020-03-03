@@ -66,7 +66,7 @@ build:
     - docker build -t $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
       --build-arg VERSION=$VERSION
       --build-arg GIT_REF=$CI_COMMIT_SHA
-      --build-arg BUILD_TIME="$(date --rfc-3339=seconds)" .
+      --build-arg BUILD_TIME="$(date -Is)" .
     - docker push $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
 
 trivy:
