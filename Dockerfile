@@ -13,7 +13,6 @@ ENV APP_VERSION=${VERSION}
 ARG GIT_REF=""
 ARG BUILD_TIME=""
 ARG VERSION=0.0.0
-HEALTHCHECK CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
 CMD ["/opt/fhir-gateway/fhir-gateway.jar"]
 
 LABEL org.opencontainers.image.created=${BUILD_TIME} \
