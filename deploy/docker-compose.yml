@@ -21,6 +21,27 @@ services:
       - fhir-db
       - gpas
 
+  gateway-healthcheck:
+    image: alpine:3.11
+    entrypoint: /bin/sh
+    tty: true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://gateway:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - gateway
+
   loinc-converter:
     image: docker.miracum.org/miracum-etl/loinc-conversion:v1.5.1
 
