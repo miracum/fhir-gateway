@@ -43,7 +43,7 @@ dependencies {
     implementation group: 'javax.activation', name: 'activation', version: '1.1.1'
 
     developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.M2"
-    runtimeOnly "org.postgresql:postgresql:42.2.10"
+    runtimeOnly "org.postgresql:postgresql:42.2.11"
     runtimeOnly "com.h2database:h2:1.4.200"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.3.0.M2"
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.0.M2") {
