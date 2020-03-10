@@ -18,6 +18,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
     @Override
     public void save(List<IBaseResource> resources) {
         var insertValues = resources.stream()
+                .sorted(Comparator.comparing(r -> r.getIdElement().getIdPart()))
                 .map(resource -> new Object[]{
                         resource.getIdElement().getIdPart(),
                         resource.fhirType(),
