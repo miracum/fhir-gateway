@@ -106,7 +106,7 @@ push to harbor:
     - master
 
 create gitlab release:
-  image: docker.miracum.org/miracum-devops/semantic-release
+  image: docker.miracum.org/miracum-devops/semantic-release:v17
   stage: release
   script:
     - npx semantic-release
