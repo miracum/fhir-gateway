@@ -25,13 +25,20 @@ public class LoincConversion {
     private String id;
 
     @JsonProperty("loinc")
+    public LoincConversion setLoinc(String loinc) {
+        this.loinc = loinc;
+        return this;
+    }
+
+    @JsonProperty("loinc")
     public String getLoinc() {
         return loinc;
     }
 
-    @JsonProperty("loinc")
-    public void setLoinc(String loinc) {
-        this.loinc = loinc;
+    @JsonProperty("unit")
+    public LoincConversion setUnit(String unit) {
+        this.unit = unit;
+        return this;
     }
 
     @JsonProperty("unit")
@@ -39,19 +46,15 @@ public class LoincConversion {
         return unit;
     }
 
-    @JsonProperty("unit")
-    public void setUnit(String unit) {
-        this.unit = unit;
+    @JsonProperty("value")
+    public LoincConversion setValue(BigDecimal value) {
+        this.value = value;
+        return this;
     }
 
     @JsonProperty("value")
     public BigDecimal getValue() {
         return value;
-    }
-
-    @JsonProperty("value")
-    public void setValue(BigDecimal value) {
-        this.value = value;
     }
 
     @JsonProperty("id")
@@ -60,8 +63,9 @@ public class LoincConversion {
     }
 
     @JsonProperty("id")
-    public void setId(String id) {
+    public LoincConversion setId(String id) {
         this.id = id;
+        return this;
     }
 
     @Override
