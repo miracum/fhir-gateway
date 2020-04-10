@@ -2,6 +2,7 @@ plugins {
     id "org.springframework.boot" version "2.3.0.M4"
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
     id "java"
+    id "jacoco"
 }
 
 group = "org.miracum.etl"
@@ -35,12 +36,12 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:4.2.0"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:4.2.0"
 
-    implementation files('libs/psn-commons-1.9.0.jar')
-    implementation 'com.sun.xml.ws:jaxws-ri:2.3.2-1'
-    implementation 'com.sun.xml.bind:jaxb-ri:2.3.2'
-    implementation group: 'org.apache.cxf', name: 'cxf-rt-frontend-jaxws', version: '3.3.6'
-    implementation group: 'org.apache.cxf', name: 'cxf-rt-transports-http', version: '3.3.6'
-    implementation group: 'javax.activation', name: 'activation', version: '1.1.1'
+    implementation files("libs/psn-commons-1.9.0.jar")
+    implementation "com.sun.xml.ws:jaxws-ri:2.3.2-1"
+    implementation "com.sun.xml.bind:jaxb-ri:2.3.2"
+    implementation group: "org.apache.cxf", name: "cxf-rt-frontend-jaxws", version: "3.3.6"
+    implementation group: "org.apache.cxf", name: "cxf-rt-transports-http", version: "3.3.6"
+    implementation group: "javax.activation", name: "activation", version: "1.1.1"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.M4"
     runtimeOnly "org.postgresql:postgresql:42.2.12"
@@ -53,4 +54,18 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+    reportsDir = file("$buildDir/jacoco-reports")
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        csv.destination file("${buildDir}/jacoco/coverage.csv")
+        html.destination file("${buildDir}/jacoco/html")
+    }
 }

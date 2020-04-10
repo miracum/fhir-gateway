@@ -68,6 +68,7 @@ build:
       --build-arg GIT_REF=$CI_COMMIT_SHA
       --build-arg BUILD_TIME="$(date -Is)" .
     - docker push $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
+  coverage: '/\d+.\d+ \% covered/'
 
 trivy:
   extends: .job_defaults
