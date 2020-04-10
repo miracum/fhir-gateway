@@ -22,7 +22,7 @@ services:
       - "8084:8080"
 
   gpasinit:
-    image: byrnedo/alpine-curl:0.1.8
+    image: curlimages/curl:7.69.1
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>
