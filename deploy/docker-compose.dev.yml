@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: fhir
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.1
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.2
     ports:
       - "8083:8080"
 
@@ -22,7 +22,7 @@ services:
       - "8084:8080"
 
   gpasinit:
-    image: byrnedo/alpine-curl:0.1.8
+    image: curlimages/curl:7.69.1
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>

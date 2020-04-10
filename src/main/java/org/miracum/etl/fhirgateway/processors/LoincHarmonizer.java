@@ -3,11 +3,13 @@ package org.miracum.etl.fhirgateway.processors;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Quantity;
 import org.miracum.etl.fhirgateway.controllers.FhirController;
 import org.miracum.etl.fhirgateway.models.loinc.LoincConversion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -18,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 
 @Service
 public class LoincHarmonizer {
@@ -56,37 +57,59 @@ public class LoincHarmonizer {
 
         // only process observation resources with a set quantity and code
         if (loincCode.isPresent() && observation.hasValueQuantity() && observation.getValueQuantity().hasUnit()) {
-            var conversionRequest = new LoincConversion() {
-                {
-                    setId(observation.getId());
-                    setLoinc(loincCode.orElse(null).getCode());
-                    setValue(observation.getValueQuantity().getValue());
-                    setUnit(observation.getValueQuantity().getUnit());
-                }
-            };
-
             try {
-                var response = retryTemplate.execute(ctx ->
-                        restTemplate.postForObject(loincConverterUri, List.of(conversionRequest), LoincConversion[].class));
 
-                if (response.length == 0) {
-                    throw new RuntimeException("LOINC conversion service returned empty result.");
+                var originalCode = loincCode.get().getCode();
+                // harmonize the observation's main code/value
+                var result = getHarmonizedQuantity(observation.getValueQuantity(),
+                        originalCode,
+                        observation.getId());
+
+                if (result != null) {
+                    observation.setValue(result.getFirst());
+                    observation.getCode().getCodingFirstRep().setCode(result.getSecond());
+
+                    // if the LOINC code has changed, the display is most likely incorrect, just drop it
+                    if (!originalCode.equals(result.getSecond())) {
+                        observation.getCode().getCodingFirstRep().setDisplay(null);
+                    }
                 }
 
-                var conversionResult = response[0];
+                // harmonize the reference range
+                if (observation.hasReferenceRange()) {
+                    for (var rangeComponent : observation.getReferenceRange()) {
+                        if (rangeComponent.hasLow()) {
+                            var rangeLow = rangeComponent.getLow();
 
-                // make sure the conversion returned a valid value, unit, and code before overriding the resource
-                if (conversionResult.getValue() != null && conversionResult.getUnit() != null && conversionResult.getLoinc() != null) {
-                    observation.getValueQuantity().setValue(conversionResult.getValue());
-                    observation.getValueQuantity().setUnit(conversionResult.getUnit());
-                    observation.getValueQuantity().setCode(conversionResult.getUnit());
-                    observation.getCode().getCodingFirstRep().setCode(conversionResult.getLoinc());
+                            result = getHarmonizedQuantity(rangeLow,
+                                    originalCode,
+                                    observation.getId() + "-refRange-low");
+
+                            if (result != null) {
+                                rangeComponent.setLow(result.getFirst());
+                            }
+                        }
+
+                        if (rangeComponent.hasHigh()) {
+                            var rangeHigh = rangeComponent.getHigh();
+
+                            result = getHarmonizedQuantity(rangeHigh,
+                                    originalCode,
+                                    observation.getId() + "-refRange-high");
+
+                            if (result != null) {
+                                rangeComponent.setHigh(result.getFirst());
+                            }
+                        }
+                    }
                 }
+
             } catch (Exception exc) {
                 log.debug("LOINC Conversion failure for observation {} (loinc={}; unit={}).",
                         observation.getId(),
                         loincCode.orElse(null).getCode(),
-                        observation.getValueQuantity().getUnit());
+                        observation.getValueQuantity().getUnit(),
+                        exc);
 
                 var unit = observation.getValueQuantity().getUnit();
                 metricsLookup.putIfAbsent(unit,
@@ -97,5 +120,32 @@ public class LoincHarmonizer {
         }
 
         return observation;
+    }
+
+    private Pair<Quantity, String> getHarmonizedQuantity(Quantity input, String loincCode, String id) {
+        var conversionRequest = new LoincConversion()
+                .setId(id)
+                .setLoinc(loincCode)
+                .setValue(input.getValue())
+                .setUnit(input.getUnit());
+
+        var response = retryTemplate.execute(ctx ->
+                restTemplate.postForObject(loincConverterUri, conversionRequest, LoincConversion.class));
+
+        if (response == null) {
+            throw new RuntimeException("LOINC conversion service returned empty result.");
+        }
+
+        if (response.getValue() != null && response.getUnit() != null && response.getLoinc() != null) {
+            var quantity = new Quantity();
+            quantity.setValue(response.getValue());
+            quantity.setUnit(response.getUnit());
+            quantity.setCode(response.getUnit());
+            quantity.setSystem(input.getSystem());
+
+            return Pair.of(quantity, response.getLoinc());
+        }
+
+        return null;
     }
 }
