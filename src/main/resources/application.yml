@@ -36,7 +36,7 @@ services:
 
 fhir:
   systems:
-    encounterId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/EncounterId"
-    patientId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/PatientId"
+    encounterId: "https://miracum.org/fhir/NamingSystem/identifier/EncounterId"
+    patientId: "https://miracum.org/fhir/NamingSystem/identifier/PatientId"
     insuranceNumber: "http://fhir.de/CodeSystem/identifier-type-de-basis"
-    reportId: "https://diz.uk-erlangen.de/fhir/NamingSystem/identifier/ReportId"
+    reportId: "https://miracum.org/fhir/NamingSystem/identifier/ReportId"
