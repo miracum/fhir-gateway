@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "2.3.0.M4"
+    id "org.springframework.boot" version "2.3.0.RELEASE"
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
     id "java"
     id "jacoco"
@@ -25,11 +25,11 @@ repositories {
 }
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-actuator:2.3.0.M4"
-    implementation "org.springframework.boot:spring-boot-starter-data-jdbc:2.3.0.M4"
-    implementation "org.springframework.boot:spring-boot-starter-web:2.3.0.M4"
-    implementation "io.micrometer:micrometer-registry-prometheus:1.4.2"
-    implementation "io.micrometer:micrometer-core:1.4.2"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:2.3.0.RELEASE"
+    implementation "org.springframework.boot:spring-boot-starter-data-jdbc:2.3.0.RELEASE"
+    implementation "org.springframework.boot:spring-boot-starter-web:2.3.0.RELEASE"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.5.1"
+    implementation "io.micrometer:micrometer-core:1.5.1"
     implementation "org.springframework.retry:spring-retry:1.2.5.RELEASE"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-base:4.2.0"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:4.2.0"
@@ -37,17 +37,17 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:4.2.0"
 
     implementation files("libs/psn-commons-1.9.0.jar")
-    implementation "com.sun.xml.ws:jaxws-ri:2.3.2-1"
+    implementation "com.sun.xml.ws:jaxws-ri:2.3.3"
     implementation "com.sun.xml.bind:jaxb-ri:2.3.3"
     implementation group: "org.apache.cxf", name: "cxf-rt-frontend-jaxws", version: "3.3.6"
     implementation group: "org.apache.cxf", name: "cxf-rt-transports-http", version: "3.3.6"
     implementation group: "javax.activation", name: "activation", version: "1.1.1"
 
-    developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.M4"
+    developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.RELEASE"
     runtimeOnly "org.postgresql:postgresql:42.2.12"
     runtimeOnly "com.h2database:h2:1.4.200"
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.3.0.M4"
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.0.M4") {
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.3.0.RELEASE"
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.3.0.RELEASE") {
         exclude group: "org.junit.vintage", module: "junit-vintage-engine"
     }
 }
