@@ -62,6 +62,10 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 if (encounter.hasSubject()) {
                     patIds.add(getIdFromReference(encounter.getSubject()));
                 }
+
+                if (encounter.hasPartOf()) {
+                    patIds.add(getIdFromReference(encounter.getPartOf()));
+                }
             } else if (resource instanceof Observation) {
                 var observation = (Observation) resource;
 
@@ -168,6 +172,11 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                 if (encounter.hasSubject()) {
                     var pseudoPid = pseudoPatIds.get(getIdFromReference(encounter.getSubject()));
                     encounter.getSubject().setReference("Patient/" + pseudoPid);
+                }
+
+                if (encounter.hasPartOf()) {
+                    var masterEncounterId = pseudoCaseIds.get(getIdFromReference(encounter.getPartOf()));
+                    encounter.getPartOf().setReference("Encounter/" + masterEncounterId);
                 }
             } else if (resource instanceof Observation) {
                 var observation = (Observation) resource;
