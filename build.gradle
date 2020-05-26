@@ -22,6 +22,9 @@ configurations {
 repositories {
     mavenCentral()
     maven { url "https://repo.spring.io/milestone" }
+    maven {
+        url "https://nexus.icm.med.uni-greifswald.de/repository/maven-releases-extern/"
+    }
 }
 
 dependencies {
@@ -37,13 +40,12 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:5.0.0"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:5.0.1"
 
-
-    implementation files("libs/psn-commons-1.9.0.jar")
+    implementation "org.emau.icmvc.ganimed.ttp:psn-commons:1.9.1"
     implementation "com.sun.xml.ws:jaxws-ri:2.3.3"
     implementation "com.sun.xml.bind:jaxb-ri:2.3.3"
-    implementation group: "org.apache.cxf", name: "cxf-rt-frontend-jaxws", version: "3.3.6"
-    implementation group: "org.apache.cxf", name: "cxf-rt-transports-http", version: "3.3.6"
-    implementation group: "javax.activation", name: "activation", version: "1.1.1"
+    implementation "org.apache.cxf:cxf-rt-frontend-jaxws:3.3.6"
+    implementation "org.apache.cxf:cxf-rt-transports-http:3.3.6"
+    implementation "javax.activation:activation:1.1.1"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools:2.3.0.RELEASE"
     runtimeOnly "org.postgresql:postgresql:42.2.12"
