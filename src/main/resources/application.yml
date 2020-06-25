@@ -25,6 +25,11 @@ services:
       url: "http://localhost:8083/conversions"
       healthCheck: "http://localhost:8083/health"
       enabled: true
+  fhirServer:
+    url: "http://localhost:8082/fhir"
+    enabled: false
+  psql:
+    enabled: true
   gpas:
     domains:
       patient: "DEV"

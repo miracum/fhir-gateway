@@ -22,7 +22,7 @@ services:
       - gpas
 
   gateway-healthcheck:
-    image: alpine:3.11
+    image: alpine:3.12
     entrypoint: /bin/sh
     tty: true
     healthcheck:

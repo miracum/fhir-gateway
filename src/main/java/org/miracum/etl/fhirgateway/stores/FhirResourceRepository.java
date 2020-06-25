@@ -1,12 +1,10 @@
 package org.miracum.etl.fhirgateway.stores;
 
-import org.hl7.fhir.instance.model.api.IBaseResource;
-
-import java.util.List;
+import org.hl7.fhir.r4.model.Bundle;
 
 public interface FhirResourceRepository {
 
-    void save(List<IBaseResource> resources);
+    //void save(List<IBaseResource> resources);
 
-    void save(IBaseResource resource);
+    void save(Bundle bundle);
 }

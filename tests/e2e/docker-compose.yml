@@ -31,7 +31,7 @@ services:
     image: tmfev/gpas:1.9.1
 
   gpasinit:
-    image: byrnedo/alpine-curl:0.1.8
+    image: curlimages/curl:7.70.0
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>
