@@ -3,21 +3,18 @@ package org.miracum.etl.fhirgateway.controllers;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Resource;
 import org.miracum.etl.fhirgateway.processors.ResourcePipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/fhir", produces = {"application/json", "application/fhir+json"})
@@ -41,22 +38,21 @@ public class FhirController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        var bundle = fhirParser.parseResource(Bundle.class, body);
+        var resource = fhirParser.parseResource(body);
 
-        log.debug("Got bundle of size {}", bundle.getEntry().size());
+        if (resource instanceof Bundle) {
+            var bundle = (Bundle) resource;
+            log.debug("Got bundle of size {}", bundle.getEntry().size());
 
-        if (bundle.getEntry().size() == 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (bundle.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            pipeline.process(bundle);
+            return ResponseEntity.ok(fhirParser.encodeResourceToString(resource));
+        } else {
+            return ResponseEntity.badRequest().build();
         }
-
-        var resources =
-                bundle.getEntry().stream()
-                        .map(e -> (IBaseResource) e.getResource())
-                        .collect(Collectors.toList());
-
-        pipeline.process(resources);
-
-        return ResponseEntity.ok(fhirParser.encodeResourceToString(bundle));
     }
 
     @RequestMapping(value = "/metadata", method = RequestMethod.GET)
@@ -81,9 +77,17 @@ public class FhirController {
 
         var resource = fhirParser.parseResource(body);
 
-        log.debug("Got resource {}", resource);
+        log.debug("Got resource {}; {}", resource, body);
 
-        pipeline.process(List.of(resource));
+        var bundle = new Bundle();
+
+        if (resource instanceof Bundle) {
+            bundle = (Bundle) resource;
+        } else {
+            bundle.addEntry().setResource((Resource) resource);
+        }
+
+        pipeline.process(bundle);
 
         return ResponseEntity.ok(fhirParser.encodeResourceToString(resource));
     }

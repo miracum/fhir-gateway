@@ -1,13 +1,11 @@
 package org.miracum.etl.fhirgateway.processors;
 
-import org.hl7.fhir.instance.model.api.IBaseResource;
-
-import java.util.List;
+import org.hl7.fhir.r4.model.Bundle;
 
 public class NullPseudonymizer extends AbstractPseudonymizer {
 
     @Override
-    public List<IBaseResource> process(List<IBaseResource> resources) {
-        return resources;
+    public Bundle process(Bundle bundle) {
+        return bundle;
     }
 }

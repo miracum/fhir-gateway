@@ -30,7 +30,7 @@ public class LoincHarmonizer {
 
     private final RestTemplate restTemplate;
     private final URI loincConverterUri;
-    private RetryTemplate retryTemplate;
+    private final RetryTemplate retryTemplate;
 
     public LoincHarmonizer(RestTemplate restTemplate,
                            @Value("${services.loinc.conversions.url}") URI loincConverterUri) {

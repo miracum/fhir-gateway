@@ -10,8 +10,8 @@ import java.net.URI;
 
 @Component
 public class HealthChecks implements HealthIndicator {
-    private RestTemplate restTemplate;
-    private URI loincConverterUri;
+    private final RestTemplate restTemplate;
+    private final URI loincConverterUri;
 
     public HealthChecks(RestTemplate restTemplate,
                         @Value("${services.loinc.conversions.healthCheck}") URI loincConverterUri) {

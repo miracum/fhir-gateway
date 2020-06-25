@@ -5,6 +5,7 @@ import org.emau.icmvc.ganimed.ttp.psn.exceptions.DBException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.InvalidGeneratorException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.InvalidParameterException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.UnknownDomainException;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
@@ -16,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,11 +52,12 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid"));
 
-        var result = sut.process(List.of(patient));
+        Bundle bundle = new Bundle();
+        bundle.getEntry().get(0).setResource(patient);
+        var result = sut.process(bundle);
+        assertThat(result.getEntry()).size().isOne();
 
-        assertThat(result).size().isOne();
-
-        var pseudonymizedPatient = (Patient) result.get(0);
+        var pseudonymizedPatient = (Patient) result.getEntry().get(0).getResource();
         assertThat(pseudonymizedPatient.getId()).isEqualTo("hiddenPid");
     }
 
@@ -70,11 +71,12 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid", "secretCid", "hiddenCid"));
 
-        var result = sut.process(List.of(encounter));
+        Bundle bundle = new Bundle();
+        bundle.getEntry().get(0).setResource(encounter);
+        var result = sut.process(bundle);
+        assertThat(result.getEntry()).size().isOne();
 
-        assertThat(result).size().isOne();
-
-        var pseudonymizedEncounter = (Encounter) result.get(0);
+        var pseudonymizedEncounter = (Encounter) result.getEntry().get(0).getResource();
         assertThat(pseudonymizedEncounter.getId()).isEqualTo("hiddenCid");
         assertThat(pseudonymizedEncounter.getSubject().getReference()).isEqualTo("Patient/hiddenPid");
     }
@@ -91,11 +93,12 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid"));
 
-        var result = sut.process(List.of(patient));
+        Bundle bundle = new Bundle();
+        bundle.getEntry().get(0).setResource(patient);
+        var result = sut.process(bundle);
+        assertThat(result.getEntry()).size().isOne();
 
-        assertThat(result).size().isOne();
-
-        var pseudonymizedPatient = (Patient) result.get(0);
+        var pseudonymizedPatient = (Patient) result.getEntry().get(0).getResource();
         assertThat(pseudonymizedPatient.getIdentifierFirstRep().getValue()).isEqualTo("hiddenPid");
     }
 }

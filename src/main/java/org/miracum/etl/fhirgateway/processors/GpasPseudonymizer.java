@@ -5,14 +5,12 @@ import org.emau.icmvc.ganimed.ttp.psn.exceptions.DBException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.InvalidGeneratorException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.InvalidParameterException;
 import org.emau.icmvc.ganimed.ttp.psn.exceptions.UnknownDomainException;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.miracum.etl.fhirgateway.FhirSystemsConfig;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -41,7 +39,7 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
     }
 
     @Override
-    public List<IBaseResource> process(List<IBaseResource> resources)
+    public Bundle process(Bundle bundle)
             throws InvalidParameterException, DBException, InvalidGeneratorException,
             UnknownDomainException {
         var patIds = new HashSet<String>();
@@ -49,8 +47,9 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
         var reportIds = new HashSet<String>();
 
         // collect IDs for each of the different FHIR Ressource Types
-        for (var resource : resources) {
-            // TODO waiting for https://openjdk.java.net/jeps/8213076 to clean this up...
+        // TODO: waiting for https://openjdk.java.net/jeps/8213076 to clean this up...
+        for (var bundleEntry : bundle.getEntry()) {
+            var resource = bundleEntry.getResource();
 
             if (resource instanceof Patient) {
                 var patient = (Patient) resource;
@@ -138,7 +137,9 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
         }
 
         // substitute identifier and references with pseudonyms
-        for (var resource : resources) {
+        for (var bundleEntry : bundle.getEntry()) {
+            var resource = bundleEntry.getResource();
+
             if (resource instanceof Patient) {
                 var patient = (Patient) resource;
                 var pseudoPatId = pseudoPatIds.get(patient.getIdElement().getIdPart());
@@ -157,6 +158,8 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                                 .filter(id -> !id.getSystem().equals(fhirSystems.getInsuranceNumber()))
                                 .collect(Collectors.toList());
                 patient.setIdentifier(withoutInsuranceId);
+
+                bundleEntry.getRequest().setUrl("Patient/" + pseudoPatId);
             } else if (resource instanceof Encounter) {
                 var encounter = (Encounter) resource;
                 var pseudoCid = pseudoCaseIds.get(encounter.getIdElement().getIdPart());
@@ -178,6 +181,8 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
                     var masterEncounterId = pseudoCaseIds.get(getIdFromReference(encounter.getPartOf()));
                     encounter.getPartOf().setReference("Encounter/" + masterEncounterId);
                 }
+
+                bundleEntry.getRequest().setUrl("Encounter/" + pseudoCid);
             } else if (resource instanceof Observation) {
                 var observation = (Observation) resource;
 
@@ -250,6 +255,6 @@ public class GpasPseudonymizer extends AbstractPseudonymizer {
             }
         }
 
-        return resources;
+        return bundle;
     }
 }

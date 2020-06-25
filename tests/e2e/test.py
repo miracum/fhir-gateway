@@ -1,18 +1,16 @@
+import fhirclient.models.bundle as b
+import json
+import logging
 import os
 import pytest
-from fhirclient import client
-import fhirclient.models.patient as p
-import fhirclient.models.condition as c
-import fhirclient.models.encounter as e
-import fhirclient.models.observation as o
 import requests
-import json
+from fhirclient import client
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from retrying import retry
-import logging
 
 LOG = logging.getLogger(__name__)
+
+BUNDLE_PATH = "data/bundle.json"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -22,7 +20,7 @@ def wait_for_server_to_be_up(request):
     s.mount("http://", HTTPAdapter(max_retries=retries))
 
     print("FHIR: ", os.environ["FHIR_SERVER_URL"])
-    response = s.get(os.environ["FHIR_SERVER_URL"] + "/metadata",)
+    response = s.get(os.environ["FHIR_SERVER_URL"] + "/metadata", )
 
     if response.status_code != 200:
         pytest.fail("Failed to wait for server to be up")
@@ -35,15 +33,19 @@ def smart():
     return smart
 
 
-def test_observation_loinc_is_harmonized(smart):
-    with open("data/observation.json", "r") as obs_file:
+@pytest.fixture
+def bundle():
+    with open(BUNDLE_PATH, "r") as obs_file:
         obs_json = json.load(obs_file)
 
-    observation = o.Observation(obs_json)
+    bundle = b.Bundle(obs_json)
+    return bundle
 
-    response_json = observation.update(smart.server)
 
-    observation_response = o.Observation(response_json)
+def test_observation_loinc_is_harmonized(smart, bundle):
+    response_json = bundle.create(smart.server)
+
+    observation_response = b.Bundle(response_json).entry[0].resource
 
     quantity = observation_response.valueQuantity
 
@@ -51,24 +53,35 @@ def test_observation_loinc_is_harmonized(smart):
     assert quantity.unit == quantity.code == "mg/dL"
 
 
-def test_observation_is_pseudonymized(smart):
-    with open("data/observation.json", "r") as obs_file:
-        obs_json = json.load(obs_file)
+def test_observation_is_pseudonymized(smart, bundle):
+    encounter_id_part = (
+        bundle.entry[0].resource.encounter.processedReferenceIdentifier().split("/")[1]
+    )
+    subject_id_part = (
+        bundle.entry[0].resource.subject.processedReferenceIdentifier().split("/")[1]
+    )
 
-    obs = o.Observation(obs_json)
-    encounter_id_part = obs.encounter.processedReferenceIdentifier().split("/")[1]
-    subject_id_part = obs.subject.processedReferenceIdentifier().split("/")[1]
+    response_json = bundle.create(smart.server)
 
-    response_json = obs.update(smart.server)
-
-    observation_response = o.Observation(response_json)
+    bundle_response = b.Bundle(response_json)
+    observation_response = bundle_response.entry[0].resource
 
     assert (
         not encounter_id_part
-        in observation_response.encounter.processedReferenceIdentifier()
+            in observation_response.encounter.processedReferenceIdentifier()
     )
 
     assert (
         not subject_id_part
-        in observation_response.subject.processedReferenceIdentifier()
+            in observation_response.subject.processedReferenceIdentifier()
     )
+
+
+def test_patient_is_pseudonymized(smart, bundle):
+    patient_id = bundle.entry[1].resource.id
+
+    response_json = bundle.create(smart.server)
+
+    bundle_response = b.Bundle(response_json)
+
+    assert not patient_id in bundle_response.entry[1].request.url
