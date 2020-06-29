@@ -1,4 +1,4 @@
-FROM python:3.8-alpine3.12
+FROM python:3.8-alpine
 
 # hadolint ignore=DL3018
 RUN apk --no-cache add git
