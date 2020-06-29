@@ -1,15 +1,15 @@
 image: docker:stable
 
 variables:
-  DOCKER_REGISTRY: docker.miracum.org
+  CONTAINER_REGISTRY: docker.miracum.org
   PROJECT_PATH: /miracum-etl/fhir-gateway
-  IMAGE_PATH: $DOCKER_REGISTRY$PROJECT_PATH
+  IMAGE_PATH: $CONTAINER_REGISTRY$PROJECT_PATH
 
 .docker_registry:
   before_script:
-    - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME $DOCKER_REGISTRY --password-stdin
+    - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME $CONTAINER_REGISTRY --password-stdin
   after_script:
-    - docker logout $DOCKER_REGISTRY
+    - docker logout $CONTAINER_REGISTRY
 
 .job_defaults:
   only:
@@ -31,6 +31,8 @@ include:
     file: "/image-scanning/.trivy-scan.yml"
   - project: "devops/ci-templates"
     file: "/release/.gitlab-release.yml"
+  - project: "devops/ci-templates"
+    file: "/release/.push-to-registry.yml"
 
 stages:
   - preflight
@@ -74,7 +76,7 @@ build:
 trivy:
   extends: .job_defaults
   variables:
-    IMAGE_FQN: $DOCKER_REGISTRY$PROJECT_PATH:$CI_COMMIT_SHORT_SHA
+    IMAGE_FQN: $CONTAINER_REGISTRY$PROJECT_PATH:$CI_COMMIT_SHORT_SHA
 
 e2e:
   extends:
@@ -93,13 +95,5 @@ e2e:
   after_script:
     - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
-push to harbor:
+push to registry:
   extends: .docker_registry
-  stage: release
-  script:
-    - IMAGE_TAG=$(cat .VERSION)
-    - docker pull $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
-    - docker tag $IMAGE_PATH:$CI_COMMIT_SHORT_SHA $IMAGE_PATH:v$IMAGE_TAG
-    - docker push $IMAGE_PATH:v$IMAGE_TAG
-  only:
-    - master
