@@ -1,15 +1,14 @@
 management:
-  endpoints:
-    web:
-      exposure:
-        include: "health, prometheus"
-      base-path: /
-      path-mapping:
-        health: health
-        prometheus: metrics
   endpoint:
     health:
       show-details: always
+  health:
+    probes:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 spring:
   datasource:
