@@ -22,7 +22,7 @@ services:
       - "8084:8080"
 
   gpasinit:
-    image: curlimages/curl:7.70.0
+    image: curlimages/curl:7.71.0
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>
