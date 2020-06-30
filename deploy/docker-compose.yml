@@ -16,6 +16,10 @@ services:
       SERVICES_GPAS_DOMAINS_REPORT: ${SERVICES_GPAS_DOMAINS_REPORT:-PSN-REPO-REPID}
       SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/conversions}
       SERVICES_LOINC_CONVERSIONS_HEALTHCHECK: ${SERVICES_LOINC_CONVERSIONS_HEALTHCHECK:-http://loinc-converter:8080/health}
+      SERVICES_FHIRSERVER_URL: ${SERVICES_FHIRSERVER_URL:-http://fhir-server:8080/fhir}
+      SERVICES_FHIRSERVER_ENABLED: ${SERVICES_FHIRSERVER_ENABLED:-false}
+      SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
+
     depends_on:
       - loinc-converter
       - fhir-db
@@ -52,6 +56,14 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
+
+  fhir-server:
+    image: docker.miracum.org/miracum-data/hapi-fhir-jpaserver:v8.1.1
+    ports:
+      - 8082:8080
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-HAPI FHIR Server}
+      SERVER_ADDRESS: ${SERVER_ADDRESS:-http://localhost:8082/fhir}
 
   gpas:
     image: tmfev/gpas:1.9.1
