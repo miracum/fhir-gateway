@@ -40,7 +40,7 @@ To configure your deployment, you can change the following environment variables
 
 | Variable                               | Description                                                                                    | Default                                   |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| SPRING_DATASOURCE_URL                  | JDBC url of the Postgres DB to store the received FHIR resources                               | jdbc:postgresql://fhir-db:5432/fhir       |
+| SPRING_DATASOURCE_URL                  | JDBC url of the Postgres DB to store the received FHIR resources, needs to be set to an empty variable if no PSQL db is to be connected to                               | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME             | Username of the Postgres DB                                                                    | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD             | Password for the Postgres DB                                                                   | postgres                                  |
 | SERVICES_GPAS_API_URL                  | URL of the GPAS service                                                                        | <http://gpas:8080/gpas/gpasService?wsdl>  |
@@ -49,3 +49,6 @@ To configure your deployment, you can change the following environment variables
 | SERVICES_GPAS_DOMAINS_REPORT           | GPAS domain for DiagnosticReport IDs                                                           | TEST                                      |
 | SERVICES_LOINC_CONVERSIONS_URL         | URL of [the LOINC conversion service](https://gitlab.miracum.org/miracum/etl/loinc-conversion) | <http://loinc-converter:8080/conversions> |
 | SERVICES_LOINC_CONVERSIONS_HEALTHCHECK | URL of the LOINC conversion healthcheck endpoint                                               | <http://loinc-converter:8080/health>      |
+| SERVICES_FHIRSERVER_URL | URL of the fhir server to send data to                                               | <http://fhir:8080/fhir>      |
+| SERVICES_FHIRSERVER_ENABLED | enables or disables sending to fhir server                                               |  false    |
+| SERVICES_PSQL_ENABLED | enables or disables sending to psql db                                               |  true    |
