@@ -25,13 +25,13 @@ services:
       POSTGRES_DB: fhir
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.3
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.4
 
   gpas:
     image: tmfev/gpas:1.9.1
 
   gpasinit:
-    image: curlimages/curl:7.70.0
+    image: curlimages/curl:7.71.1
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>
@@ -57,6 +57,7 @@ services:
       http://gpas:8080/gpas/DomainService
     depends_on:
       - gpas
+      - db
 
   tester:
     build: .
