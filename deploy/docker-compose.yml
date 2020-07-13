@@ -45,7 +45,7 @@ services:
       - gateway
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.3
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.4
 
   fhir-db:
     image: postgres:12.3
