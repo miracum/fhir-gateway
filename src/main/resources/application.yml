@@ -22,7 +22,6 @@ services:
   loinc:
     conversions:
       url: "http://localhost:8083/conversions"
-      healthCheck: "http://localhost:8083/health"
       enabled: true
   fhirServer:
     url: "http://localhost:8082/fhir"

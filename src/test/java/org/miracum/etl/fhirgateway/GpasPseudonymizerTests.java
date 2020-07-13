@@ -9,13 +9,14 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.miracum.etl.fhirgateway.processors.GpasPseudonymizer;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @RunWith(MockitoJUnitRunner.class)
 public class GpasPseudonymizerTests {
 
@@ -33,7 +35,7 @@ public class GpasPseudonymizerTests {
     private FhirSystemsConfig fhirSystems;
     private GpasPseudonymizer sut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fhirSystems = new FhirSystemsConfig() {{
             setEncounterId("http://fhir.example.com/encounter-id");
@@ -52,8 +54,8 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid"));
 
-        Bundle bundle = new Bundle();
-        bundle.getEntry().get(0).setResource(patient);
+        var bundle = new Bundle();
+        bundle.addEntry().setResource(patient);
         var result = sut.process(bundle);
         assertThat(result.getEntry()).size().isOne();
 
@@ -71,8 +73,8 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid", "secretCid", "hiddenCid"));
 
-        Bundle bundle = new Bundle();
-        bundle.getEntry().get(0).setResource(encounter);
+        var bundle = new Bundle();
+        bundle.addEntry().setResource(encounter);
         var result = sut.process(bundle);
         assertThat(result.getEntry()).size().isOne();
 
@@ -93,8 +95,8 @@ public class GpasPseudonymizerTests {
         when(psnManager.getOrCreatePseudonymForList(any(), any()))
                 .thenReturn(Map.of("secretPid", "hiddenPid"));
 
-        Bundle bundle = new Bundle();
-        bundle.getEntry().get(0).setResource(patient);
+        var bundle = new Bundle();
+        bundle.addEntry().setResource(patient);
         var result = sut.process(bundle);
         assertThat(result.getEntry()).size().isOne();
 
