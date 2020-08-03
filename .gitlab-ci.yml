@@ -1,87 +1,17 @@
-image: docker:stable
-
 variables:
-  CONTAINER_REGISTRY: docker.miracum.org
-  PROJECT_PATH: /miracum-etl/fhir-gateway
-  IMAGE_PATH: $CONTAINER_REGISTRY$PROJECT_PATH
-
-.docker_registry:
-  before_script:
-    - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USERNAME $CONTAINER_REGISTRY --password-stdin
-  after_script:
-    - docker logout $CONTAINER_REGISTRY
-
-.job_defaults:
-  only:
-    - master
-    - merge_requests
+  CONTAINER_PROJECT_PATH: /miracum-etl/fhir-gateway
 
 include:
   - project: "devops/ci-templates"
-    file: "/preflight/.tidy-files.yml"
-  - project: "devops/ci-templates"
-    file: "/linting/.yamllint.yml"
-  - project: "devops/ci-templates"
-    file: "/linting/.hadolint.yml"
-  - project: "devops/ci-templates"
-    file: "/linting/.markdownlint.yml"
-  - project: "devops/ci-templates"
-    file: "/versioning/.semantic-release-get-version.yml"
-  - project: "devops/ci-templates"
-    file: "/image-scanning/.trivy-scan.yml"
-  - project: "devops/ci-templates"
-    file: "/release/.gitlab-release.yml"
-  - project: "devops/ci-templates"
-    file: "/release/.push-to-registry.yml"
-
-stages:
-  - preflight
-  - lint
-  - version
-  - build
-  - test
-  - release
+    file: "/standard/.container-build.yml"
 
 check file tidiness:
   variables:
     IGNORE: ".git,*.min.js,*.min.css,*.drawio"
-  extends: .job_defaults
-
-hadolint:
-  extends: .job_defaults
-
-yamllint:
-  extends: .job_defaults
-
-markdownlint:
-  extends: .job_defaults
-
-get next version:
-  extends: .job_defaults
-
-build:
-  extends:
-    - .job_defaults
-    - .docker_registry
-  stage: build
-  script:
-    - export VERSION=$(cat .VERSION)
-    - docker build -t $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
-      --build-arg VERSION=$VERSION
-      --build-arg GIT_REF=$CI_COMMIT_SHA
-      --build-arg BUILD_TIME="$(date -Is)" .
-    - docker push $IMAGE_PATH:$CI_COMMIT_SHORT_SHA
-  coverage: '/\d+.\d+ \% covered/'
-
-trivy:
-  extends: .job_defaults
-  variables:
-    IMAGE_FQN: $CONTAINER_REGISTRY$PROJECT_PATH:$CI_COMMIT_SHORT_SHA
 
 e2e:
   extends:
     - .job_defaults
-    - .docker_registry
   stage: test
   image:
     name: docker/compose:1.26.2
@@ -94,6 +24,3 @@ e2e:
     - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run tester
   after_script:
     - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
-
-push to registry:
-  extends: .docker_registry
