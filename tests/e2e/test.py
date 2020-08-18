@@ -20,7 +20,7 @@ def wait_for_server_to_be_up(request):
     s.mount("http://", HTTPAdapter(max_retries=retries))
 
     print("FHIR: ", os.environ["FHIR_SERVER_URL"])
-    response = s.get(os.environ["FHIR_SERVER_URL"] + "/metadata", )
+    response = s.get(os.environ["FHIR_SERVER_URL"] + "/metadata",)
 
     if response.status_code != 200:
         pytest.fail("Failed to wait for server to be up")
@@ -44,9 +44,7 @@ def bundle():
 
 def test_observation_loinc_is_harmonized(smart, bundle):
     response_json = bundle.create(smart.server)
-
     observation_response = b.Bundle(response_json).entry[0].resource
-
     quantity = observation_response.valueQuantity
 
     assert quantity.value == 113.526
@@ -60,28 +58,24 @@ def test_observation_is_pseudonymized(smart, bundle):
     subject_id_part = (
         bundle.entry[0].resource.subject.processedReferenceIdentifier().split("/")[1]
     )
-
     response_json = bundle.create(smart.server)
-
     bundle_response = b.Bundle(response_json)
     observation_response = bundle_response.entry[0].resource
 
     assert (
         not encounter_id_part
-            in observation_response.encounter.processedReferenceIdentifier()
+        in observation_response.encounter.processedReferenceIdentifier()
     )
 
     assert (
         not subject_id_part
-            in observation_response.subject.processedReferenceIdentifier()
+        in observation_response.subject.processedReferenceIdentifier()
     )
 
 
 def test_patient_is_pseudonymized(smart, bundle):
     patient_id = bundle.entry[1].resource.id
-
     response_json = bundle.create(smart.server)
-
     bundle_response = b.Bundle(response_json)
 
-    assert not patient_id in bundle_response.entry[1].request.url
+    assert not patient_id in bundle_response.entry[1].resource.id

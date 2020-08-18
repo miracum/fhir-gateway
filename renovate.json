@@ -1,12 +1,17 @@
 {
-  "extends": [":preserveSemverRanges", "group:all"],
+  "extends": [
+    ":preserveSemverRanges",
+    "group:all"
+  ],
   "schedule": "before 3am on Wednesday",
   "groupName": "all dependencies",
   "separateMajorMinor": true,
   "groupSlug": "all",
   "packageRules": [
     {
-      "packagePatterns": ["*"],
+      "packagePatterns": [
+        "*"
+      ],
       "groupName": "all dependencies",
       "groupSlug": "all"
     }

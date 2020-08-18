@@ -3,69 +3,123 @@ version: "3.7"
 services:
   gateway:
     image: docker.miracum.org/miracum-etl/fhir-gateway:$IMAGE_TAG
-    ports:
-      - 18080:8080
+    restart: on-failure
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
-      SERVICES_GPAS_ENABLED: ${SERVICES_GPAS_ENABLED:-true}
-      SERVICES_GPAS_API_URL: ${SERVICES_GPAS_API_URL:-http://gpas:8080/gpas/gpasService?wsdl}
-      SERVICES_GPAS_DOMAINS_PATIENT: ${SERVICES_GPAS_DOMAINS_PATIENT:-PSN-REPO-PID}
-      SERVICES_GPAS_DOMAINS_CASE: ${SERVICES_GPAS_DOMAINS_CASE:-PSN-REPO-CID}
-      SERVICES_GPAS_DOMAINS_REPORT: ${SERVICES_GPAS_DOMAINS_REPORT:-PSN-REPO-REPID}
-      SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/conversions}
+      SERVICES_PSEUDONYMIZER_ENABLED: ${SERVICES_PSEUDONYMIZER_ENABLED:-true}
+      SERVICES_PSEUDONYMIZER_URL: ${SERVICES_PSEUDONYMIZER_URL:-http://fhir-pseudonymizer:8080/fhir}
+      SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/api/v1}
       SERVICES_FHIRSERVER_URL: ${SERVICES_FHIRSERVER_URL:-http://fhir-server:8080/fhir}
       SERVICES_FHIRSERVER_ENABLED: ${SERVICES_FHIRSERVER_ENABLED:-false}
       SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
+      OPENTRACING_JAEGER_ENABLED: ${OPENTRACING_JAEGER_ENABLED:-true}
+      OPENTRACING_JAEGER_UDP_SENDER_HOST: ${OPENTRACING_JAEGER_UDP_SENDER_HOST:-jaeger}
     depends_on:
       - loinc-converter
       - fhir-db
+      - jaeger
+      - fhir-pseudonymizer
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.18
+
+  fhir-pseudonymizer:
+    image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:v1.2.1
+    environment:
+      JAEGER__HOST: jaeger
+      JAEGER__PORT: 6831
+      GPAS__URL: ${GPAS_URL:-http://gpas:8080/gpas/gpasService}
+    volumes:
+      - ./anonymization.yaml:/etc/anonymization.yaml:ro
+    depends_on:
+      - jaeger
       - gpas
 
-  gateway-healthcheck:
-    image: alpine:3.12
-    entrypoint: /bin/sh
-    tty: true
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--tries=1",
-          "--spider",
-          "http://gateway:8080/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    depends_on:
-      - gateway
-
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.4
+    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.9.2
+    environment:
+      JAEGER_AGENT_HOST: jaeger
+    depends_on:
+      - jaeger
 
   fhir-db:
-    image: postgres:12.3
-    ports:
-      - 15432:5432
+    image: postgres:12.4
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
 
-  fhir-server:
-    image: docker.miracum.org/miracum-data/hapi-fhir-jpaserver:v8.1.1
-    ports:
-      - 8082:8080
-    environment:
-      SERVER_NAME: ${SERVER_NAME:-HAPI FHIR Server}
-      SERVER_ADDRESS: ${SERVER_ADDRESS:-http://localhost:8082/fhir}
-
   gpas:
     image: tmfev/gpas:1.9.1
     environment:
-      JAVA_OPTS: -Xms512m -Xmx4G -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true
-    ports:
-      - 18081:8080
+      JAVA_OPTS: >-
+        -Xms512m
+        -Xmx1G
+        -XX:MetaspaceSize=96M
+        -XX:MaxMetaspaceSize=256m
+        -Djava.net.preferIPv4Stack=true
+        -Djava.awt.headless=true
+
+  fhir-server:
+    image: docker.miracum.org/miracum-data/hapi-fhir-jpaserver:v8.1.1
+    environment:
+      SERVER_ADDRESS: ${FHIR_SERVER_ADDRESS:-http://localhost:8082/fhir}
+
+  gpasinit-patient:
+    image: curlimages/curl:7.71.1
+    command: |
+      -X POST
+      -H 'Content-Type:application/xml'
+      -d '<?xml version="1.0" encoding="UTF-8"?>
+          <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:psn="http://psn.ttp.ganimed.icmvc.emau.org/">
+            <soapenv:Header/>
+              <soapenv:Body>
+                <psn:addDomain>
+                  <domainDTO>
+                    <name>PATIENT</name>
+                    <checkDigitClass>org.emau.icmvc.ganimed.ttp.psn.generator.ReedSolomonLagrange</checkDigitClass>
+                    <alphabet>org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol31</alphabet>
+                    <properties>PSN_LENGTH=31;PSN_PREFIX=p;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
+                    <comment>PATIENT Domain</comment>
+                  </domainDTO>
+                </psn:addDomain>
+            </soapenv:Body>
+          </soapenv:Envelope>'
+      --retry-connrefuse
+      --connect-timeout 10
+      --max-time 60
+      --retry 5
+      --retry-delay 10
+      http://gpas:8080/gpas/DomainService
+    depends_on:
+      - gpas
+
+  gpasinit-fall:
+    image: curlimages/curl:7.71.1
+    command: |
+      -X POST
+      -H 'Content-Type:application/xml'
+      -d '<?xml version="1.0" encoding="UTF-8"?>
+          <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:psn="http://psn.ttp.ganimed.icmvc.emau.org/">
+            <soapenv:Header/>
+              <soapenv:Body>
+                <psn:addDomain>
+                  <domainDTO>
+                    <name>FALL</name>
+                    <checkDigitClass>org.emau.icmvc.ganimed.ttp.psn.generator.ReedSolomonLagrange</checkDigitClass>
+                    <alphabet>org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol31</alphabet>
+                    <properties>PSN_LENGTH=31;PSN_PREFIX=f;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
+                    <comment>FALL Domain</comment>
+                  </domainDTO>
+                </psn:addDomain>
+            </soapenv:Body>
+          </soapenv:Envelope>'
+      --retry-connrefuse
+      --connect-timeout 10
+      --max-time 60
+      --retry 5
+      --retry-delay 10
+      http://gpas:8080/gpas/DomainService
+    depends_on:
+      - gpas

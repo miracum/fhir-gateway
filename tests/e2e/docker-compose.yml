@@ -1,34 +1,16 @@
 version: "3.7"
 
 services:
-  gateway:
-    image: docker.miracum.org/miracum-etl/fhir-gateway:$IMAGE_TAG
+  tester:
+    build: .
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fhir
-      SPRING_DATASOURCE_URL_USERNAME: postgres
-      SPRING_DATASOURCE_URL_PASSWORD: postgres
-      SERVICES_LOINC_CONVERSIONS_URL: http://loinc-converter:8080/conversions
-      SERVICES_LOINC_CONVERSIONS_HEALTHCHECK: http://loinc-converter:8080/health
-      SERVICES_GPAS_API_URL: http://gpas:8080/gpas/gpasService?wsdl
-      SERVICES_GPAS_DOMAINS_PATIENT: TEST
-      SERVICES_GPAS_DOMAINS_CASE: TEST
-      SERVICES_GPAS_DOMAINS_REPORT: TEST
+      FHIR_SERVER_URL: "http://gateway:8080/fhir"
     depends_on:
-      - db
-      - loinc-converter
-      - gpas
+      - gateway
 
-  db:
-    image: postgres:12.3
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fhir
-
-  loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:v1.8.4
-
-  gpas:
-    image: tmfev/gpas:1.9.1
+  fhir-pseudonymizer:
+    volumes:
+      - ${PWD}/deploy/anonymization.yaml:/etc/anonymization.yaml:ro
 
   gpasinit:
     image: curlimages/curl:7.71.1
@@ -40,11 +22,11 @@ services:
       <soapenv:Body>
       <psn:addDomain>
       <domainDTO>
-      <name>TEST</name>
+      <name>PATIENT</name>
       <checkDigitClass>org.emau.icmvc.ganimed.ttp.psn.generator.ReedSolomonLagrange</checkDigitClass>
       <alphabet>org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol31</alphabet>
-      <properties>PSN_LENGTH=10;PSN_PREFIX=TEST-ID.;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
-      <comment>DEV Domain</comment>
+      <properties>PSN_LENGTH=10;PSN_PREFIX=DEV-ID.;INCLUDE_PREFIX_IN_CHECK_DIGIT_CALCULATION=false;PSNS_DELETABLE=true;MAX_DETECTED_ERRORS=2;</properties>
+      <comment>PATIENT Domain</comment>
       </domainDTO>
       </psn:addDomain>
       </soapenv:Body>
@@ -57,11 +39,3 @@ services:
       http://gpas:8080/gpas/DomainService
     depends_on:
       - gpas
-      - db
-
-  tester:
-    build: .
-    environment:
-      FHIR_SERVER_URL: "http://gateway:8080/fhir"
-    depends_on:
-      - gateway

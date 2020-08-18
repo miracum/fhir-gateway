@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class FhirGatewayApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(FhirGatewayApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(FhirGatewayApplication.class, args);
+  }
 }
