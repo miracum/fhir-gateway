@@ -19,8 +19,20 @@ e2e:
   before_script:
     - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
   script:
-    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml build
-    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run gpasinit
-    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml run tester
+    - docker-compose
+        -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e
+        -f deploy/docker-compose.yml
+        -f tests/e2e/docker-compose.yml
+        --project-directory=tests/e2e build
+    - docker-compose
+        -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e
+        -f deploy/docker-compose.yml
+        -f tests/e2e/docker-compose.yml
+        --project-directory=tests/e2e run gpasinit
+    - docker-compose
+        -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e
+        -f deploy/docker-compose.yml
+        -f tests/e2e/docker-compose.yml
+        --project-directory=tests/e2e run tester
   after_script:
-    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+    - docker-compose -p $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans

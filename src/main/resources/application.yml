@@ -2,13 +2,20 @@ management:
   endpoint:
     health:
       show-details: always
-  health:
-    probes:
-      enabled: true
+      probes:
+        enabled: true
   endpoints:
     web:
       exposure:
         include: "*"
+  health:
+    livenessstate:
+      enabled: true
+    readynessstate:
+      enabled: true
+
+management.endpoint.health.group.liveness.include: livenessStateProbeIndicator,refreshScope,diskSpace
+management.endpoint.health.group.readiness.include: readinessStateProbeIndicator
 
 spring:
   datasource:
@@ -17,29 +24,30 @@ spring:
     password: postgres
     schema: classpath:/schema.sql
     initialization-mode: always
+  application:
+    name: "fhir-gateway"
 
 services:
   loinc:
     conversions:
-      url: "http://localhost:8083/conversions"
+      url: "http://loinc-converter:8080/api/v1"
       enabled: true
+      failOnError: false
+  pseudonymizer:
+    enabled: true
+    url: "http://fhir-pseudonymizer:8080/fhir"
   fhirServer:
-    url: "http://localhost:8082/fhir"
+    url: "http://fhir-server:8080/fhir"
     enabled: false
   psql:
-    enabled: true
-  gpas:
-    domains:
-      patient: "DEV"
-      case: "DEV"
-      report: "DEV"
-    api:
-      url: "http://localhost:8084/gpas/gpasService?wsdl"
     enabled: true
 
 fhir:
   systems:
-    encounterId: "https://miracum.org/fhir/NamingSystem/identifier/EncounterId"
-    patientId: "https://miracum.org/fhir/NamingSystem/identifier/PatientId"
-    insuranceNumber: "http://fhir.de/CodeSystem/identifier-type-de-basis"
-    reportId: "https://miracum.org/fhir/NamingSystem/identifier/ReportId"
+    loinc: "http://loinc.org"
+
+opentracing:
+  jaeger:
+    udp-sender:
+      host: localhost
+    log-spans: false

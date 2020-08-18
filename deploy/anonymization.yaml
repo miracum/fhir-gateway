@@ -1,0 +1,26 @@
+---
+fhirVersion: R4
+fhirPathRules:
+  - path: Resource.id
+    method: cryptoHash
+  - path: nodesByType('Reference').display
+    method: redact
+  - path: nodesByType('Reference').reference
+    method: cryptoHash
+  - path: nodesByType('HumanName')
+    method: redact
+  - path: Resource.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='MR').value
+    method: pseudonymize
+    domain: PATIENT
+  - path: Resource.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='VN').value
+    method: pseudonymize
+    domain: FALL
+parameters:
+  dateShiftKey: ""
+  dateShiftScope: resource
+  cryptoHashKey: miracum
+  encryptKey: ""
+  enablePartialAgesForRedact: true
+  enablePartialDatesForRedact: true
+  enablePartialZipCodesForRedact: true
+  restrictedZipCodeTabulationAreas: []

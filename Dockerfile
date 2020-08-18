@@ -1,8 +1,13 @@
-FROM gradle:6.5-jdk11 AS build
+FROM gradle:6.6-jdk11 AS build
 WORKDIR /home/gradle/src
+ENV GRADLE_USER_HOME /gradle
+
+COPY build.gradle settings.gradle ./
+RUN gradle build || true
+
 COPY --chown=gradle:gradle . .
 RUN gradle build --info && \
-    gradle jacocoTestReport &&  \
+    gradle jacocoTestReport && \
     awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/jacoco/coverage.csv && \
     java -Djarmode=layertools -jar build/libs/*.jar extract
 
@@ -10,7 +15,6 @@ FROM gcr.io/distroless/java:11
 WORKDIR /opt/fhir-gateway
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./
-COPY --from=build /home/gradle/src/snapshot-dependencies/ ./
 COPY --from=build /home/gradle/src/application/ ./
 
 USER 65532

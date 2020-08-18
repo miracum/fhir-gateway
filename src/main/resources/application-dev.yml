@@ -1,0 +1,25 @@
+logging:
+  level:
+    org:
+      miracum: debug
+
+services:
+  loinc:
+    conversions:
+      url: "http://localhost:19090/api/v1"
+      enabled: true
+      failOnError: false
+  pseudonymizer:
+    enabled: true
+    url: "http://localhost:5000/fhir"
+  fhirServer:
+    url: "http://localhost:8082/fhir"
+    enabled: false
+  psql:
+    enabled: true
+
+opentracing:
+  jaeger:
+    probabilistic-sampler:
+      sampling-rate: 1
+    log-spans: true
