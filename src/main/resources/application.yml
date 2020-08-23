@@ -14,9 +14,6 @@ management:
     readynessstate:
       enabled: true
 
-management.endpoint.health.group.liveness.include: livenessStateProbeIndicator,refreshScope,diskSpace
-management.endpoint.health.group.readiness.include: readinessStateProbeIndicator
-
 spring:
   datasource:
     url: jdbc:postgresql://localhost:15432/fhir
@@ -24,9 +21,6 @@ spring:
     password: postgres
     schema: classpath:/schema.sql
     initialization-mode: always
-    hikari:
-      leakDetectionThreshold: 5000
-      maxLifetime: 900000
   application:
     name: "fhir-gateway"
 
