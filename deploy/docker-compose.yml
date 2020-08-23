@@ -62,12 +62,12 @@ services:
         -Djava.awt.headless=true
 
   fhir-server:
-    image: docker.miracum.org/miracum-data/hapi-fhir-jpaserver:v8.1.1
+    image: docker.miracum.org/miracum-data/hapi-fhir-jpaserver:v8.1.3
     environment:
       SERVER_ADDRESS: ${FHIR_SERVER_ADDRESS:-http://localhost:8082/fhir}
 
   gpasinit-patient:
-    image: curlimages/curl:7.71.1
+    image: curlimages/curl:7.72.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -96,7 +96,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.71.1
+    image: curlimages/curl:7.72.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
