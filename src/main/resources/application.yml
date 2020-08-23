@@ -25,7 +25,7 @@ spring:
     schema: classpath:/schema.sql
     initialization-mode: always
     hikari:
-      leakDetectionThreshold: 5000  
+      leakDetectionThreshold: 5000
       maxLifetime: 900000
   application:
     name: "fhir-gateway"
