@@ -3,7 +3,6 @@ package org.miracum.etl.fhirgateway;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
 import io.jaegertracing.internal.propagation.TraceContextCodec;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.opentracing.Span;
 import io.opentracing.contrib.java.spring.jaeger.starter.TracerBuilderCustomizer;
 import io.opentracing.contrib.okhttp3.OkHttpClientSpanDecorator;
@@ -19,7 +18,6 @@ import org.miracum.etl.fhirgateway.processors.FhirPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.IPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.NoopPseudonymizer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,12 +78,6 @@ public class AppConfig {
 
     fhirContext.setRestfulClientFactory(okHttpFactory);
     return fhirContext;
-  }
-
-  @Bean
-  public MeterRegistryCustomizer<MeterRegistry> injectAppLabel(
-      @Value("${spring.application.name}") String name) {
-    return registry -> registry.config().commonTags("appname", name);
   }
 
   @Bean

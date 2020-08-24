@@ -14,6 +14,7 @@ services:
       SERVICES_FHIRSERVER_URL: ${SERVICES_FHIRSERVER_URL:-http://fhir-server:8080/fhir}
       SERVICES_FHIRSERVER_ENABLED: ${SERVICES_FHIRSERVER_ENABLED:-false}
       SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
+      SERVICES_KAFKA_ENABLED: ${SERVICES_KAFKA_ENABLED:-true}
       OPENTRACING_JAEGER_ENABLED: ${OPENTRACING_JAEGER_ENABLED:-true}
       OPENTRACING_JAEGER_UDP_SENDER_HOST: ${OPENTRACING_JAEGER_UDP_SENDER_HOST:-jaeger}
     depends_on:
@@ -21,6 +22,7 @@ services:
       - fhir-db
       - jaeger
       - fhir-pseudonymizer
+      - kafka1
 
   jaeger:
     image: jaegertracing/all-in-one:1.18
@@ -123,3 +125,38 @@ services:
       http://gpas:8080/gpas/DomainService
     depends_on:
       - gpas
+
+  zoo1:
+    image: zookeeper:3.4.9
+    restart: unless-stopped
+    hostname: zoo1
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_PORT: 2181
+      ZOO_SERVERS: server.1=zoo1:2888:3888
+
+  kafka1:
+    image: confluentinc/cp-kafka:5.5.1
+    hostname: kafka1
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zoo1
+
+  mock-data-loader:
+    image: confluentinc/cp-kafkacat:5.5.1
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      [
+        "while true; do kafkacat -b kafka1:19092 -t fhir-raw -P -l /data/mock-data.ndjson; sleep 5; done",
+      ]
+    volumes:
+      - ./mock-data.ndjson:/data/mock-data.ndjson:ro
+    depends_on:
+      - kafka1

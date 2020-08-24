@@ -17,9 +17,19 @@ services:
     enabled: false
   psql:
     enabled: true
+  kafka:
+    enabled: true
 
 opentracing:
   jaeger:
     probabilistic-sampler:
       sampling-rate: 1
     log-spans: true
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:15432/fhir
+    username: postgres
+    password: postgres
+  kafka:
+    bootstrapServers: localhost:9092
