@@ -19,8 +19,9 @@ COPY --from=build /home/gradle/src/application/ ./
 
 USER 65532
 ARG VERSION=0.0.0
-ENV APP_VERSION=${VERSION}
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=90", "org.springframework.boot.loader.JarLauncher"]
+ENV APP_VERSION=${VERSION} \
+    SPRING_PROFILES_ACTIVE="prod"
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=85", "org.springframework.boot.loader.JarLauncher"]
 
 ARG GIT_REF=""
 ARG BUILD_TIME=""

@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  mock-data-loader:
+    image: confluentinc/cp-kafkacat:5.5.1
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      [
+        "while true; do kafkacat -b kafka1:19092 -t fhir-raw -P -l /data/mock-data.ndjson; sleep 5; done",
+      ]
+    volumes:
+      - ./mock-data.ndjson:/data/mock-data.ndjson:ro
+    depends_on:
+      - kafka1
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.27.0
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka1:19092"
+      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+      - "kafka1"

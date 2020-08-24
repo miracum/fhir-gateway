@@ -15,29 +15,64 @@ management:
       enabled: true
 
 spring:
+  profiles:
+    active: dev
   datasource:
-    url: jdbc:postgresql://localhost:15432/fhir
-    username: postgres
-    password: postgres
+    url: ""
+    username: ""
+    password: ""
     schema: classpath:/schema.sql
     initialization-mode: always
   application:
     name: "fhir-gateway"
-
+  kafka:
+    bootstrapServers: ${BOOTSTRAP_SERVERS}
+    security.protocol: ${SECURITY_PROTOCOL:PLAINTEXT}
+    ssl:
+      trust-store-type: PKCS12
+      trust-store-location: file://${SSL_TRUST_STORE:/opt/kafka-certs/ca.p12}
+      trust-store-password: ${SSL_TRUST_STORE_PASSWORD}
+      key-store-type: PKCS12
+      key-store-location: file://${SSL_KEY_STORE_FILE:/opt/kafka-certs/user.p12}
+      key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    producer:
+      compression-type: gzip
+  cloud:
+    stream:
+      function.definition: processFhir
+      bindings:
+        processFhir-in-0:
+          destination: ${INPUT_TOPIC:fhir-raw}
+          group: ${GROUP_ID:fhir-gateway}
+      kafka:
+        default:
+          consumer:
+            enableDlq: true
+            dlqProducerProperties:
+              configuration:
+                key.serializer: org.apache.kafka.common.serialization.StringSerializer
+                value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
+        bindings:
+          processFhir-in-0:
+            consumer:
+              configuration:
+                value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
 services:
   loinc:
     conversions:
-      url: "http://loinc-converter:8080/api/v1"
+      url: ""
       enabled: true
       failOnError: false
   pseudonymizer:
     enabled: true
-    url: "http://fhir-pseudonymizer:8080/fhir"
+    url: ""
   fhirServer:
-    url: "http://fhir-server:8080/fhir"
+    url: ""
     enabled: false
   psql:
     enabled: true
+  kafka:
+    enabled: false
 
 fhir:
   systems:
