@@ -25,7 +25,7 @@ services:
       - kafka1
 
   jaeger:
-    image: jaegertracing/all-in-one:1.18
+    image: jaegertracing/all-in-one:1.19
 
   fhir-pseudonymizer:
     image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:v1.2.1
@@ -127,7 +127,7 @@ services:
       - gpas
 
   zoo1:
-    image: zookeeper:3.4.9
+    image: zookeeper:3.6.1
     restart: unless-stopped
     hostname: zoo1
     environment:
