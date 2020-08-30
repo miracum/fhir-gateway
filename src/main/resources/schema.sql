@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS resources
     data            jsonb       NOT NULL,
     created_at      timestamp   NOT NULL DEFAULT NOW(),
     last_updated_at timestamp   NOT NULL DEFAULT NOW(),
+    is_deleted      boolean     NOT NULL DEFAULT FALSE,
     CONSTRAINT fhir_id_unique UNIQUE (fhir_id, type)
 );
 
