@@ -9,12 +9,12 @@ fhirPathRules:
     method: cryptoHash
   - path: nodesByType('HumanName')
     method: redact
-  - path: Resource.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='MR').value
-    method: pseudonymize
-    domain: PATIENT
-  - path: Resource.identifier.where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='VN').value
+  - path: nodesByType('Identifier').where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='VN').value
     method: pseudonymize
     domain: FALL
+  - path: nodesByType('Identifier').where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='MR').value
+    method: pseudonymize
+    domain: PATIENT
 parameters:
   dateShiftKey: ""
   dateShiftScope: resource
