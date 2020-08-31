@@ -1,10 +1,6 @@
 version: "3.7"
 
 services:
-  kafka1:
-    ports:
-      - 9092:9092
-
   gateway:
     ports:
       - 18080:8080
