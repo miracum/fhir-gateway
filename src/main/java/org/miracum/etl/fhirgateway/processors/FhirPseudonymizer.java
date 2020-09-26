@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.HashMap;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
@@ -42,6 +43,17 @@ public class FhirPseudonymizer implements IPseudonymizer {
   public Bundle process(Bundle bundle) {
     LOGGER.debug("Invoking pseudonymization service @ {}", pseudonymizerUrl);
 
-    return retryTemplate.execute(ctx -> client.transaction().withBundle(bundle).execute());
+    var param = new Parameters();
+    param.addParameter().setName("resource").setResource(bundle);
+
+    return retryTemplate.execute(
+        ctx ->
+            client
+                .operation()
+                .onServer()
+                .named("$pseudonymize")
+                .withParameters(param)
+                .returnResourceType(Bundle.class)
+                .execute());
   }
 }

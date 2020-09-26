@@ -47,7 +47,6 @@ spring:
       kafka:
         default:
           consumer:
-            enableDlq: true
             dlqProducerProperties:
               configuration:
                 key.serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -55,6 +54,7 @@ spring:
         bindings:
           processFhir-in-0:
             consumer:
+              enableDlq: true
               configuration:
                 value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
 services:
@@ -87,3 +87,6 @@ opentracing:
 logging:
   level:
     com.zaxxer.hikari: DEBUG
+
+app:
+  version: 0.0.0-dev
