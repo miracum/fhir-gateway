@@ -40,7 +40,7 @@ services:
       - gpas
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.3
+    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.4
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
