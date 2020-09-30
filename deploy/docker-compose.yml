@@ -25,10 +25,10 @@ services:
       - fhir-pseudonymizer
 
   jaeger:
-    image: jaegertracing/all-in-one:1.19
+    image: jaegertracing/all-in-one:1.20
 
   fhir-pseudonymizer:
-    image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:v1.4.2
+    image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:1.5.0
     environment:
       JAEGER__HOST: jaeger
       JAEGER__PORT: 6831
