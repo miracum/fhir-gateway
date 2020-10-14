@@ -40,7 +40,7 @@ services:
       - gpas
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.4
+    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.5
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
@@ -69,7 +69,7 @@ services:
       SERVER_ADDRESS: ${FHIR_SERVER_ADDRESS:-http://localhost:8082/fhir}
 
   gpasinit-patient:
-    image: curlimages/curl:7.72.0
+    image: curlimages/curl:7.73.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -98,7 +98,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.72.0
+    image: curlimages/curl:7.73.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
