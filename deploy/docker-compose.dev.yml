@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   mock-data-loader:
-    image: confluentinc/cp-kafkacat:5.5.1
+    image: confluentinc/cp-kafkacat:5.5.2
     entrypoint: ["/bin/bash", "-c"]
     command:
       [
@@ -34,7 +34,7 @@ services:
       ZOO_SERVERS: server.1=zoo1:2888:3888
 
   kafka1:
-    image: confluentinc/cp-kafka:5.5.1
+    image: confluentinc/cp-kafka:5.5.2
     hostname: kafka1
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
