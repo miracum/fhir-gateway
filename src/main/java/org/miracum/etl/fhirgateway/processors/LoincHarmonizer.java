@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Quantity;
 import org.miracum.etl.fhirgateway.FhirSystemsConfig;
@@ -20,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 
 @Service
 public class LoincHarmonizer {
@@ -136,20 +138,26 @@ public class LoincHarmonizer {
   }
 
   private Pair<Quantity, String> getHarmonizedQuantity(Quantity input, String loincCode) {
+
     var requestUrl =
         UriComponentsBuilder.fromUri(loincConverterBaseUri)
             .path("/conversions")
-            .queryParam("loinc", loincCode)
-            .queryParam("unit", input.getUnit())
-            .queryParam("value", input.getValue())
+            .queryParam("loinc", "{loinc}")
+            .queryParam("unit", "{unit}")
+            .queryParam("value", "{value}")
             .build()
-            .encode()
-            .toUri();
-
-    log.debug("Invoking harmonization service @ {}", requestUrl);
+            .toUriString();
 
     var response =
-        retryTemplate.execute(ctx -> restTemplate.getForObject(requestUrl, LoincConversion.class));
+        retryTemplate.execute(
+            ctx -> {
+              var templateVars =
+                  Map.of("loinc", loincCode, "unit", input.getUnit(), "value", input.getValue());
+              log.debug(
+                  "Invoking LOINC harmonization service @ requestUrl={}",
+                  new UriTemplate(requestUrl).expand(templateVars));
+              return restTemplate.getForObject(requestUrl, LoincConversion.class, templateVars);
+            });
 
     if (response == null) {
       throw new RuntimeException("LOINC conversion service returned empty result.");

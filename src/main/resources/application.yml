@@ -39,11 +39,14 @@ spring:
       compression-type: gzip
   cloud:
     stream:
-      function.definition: processFhir
+      function.definition: process
       bindings:
-        processFhir-in-0:
-          destination: ${INPUT_TOPIC:fhir-raw}
+        process-in-0:
+          consumer:
+            concurrency: ${CONSUMER_CONCURRENCY:1}
+          destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
+          useNativeDecoding: true
       kafka:
         default:
           consumer:
@@ -52,11 +55,12 @@ spring:
                 key.serializer: org.apache.kafka.common.serialization.StringSerializer
                 value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
         bindings:
-          processFhir-in-0:
+          process-in-0:
             consumer:
               enableDlq: true
               configuration:
                 value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+
 services:
   loinc:
     conversions:
@@ -83,10 +87,6 @@ opentracing:
     udp-sender:
       host: localhost
     log-spans: false
-
-logging:
-  level:
-    com.zaxxer.hikari: DEBUG
 
 app:
   version: 0.0.0-dev

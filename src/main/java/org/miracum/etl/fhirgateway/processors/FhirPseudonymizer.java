@@ -51,7 +51,7 @@ public class FhirPseudonymizer implements IPseudonymizer {
             client
                 .operation()
                 .onServer()
-                .named("$pseudonymize")
+                .named("de-identify")
                 .withParameters(param)
                 .returnResourceType(Bundle.class)
                 .execute());

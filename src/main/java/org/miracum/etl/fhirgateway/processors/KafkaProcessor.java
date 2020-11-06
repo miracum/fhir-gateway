@@ -2,7 +2,6 @@ package org.miracum.etl.fhirgateway.processors;
 
 import java.util.UUID;
 import java.util.function.Consumer;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Resource;
@@ -27,12 +26,14 @@ public class KafkaProcessor {
   }
 
   @Bean
-  public Consumer<IBaseResource> processFhir() {
+  public Consumer<Resource> process() {
     return resource -> {
       if (resource == null) {
         LOG.warn("resource is null. Ignoring.");
         return;
       }
+
+      LOG.debug("Processing resourceId={}", resource.getId());
 
       var bundle = new Bundle();
       if (resource instanceof Bundle) {
@@ -40,7 +41,7 @@ public class KafkaProcessor {
       } else {
         bundle.setType(BundleType.TRANSACTION);
         bundle.setId(UUID.randomUUID().toString());
-        bundle.addEntry().setResource((Resource) resource);
+        bundle.addEntry().setResource(resource);
       }
 
       pipeline.process(bundle);

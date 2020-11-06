@@ -6,23 +6,12 @@ services:
     entrypoint: ["/bin/bash", "-c"]
     command:
       [
-        "while true; do kafkacat -b kafka1:19092 -t fhir-raw -P -l /data/mock-data.ndjson; sleep 5; done",
+        "while true; do kafkacat -b kafka1:19092 -t fhir.all -P -l /data/mock-data.ndjson; sleep 5; done",
       ]
     volumes:
       - ./mock-data.ndjson:/data/mock-data.ndjson:ro
     depends_on:
       - kafka1
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop:3.27.0
-    restart: "no"
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka1:19092"
-      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
-    depends_on:
-      - "kafka1"
 
   zoo1:
     image: zookeeper:3.6.2
@@ -31,11 +20,13 @@ services:
     environment:
       ZOO_MY_ID: 1
       ZOO_PORT: 2181
-      ZOO_SERVERS: server.1=zoo1:2888:3888
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181
 
   kafka1:
     image: confluentinc/cp-kafka:5.5.2
     hostname: kafka1
+    ports:
+      - "9092:9092"
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
@@ -44,7 +35,14 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    ports:
-      - 9092:9092
     depends_on:
       - zoo1
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.27.0
+    ports:
+      - "8090:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka1:19092"
+    depends_on:
+      - kafka1
