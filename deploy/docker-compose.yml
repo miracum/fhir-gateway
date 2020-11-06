@@ -28,7 +28,7 @@ services:
     image: jaegertracing/all-in-one:1.20
 
   fhir-pseudonymizer:
-    image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:1.5.0
+    image: docker.miracum.org/miracum-etl/fhir-pseudonymizer:1.6.0
     environment:
       JAEGER__HOST: jaeger
       JAEGER__PORT: 6831
@@ -40,7 +40,7 @@ services:
       - gpas
 
   loinc-converter:
-    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.5
+    image: docker.miracum.org/miracum-etl/loinc-conversion:1.9.9
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
