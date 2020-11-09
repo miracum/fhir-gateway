@@ -2,6 +2,7 @@ package org.miracum.etl.fhirgateway;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
+import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import io.jaegertracing.internal.propagation.TraceContextCodec;
 import io.opentracing.Span;
 import io.opentracing.contrib.java.spring.jaeger.starter.TracerBuilderCustomizer;
@@ -18,13 +19,18 @@ import okhttp3.Response;
 import org.miracum.etl.fhirgateway.processors.FhirPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.IPseudonymizer;
 import org.miracum.etl.fhirgateway.processors.NoopPseudonymizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -35,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class AppConfig {
+  private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
 
   @Bean
   public FhirContext fhirContext() {
@@ -106,11 +113,24 @@ public class AppConfig {
     retryableExceptions.put(HttpClientErrorException.class, false);
     retryableExceptions.put(HttpServerErrorException.class, true);
     retryableExceptions.put(ResourceAccessException.class, true);
+    retryableExceptions.put(FhirClientConnectionException.class, true);
 
     var retryPolicy =
         isKafkaEnabled ? new AlwaysRetryPolicy() : new SimpleRetryPolicy(5, retryableExceptions);
 
     retryTemplate.setRetryPolicy(retryPolicy);
+
+    retryTemplate.registerListener(
+        new RetryListenerSupport() {
+          @Override
+          public <T, E extends Throwable> void onError(
+              RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
+            LOG.warn(
+                "HTTP Error occurred: {}. Retrying {}. attempt.",
+                throwable.getMessage(),
+                context.getRetryCount());
+          }
+        });
 
     return retryTemplate;
   }
