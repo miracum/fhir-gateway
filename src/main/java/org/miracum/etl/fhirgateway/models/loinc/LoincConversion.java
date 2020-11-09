@@ -3,11 +3,9 @@ package org.miracum.etl.fhirgateway.models.loinc;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.math.BigDecimal;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"loinc", "unit", "value", "id"})
 public class LoincConversion {
 
   @JsonProperty("loinc")
@@ -22,6 +20,9 @@ public class LoincConversion {
 
   @JsonProperty("id")
   private String id;
+
+  @JsonProperty("display")
+  private String display;
 
   @JsonProperty("loinc")
   public String getLoinc() {
@@ -64,6 +65,17 @@ public class LoincConversion {
   @JsonProperty("id")
   public LoincConversion setId(String id) {
     this.id = id;
+    return this;
+  }
+
+  @JsonProperty("display")
+  public String getDisplay() {
+    return display;
+  }
+
+  @JsonProperty("display")
+  public LoincConversion setDisplay(String display) {
+    this.display = display;
     return this;
   }
 

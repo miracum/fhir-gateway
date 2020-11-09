@@ -3,39 +3,39 @@ fhirVersion: R4
 fhirPathRules:
   - path: Patient.id
     method: pseudonymize
-    domain: PATIENT
+    domain: TEST
   - path: Encounter.id
     method: pseudonymize
-    domain: FALL
+    domain: TEST
   - path: nodesByType('Reference').where(reference.startsWith('Encounter/')).reference
     method: pseudonymize
-    domain: FALL
+    domain: TEST
   - path: nodesByType('Reference').where(reference.startsWith('Patient/')).reference
     method: pseudonymize
-    domain: PATIENT
+    domain: TEST
     # Bundle.entry.where(resource.ofType(Patient)).fullUrl is unfortunately not supported by the FhirPath implementation
   - path: Bundle.entry.where(fullUrl.startsWith('Patient/')).fullUrl
     method: pseudonymize
-    domain: PATIENT
+    domain: TEST
   - path: Bundle.entry.request.where(url.startsWith('Patient/')).url
     method: pseudonymize
-    domain: PATIENT
+    domain: TEST
   - path: Bundle.entry.where(fullUrl.startsWith('Encounter/')).fullUrl
     method: pseudonymize
-    domain: FALL
+    domain: TEST
   - path: Bundle.entry.request.where(url.startsWith('Encounter/')).url
     method: pseudonymize
-    domain: FALL
+    domain: TEST
   - path: nodesByType('Reference').display
     method: redact
   - path: nodesByType('HumanName')
     method: redact
   - path: nodesByType('Identifier').where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='VN').value
     method: pseudonymize
-    domain: FALL
+    domain: TEST
   - path: nodesByType('Identifier').where(type.coding.system='http://terminology.hl7.org/CodeSystem/v2-0203' and type.coding.code='MR').value
     method: pseudonymize
-    domain: PATIENT
+    domain: TEST
   - path: nodesByType('Identifier').where(type.coding.system='http://fhir.de/CodeSystem/identifier-type-de-basis' and type.coding.code='GKV' or type.coding.code='PKV')
     method: redact
 parameters:

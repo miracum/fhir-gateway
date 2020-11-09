@@ -47,6 +47,10 @@ spring:
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
           useNativeDecoding: true
+        process-out-0:
+          destination: ${OUTPUT_TOPIC:fhir.post-gateway}
+          producer:
+            useNativeEncoding: true
       kafka:
         default:
           consumer:
@@ -60,7 +64,10 @@ spring:
               enableDlq: true
               configuration:
                 value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
-
+          process-out-0:
+            producer:
+              configuration:
+                value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
 services:
   loinc:
     conversions:
