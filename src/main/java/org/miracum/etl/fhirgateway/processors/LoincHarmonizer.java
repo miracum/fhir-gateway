@@ -13,12 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
@@ -41,25 +37,17 @@ public class LoincHarmonizer {
       RestTemplate restTemplate,
       @Value("${services.loinc.conversions.url}") URI loincConverterUri,
       FhirSystemsConfig fhirSystems,
-      @Value("${services.loinc.conversions.failOnError}") boolean failOnError) {
+      @Value("${services.loinc.conversions.failOnError}") boolean failOnError,
+      RetryTemplate retryTemplate) {
     this.restTemplate = restTemplate;
     this.loincConverterBaseUri = loincConverterUri;
     this.fhirSystems = fhirSystems;
     this.failOnError = failOnError;
-    this.retryTemplate = new RetryTemplate();
-
-    var fixedBackOffPolicy = new FixedBackOffPolicy();
-    fixedBackOffPolicy.setBackOffPeriod(5_000);
-    retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-
-    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
-    retryableExceptions.put(HttpClientErrorException.class, false);
-    retryableExceptions.put(HttpServerErrorException.class, true);
-
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5, retryableExceptions));
+    this.retryTemplate = retryTemplate;
   }
 
   public Observation process(final Observation originalObservation) {
+
     var loincCode =
         originalObservation.getCode().getCoding().stream()
             .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
@@ -71,7 +59,7 @@ public class LoincHarmonizer {
     if (loincCode.isEmpty()
         || !originalObservation.hasValueQuantity()
         || !originalObservation.getValueQuantity().hasUnit()) {
-      return harmonized;
+      return originalObservation;
     }
 
     try {
@@ -81,12 +69,8 @@ public class LoincHarmonizer {
 
       if (result != null) {
         harmonized.setValue(result.getFirst());
-        harmonized.getCode().getCodingFirstRep().setCode(result.getSecond());
-
-        // if the LOINC code has changed, the display is most likely incorrect, just drop it
-        if (!originalCode.equals(result.getSecond())) {
-          harmonized.getCode().getCodingFirstRep().setDisplay(null);
-        }
+        harmonized.getCode().getCodingFirstRep().setCode(result.getSecond().getLoinc());
+        harmonized.getCode().getCodingFirstRep().setDisplay(result.getSecond().getDisplay());
       }
 
       if (!originalObservation.hasReferenceRange()) {
@@ -131,13 +115,14 @@ public class LoincHarmonizer {
       if (this.failOnError) {
         throw exc;
       }
+
       return originalObservation;
     }
 
     return harmonized;
   }
 
-  private Pair<Quantity, String> getHarmonizedQuantity(Quantity input, String loincCode) {
+  private Pair<Quantity, LoincConversion> getHarmonizedQuantity(Quantity input, String loincCode) {
 
     var requestUrl =
         UriComponentsBuilder.fromUri(loincConverterBaseUri)
@@ -169,7 +154,7 @@ public class LoincHarmonizer {
       quantity.setUnit(response.getUnit());
       quantity.setCode(response.getUnit());
       quantity.setSystem(input.getSystem());
-      return Pair.of(quantity, response.getLoinc());
+      return Pair.of(quantity, response);
     }
 
     return null;
