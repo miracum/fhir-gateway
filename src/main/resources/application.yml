@@ -68,6 +68,7 @@ spring:
             producer:
               configuration:
                 value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
+                compression.type: ${COMPRESSION_TYPE:gzip}
 services:
   loinc:
     conversions:
