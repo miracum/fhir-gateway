@@ -69,6 +69,11 @@ spring:
               configuration:
                 value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
                 compression.type: ${COMPRESSION_TYPE:gzip}
+          binder:
+            configuration:
+              max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
+              max.poll.records: ${MAX_POLL_RECORDS:500}
+
 services:
   loinc:
     conversions:
