@@ -63,10 +63,12 @@ spring:
             consumer:
               enableDlq: true
               configuration:
+                key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
                 value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
           process-out-0:
             producer:
               configuration:
+                key.serializer: org.apache.kafka.common.serialization.StringSerializer
                 value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
                 compression.type: ${COMPRESSION_TYPE:gzip}
           binder:

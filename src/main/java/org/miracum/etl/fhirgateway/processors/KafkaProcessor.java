@@ -10,7 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,19 +26,27 @@ public class KafkaProcessor {
   private final ResourcePipeline pipeline;
 
   @Autowired
-  public KafkaProcessor(ResourcePipeline pipeline) {
+  public KafkaProcessor(ResourcePipeline pipeline, StreamBridge streamBridge) {
     this.pipeline = pipeline;
   }
 
   @Bean
-  public Function<Resource, Resource> process() {
-    return resource -> {
-      if (resource == null) {
+  public Function<Message<Resource>, Message<Bundle>> process() {
+    return message -> {
+      if (message == null) {
         LOG.warn("resource is null. Ignoring.");
         return null;
       }
 
-      LOG.debug("Processing resourceId={}", resource.getId());
+      var incomingTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC);
+      var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, null);
+      var resource = message.getPayload();
+
+      LOG.debug(
+          "Processing resourceId={} from topic={} with key={}",
+          resource.getId(),
+          incomingTopic,
+          key);
 
       Bundle bundle;
       if (resource instanceof Bundle) {
@@ -52,7 +64,11 @@ public class KafkaProcessor {
             .setUrl(resource.getId());
       }
 
-      return pipeline.process(bundle);
+      var processed = pipeline.process(bundle);
+
+      return MessageBuilder.withPayload(processed)
+          .setHeaderIfAbsent(KafkaHeaders.MESSAGE_KEY, key)
+          .build();
     };
   }
 }
