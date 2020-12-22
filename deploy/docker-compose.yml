@@ -69,7 +69,7 @@ services:
       SERVER_ADDRESS: ${FHIR_SERVER_ADDRESS:-http://localhost:8082/fhir}
 
   gpasinit-patient:
-    image: curlimages/curl:7.73.0
+    image: curlimages/curl:7.74.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -98,7 +98,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.73.0
+    image: curlimages/curl:7.74.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
