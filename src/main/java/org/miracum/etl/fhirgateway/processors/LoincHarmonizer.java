@@ -58,7 +58,7 @@ public class LoincHarmonizer {
     // only process observation resources with a set quantity and code
     if (loincCode.isEmpty()
         || !originalObservation.hasValueQuantity()
-        || !originalObservation.getValueQuantity().hasUnit()) {
+        || !originalObservation.getValueQuantity().hasCode()) {
       return originalObservation;
     }
 
@@ -101,16 +101,18 @@ public class LoincHarmonizer {
       }
     } catch (Exception exc) {
       log.debug(
-          "LOINC harmonization failure for observation id={} (loinc={}; unit={}).",
+          "LOINC harmonization failure for observation id={} (loinc={}; unit={}; unitcode={}).",
           originalObservation.getId(),
           loincCode.orElse(null).getCode(),
           originalObservation.getValueQuantity().getUnit(),
+          originalObservation.getValueQuantity().getCode(),
           exc);
 
-      var unit = originalObservation.getValueQuantity().getUnit();
+      var unitcode = originalObservation.getValueQuantity().getCode();
       metricsLookup.putIfAbsent(
-          unit, Metrics.globalRegistry.counter(CONVERSION_ERROR_METRIC_NAME, "unit", unit));
-      metricsLookup.get(unit).increment();
+          unitcode,
+          Metrics.globalRegistry.counter(CONVERSION_ERROR_METRIC_NAME, "unitcode", unitcode));
+      metricsLookup.get(unitcode).increment();
 
       if (this.failOnError) {
         throw exc;
@@ -137,7 +139,7 @@ public class LoincHarmonizer {
         retryTemplate.execute(
             ctx -> {
               var templateVars =
-                  Map.of("loinc", loincCode, "unit", input.getUnit(), "value", input.getValue());
+                  Map.of("loinc", loincCode, "unit", input.getCode(), "value", input.getValue());
               log.debug(
                   "Invoking LOINC harmonization service @ requestUrl={}",
                   new UriTemplate(requestUrl).expand(templateVars));
