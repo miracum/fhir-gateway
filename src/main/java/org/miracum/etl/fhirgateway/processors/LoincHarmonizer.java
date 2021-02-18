@@ -1,5 +1,7 @@
 package org.miracum.etl.fhirgateway.processors;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.net.URI;
@@ -101,11 +103,10 @@ public class LoincHarmonizer {
       }
     } catch (Exception exc) {
       log.debug(
-          "LOINC harmonization failure for observation id={} (loinc={}; unit={}; unitcode={}).",
-          originalObservation.getId(),
-          loincCode.orElse(null).getCode(),
-          originalObservation.getValueQuantity().getUnit(),
-          originalObservation.getValueQuantity().getCode(),
+          "LOINC harmonization failure {}; {}; {}",
+          kv("loinc", loincCode.orElse(null).getCode()),
+          kv("unit", originalObservation.getValueQuantity().getUnit()),
+          kv("code", originalObservation.getValueQuantity().getCode()),
           exc);
 
       var unitcode = originalObservation.getValueQuantity().getCode();
@@ -141,8 +142,8 @@ public class LoincHarmonizer {
               var templateVars =
                   Map.of("loinc", loincCode, "unit", input.getCode(), "value", input.getValue());
               log.debug(
-                  "Invoking LOINC harmonization service @ requestUrl={}",
-                  new UriTemplate(requestUrl).expand(templateVars));
+                  "Invoking LOINC harmonization service @ {}",
+                  kv("requestUrl", new UriTemplate(requestUrl).expand(templateVars)));
               return restTemplate.getForObject(requestUrl, LoincConversion.class, templateVars);
             });
 

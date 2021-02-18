@@ -8,26 +8,13 @@ A thin layer between FHIR REST clients and resource processing pipelines.
 
 ## Run it
 
-Find the version tag of the latest release here: <https://gitlab.miracum.org/miracum/etl/fhir-gateway/-/releases> and set the IMAGE_TAG environment var to this version:
+See <https://github.com/num-codex/num-knoten> for an example deployment.
 
 ```sh
-export IMAGE_TAG=v3.0.0 # may no longer be the most recent version...
+curl -d @tests/e2e/data/bundle.json -H "Content-Type: application/json" -X POST http://localhost:18080/fhir
 ```
 
-Start via compose:
-
-```sh
-# adding -f deploy/docker-compose.exposed.yml is optional. It publishes relevant ports of the components to the host network.
-docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.exposed.yml up
-```
-
-This starts the gateway (<http://localhost:18080/fhir>), the LOINC conversion service, a PostgreSQL DB storing the received FHIR resources (<localhost:15432>), a GPAS pseudonymization service (<http://localhost:18081/gpas-web>), and the FHIR pseudonymizer. It creates two default PSN domains `PATIENT` and `FALL`.
-
-You can now start sending FHIR resources to <http://localhost:18080/fhir>, e.g.
-
-```sh
-curl -d @tests/e2e/data/bundle.json -H "Content-Type: application/json" -X POST http://localhost:18080/fhir/Observation
-```
+## Configuration
 
 To configure your deployment, you can change the following environment variables:
 
@@ -43,7 +30,16 @@ To configure your deployment, you can change the following environment variables
 | SERVICES_FHIRSERVER_ENABLED    | enables or disables sending to fhir server                                                                                                 | false                                     |
 | SERVICES_PSQL_ENABLED          | enables or disables sending to psql db                                                                                                     | true                                      |
 
-## Upgrading from v2 to v3
+For the Kafka configuration and other configuration options,
+see [application.yml](src/main/resources/application.yml).
 
-1. the DB schema has changed, you will need to either manually apply [schema.sql](src/main/java/resources/schema.sql) to an existing installation (the `last_updated_at` column was added), or drop the database and start again - when the FHIR-GW starts, it automatically creates the DB schema if it doesn't already exist.
-1. Pseudonymization now no longer happens in the FHIR-GW itself, instead it must be configured via the [anonymization.yaml](deploy/anonymization.yaml) file. Here, custom FHIRPath expressions may be used to specify which parts of a resource need to be pseudonymized (or redacted, or hashed).
+## Development
+
+Start all fixtures to run the FHIR GW:
+
+```shell
+docker-compose -f deploy/docker-compose.dev.yml -f deploy/docker-compose.yml -f deploy/docker-compose.exposed.yml up
+```
+
+Note that this contains a few optional services: Kafka, a FHIR server, gPAS. You might simplify the
+docker-compose.dev.yml and only include relevant components for development.
