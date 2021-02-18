@@ -1,9 +1,13 @@
 package org.miracum.etl.fhirgateway;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import io.jaegertracing.internal.propagation.TraceContextCodec;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import io.opentracing.Span;
 import io.opentracing.contrib.java.spring.jaeger.starter.TracerBuilderCustomizer;
 import io.opentracing.contrib.okhttp3.OkHttpClientSpanDecorator;
@@ -31,7 +35,6 @@ import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.listener.RetryListenerSupport;
-import org.springframework.retry.policy.AlwaysRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -71,7 +74,10 @@ public class AppConfig {
         new OkHttpClient.Builder()
             .addInterceptor(tracingInterceptor)
             .addNetworkInterceptor(tracingInterceptor)
+            .eventListener(
+                OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build())
             .build();
+
     var okHttpFactory = new OkHttpRestfulClientFactory(fhirContext);
     okHttpFactory.setHttpClient(okclient);
 
