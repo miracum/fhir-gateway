@@ -1,5 +1,7 @@
 package org.miracum.etl.fhirgateway.controllers;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +44,7 @@ public class FhirController {
   }
 
   @RequestMapping(method = {RequestMethod.POST})
-  public ResponseEntity<String> postFhirRoot(@RequestBody String body) throws Exception {
+  public ResponseEntity<String> postFhirRoot(@RequestBody String body) {
     if (body == null) {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -51,7 +53,7 @@ public class FhirController {
 
     if (resource instanceof Bundle) {
       var bundle = (Bundle) resource;
-      log.debug("Got bundle of size {}", bundle.getEntry().size());
+      log.debug("Got bundle of size {}", kv("bundleSize", bundle.getEntry().size()));
 
       if (bundle.isEmpty()) {
         log.debug("Received empty bundle");

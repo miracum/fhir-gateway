@@ -5,6 +5,7 @@ import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
 import org.miracum.etl.fhirgateway.stores.FhirServerResourceRepository;
 import org.miracum.etl.fhirgateway.stores.PostgresFhirResourceRepository;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,8 @@ public class ResourcePipeline {
   }
 
   public Bundle process(Bundle bundle) {
+    MDC.put("bundleId", bundle.getId());
+
     // pseudonymization should be the first task to ensure all other processors only
     // ever work with de-identified data.
     var pseudonymized = pseudonymizer.process(bundle);
@@ -59,8 +62,10 @@ public class ResourcePipeline {
         var resource = entry.getResource();
 
         if (resource instanceof Observation) {
-          var obs = loincHarmonizer.process((Observation) resource);
-          entry.setResource(obs);
+          try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
+            var obs = loincHarmonizer.process((Observation) resource);
+            entry.setResource(obs);
+          }
         }
       }
     }

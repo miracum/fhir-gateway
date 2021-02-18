@@ -1,5 +1,7 @@
 package org.miracum.etl.fhirgateway.processors;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.hl7.fhir.r4.model.Bundle;
@@ -24,7 +26,8 @@ public class FhirPseudonymizer implements IPseudonymizer {
 
   @Override
   public Bundle process(Bundle bundle) {
-    LOGGER.debug("Invoking pseudonymization service @ requestUrl={}", pseudonymizerUrl);
+    LOGGER.debug(
+        "Invoking pseudonymization service @ {}", kv("pseudonymizerUrl", pseudonymizerUrl));
 
     var param = new Parameters();
     param.addParameter().setName("resource").setResource(bundle);

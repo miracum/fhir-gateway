@@ -1,5 +1,7 @@
 package org.miracum.etl.fhirgateway.processors;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import java.util.UUID;
 import java.util.function.Function;
 import org.hl7.fhir.r4.model.Bundle;
@@ -43,10 +45,10 @@ public class KafkaProcessor {
       var resource = message.getPayload();
 
       LOG.debug(
-          "Processing resourceId={} from topic={} with key={}",
-          resource.getId(),
-          incomingTopic,
-          key);
+          "Processing {} from {} with {}",
+          kv("resourceId", resource.getId()),
+          kv("topic", incomingTopic),
+          kv("key", key));
 
       Bundle bundle;
       if (resource instanceof Bundle) {
