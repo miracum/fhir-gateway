@@ -9,6 +9,9 @@ check file tidiness:
   variables:
     IGNORE: ".git,*.min.js,*.min.css,*.drawio"
 
+build:
+  coverage: '/\d+.\d+ \% covered/'
+
 e2e:
   extends:
     - .job_defaults
