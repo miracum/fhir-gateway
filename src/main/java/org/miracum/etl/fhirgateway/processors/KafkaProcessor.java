@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnExpression(
-    "!T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
+    "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   @Autowired

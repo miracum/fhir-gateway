@@ -49,4 +49,19 @@ public class KafkaProcessorTests {
       assertThat(consumer).isInstanceOf(KafkaConsumer.class);
     }
   }
+
+  @Nested
+  @SpringBootTest
+  @ActiveProfiles("test")
+  @TestPropertySource(properties = {"services.kafka.enabled=false"})
+  public class KafkaDisabledTests {
+
+    @Autowired(required = false)
+    private BaseKafkaProcessor processor;
+
+    @Test
+    public void processorIsDisabled() {
+      assertThat(processor).isNull();
+    }
+  }
 }
