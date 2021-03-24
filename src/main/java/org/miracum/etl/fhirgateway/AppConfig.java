@@ -5,6 +5,8 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
 import io.jaegertracing.internal.propagation.TraceContextCodec;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
@@ -120,6 +122,8 @@ public class AppConfig {
     retryableExceptions.put(HttpServerErrorException.class, true);
     retryableExceptions.put(ResourceAccessException.class, true);
     retryableExceptions.put(FhirClientConnectionException.class, true);
+    retryableExceptions.put(ResourceNotFoundException.class, false);
+    retryableExceptions.put(ResourceVersionConflictException.class, false);
 
     var retryPolicy = new SimpleRetryPolicy(3, retryableExceptions);
 
