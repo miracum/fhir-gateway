@@ -14,7 +14,7 @@ services:
       - kafka1
 
   zoo1:
-    image: zookeeper:3.6.2
+    image: zookeeper:3.7.0
     restart: unless-stopped
     hostname: zoo1
     environment:
