@@ -18,7 +18,9 @@ import io.opentracing.propagation.Format;
 import io.opentracing.util.GlobalTracer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import okhttp3.Connection;
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -48,8 +50,13 @@ import org.springframework.web.client.RestTemplate;
 public class AppConfig {
   private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
 
+  private static final int MAX_IDLE_CONNECTIONS = 2;
+  private static final int KEEP_ALIVE_DURATION_MILLISECONDS = 100;
+
   @Bean
-  public FhirContext fhirContext() {
+  public FhirContext fhirContext(
+      @Value("${features.use-load-balancer-optimized-connection-pool}")
+          boolean useLoadBalancerConnectionPool) {
     var fhirContext = FhirContext.forR4();
 
     var opNameDecorator =
@@ -67,6 +74,13 @@ public class AppConfig {
           public void onResponse(Connection connection, Response response, Span span) {}
         };
 
+    var connectionPool = new ConnectionPool();
+    if (useLoadBalancerConnectionPool) {
+      connectionPool =
+          new ConnectionPool(
+              MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION_MILLISECONDS, TimeUnit.MILLISECONDS);
+    }
+
     var tracingInterceptor =
         new TracingInterceptor(
             GlobalTracer.get(),
@@ -76,6 +90,7 @@ public class AppConfig {
         new OkHttpClient.Builder()
             .addInterceptor(tracingInterceptor)
             .addNetworkInterceptor(tracingInterceptor)
+            .connectionPool(connectionPool)
             .eventListener(
                 OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build())
             .build();
