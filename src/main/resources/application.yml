@@ -109,3 +109,6 @@ opentracing:
 
 app:
   version: 0.0.0-dev
+
+features:
+  use-load-balancer-optimized-connection-pool: false
