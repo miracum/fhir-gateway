@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS resources
 
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS resource_id_idx ON resources (id);
 CREATE INDEX IF NOT EXISTS resource_type_idx ON resources (type);
+CREATE INDEX IF NOT EXISTS last_updated_at_idx ON resources (last_updated_at DESC);
