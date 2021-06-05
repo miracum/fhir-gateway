@@ -13,7 +13,7 @@ services:
       - ${PWD}/tests/e2e/data/anonymization.yaml:/etc/anonymization.yaml:ro
 
   gpasinit:
-    image: curlimages/curl:7.76.1
+    image: curlimages/curl:7.77.0
     command: -X POST
       -H 'Content-Type:application/xml'
       -d '<?xml version="1.0" encoding="UTF-8"?>

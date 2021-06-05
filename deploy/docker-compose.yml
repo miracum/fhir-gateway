@@ -25,7 +25,7 @@ services:
       - fhir-pseudonymizer
 
   jaeger:
-    image: jaegertracing/all-in-one:1.22
+    image: jaegertracing/all-in-one:1.23
 
   fhir-pseudonymizer:
     image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:1.6
@@ -40,14 +40,14 @@ services:
       - gpas
 
   loinc-converter:
-    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.12.0
+    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.12.1
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
       - jaeger
 
   fhir-db:
-    image: postgres:13.2
+    image: postgres:13.3
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
@@ -69,7 +69,7 @@ services:
       SERVER_ADDRESS: ${FHIR_SERVER_ADDRESS:-http://localhost:8082/fhir}
 
   gpasinit-patient:
-    image: curlimages/curl:7.76.1
+    image: curlimages/curl:7.77.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -98,7 +98,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.76.1
+    image: curlimages/curl:7.77.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'

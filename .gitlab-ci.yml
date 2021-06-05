@@ -17,7 +17,7 @@ e2e:
     - .job_defaults
   stage: test
   image:
-    name: docker/compose:1.29.1
+    name: docker/compose:1.29.2
     entrypoint: [""]
   before_script:
     - export IMAGE_TAG=$CI_COMMIT_SHORT_SHA
