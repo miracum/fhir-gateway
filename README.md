@@ -33,6 +33,45 @@ To configure your deployment, you can change the following environment variables
 For the Kafka configuration and other configuration options,
 see [application.yml](src/main/resources/application.yml).
 
+## Supported Operations
+
+The FHIR Gateway is not a fully-fledged FHIR server and only supports a subset of the RESTful server
+interactions.
+
+### POST/PUT
+
+The Gateway only supports persisting resources that are HTTP POSTed as FHIR Bundles using
+the [update-as-create](https://www.hl7.org/fhir/http.html#upsert) semantics.
+See [bundle.json](tests/e2e/data/bundle.json) for an example.
+
+### DELETE
+
+FHIR Bundles containing `DELETE` requests are also handled and will result in deleting the resource
+specified in the request URL. Note that the resources are marked as `is_deleted` in the Gateway's
+PostgreSQL DB instead of being physically deleted.
+
+Note that neither conditional creates nor deletes are supported. While this works:
+
+```json 
+{
+    "request": {
+        "method": "DELETE",
+        "url": "Patient/234"
+    } 
+}
+```
+
+This does not:
+
+```json 
+{
+    "request": {
+        "method": "DELETE",
+        "url": "Patient?identifier=123456"
+    }
+}
+```
+
 ## Development
 
 Start all fixtures to run the FHIR GW:
