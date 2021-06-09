@@ -21,9 +21,8 @@ configurations {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR6")
+    set("springCloudVersion", "2020.0.1")
 }
-
 
 repositories {
     mavenCentral()
@@ -31,17 +30,20 @@ repositories {
 }
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-actuator:2.5.0"
-    implementation "org.springframework.boot:spring-boot-starter-data-jdbc:2.5.0"
-    implementation "org.springframework.boot:spring-boot-starter-web:2.5.0"
-    implementation "io.micrometer:micrometer-registry-prometheus:1.7.0"
-    implementation "io.micrometer:micrometer-core:1.7.0"
-    implementation "org.springframework.retry:spring-retry:1.3.1"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-data-jdbc"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+
+    implementation "org.springframework.retry:spring-retry"
 
     implementation "org.springframework.cloud:spring-cloud-stream"
     implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
     implementation "org.springframework.kafka:spring-kafka"
+
     implementation "org.miracum:kafka-fhir-serializer:1.0.1"
+
+    implementation "io.micrometer:micrometer-registry-prometheus:1.7.0"
+    implementation "io.micrometer:micrometer-core:1.7.0"
 
     implementation "net.logstash.logback:logstash-logback-encoder:6.6"
 
@@ -57,13 +59,11 @@ dependencies {
     implementation "io.opentracing.contrib:opentracing-okhttp3:3.0.0"
     implementation "io.jaegertracing:jaeger-client:1.6.0"
 
-    developmentOnly "org.springframework.boot:spring-boot-devtools:2.5.0"
+    developmentOnly "org.springframework.boot:spring-boot-devtools"
     runtimeOnly "org.postgresql:postgresql:42.2.20"
     runtimeOnly "com.h2database:h2:1.4.200"
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:2.5.0"
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.5.0") {
-        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
-    }
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
 dependencyManagement {
@@ -77,12 +77,12 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.5"
-    reportsDir = file("$buildDir/jacoco-reports")
+    toolVersion = "0.8.6"
 }
 
 jacocoTestReport {
     reports {
+        html.enabled true
         xml.enabled true
         csv.enabled true
         csv.destination file("${buildDir}/jacoco/coverage.csv")
@@ -90,8 +90,8 @@ jacocoTestReport {
     }
 }
 
-bootJar {
-    layered()
+jar {
+    enabled = false
 }
 
 spotless {
