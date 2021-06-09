@@ -5,6 +5,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
     produces = {"application/json", "application/fhir+json"})
 @ResponseBody
 public class FhirController {
-
   private static final Logger log = LoggerFactory.getLogger(FhirController.class);
 
   private final IParser fhirParser;
@@ -43,7 +48,7 @@ public class FhirController {
     this.pipeline = pipeline;
   }
 
-  @RequestMapping(method = {RequestMethod.POST})
+  @PostMapping
   public ResponseEntity<String> postFhirRoot(@RequestBody String body) {
     if (body == null) {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -56,19 +61,19 @@ public class FhirController {
       log.debug("Got bundle of size {}", kv("bundleSize", bundle.getEntry().size()));
 
       if (bundle.isEmpty()) {
-        log.debug("Received empty bundle");
+        log.error("Received empty bundle");
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
       }
 
       var processed = pipeline.process(bundle);
       return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
     } else {
-      log.debug("Received a non-Bundle resource on the base endpoint");
-      return ResponseEntity.badRequest().build();
+      log.error("Received a non-Bundle resource on the base endpoint");
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
   }
 
-  @RequestMapping(value = "/metadata", method = RequestMethod.GET)
+  @GetMapping(value = "/metadata")
   public Object getCapabilities() throws IOException {
     var resource = new ClassPathResource("/static/fhir-metadata.json");
     var mapper = new ObjectMapper();
@@ -76,18 +81,35 @@ public class FhirController {
     return mapper.readValue(resource.getInputStream(), Object.class);
   }
 
-  @RequestMapping(
-      value = {"/{resourceName}", "/{resourceName}/{id}"},
-      method = RequestMethod.POST)
+  @PostMapping(value = {"/{resourceType}", "/{resourceType}/{id}"})
   public ResponseEntity<String> postResource(@RequestBody String body) {
     return handlePostPutResource(body, RequestMethod.POST);
   }
 
-  @RequestMapping(
-      value = {"/{resourceName}", "/{resourceName}/{id}"},
-      method = RequestMethod.PUT)
+  @PutMapping(value = {"/{resourceType}", "/{resourceType}/{id}"})
   public ResponseEntity<String> putResource(@RequestBody String body) {
     return handlePostPutResource(body, RequestMethod.PUT);
+  }
+
+  @DeleteMapping(value = {"/{resourceType}/{id}"})
+  public ResponseEntity<String> deleteResource(
+      @PathVariable(value = "resourceType") String resourceType,
+      @PathVariable(value = "id") String resourceId) {
+
+    if (Strings.isNullOrEmpty(resourceId) || Strings.isNullOrEmpty(resourceType)) {
+      log.error("resourceId or resourceType is empty.");
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    var resourceUrl = String.format("%s/%s", resourceType, resourceId);
+
+    var bundle = new Bundle();
+    bundle.setType(BundleType.BATCH);
+    bundle.setId(UUID.randomUUID().toString());
+    bundle.addEntry().getRequest().setMethod(HTTPVerb.DELETE).setUrl(resourceUrl);
+
+    var processed = pipeline.process(bundle);
+    return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
   }
 
   private ResponseEntity<String> handlePostPutResource(String body, RequestMethod method) {

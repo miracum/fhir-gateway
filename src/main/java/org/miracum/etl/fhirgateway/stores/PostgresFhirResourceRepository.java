@@ -1,5 +1,7 @@
 package org.miracum.etl.fhirgateway.stores;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import io.micrometer.core.instrument.Metrics;
@@ -9,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +66,21 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
 
   @Override
   public void save(Bundle bundle) {
+    var insertedCount = insertResources(bundle);
+    var deletedCount = deleteResources(bundle);
+
+    log.debug(
+        "processed bundle {}, {}",
+        kv("insertedCount", insertedCount),
+        kv("deletedCount", deletedCount));
+  }
+
+  private int insertResources(Bundle bundle) {
     var insertValues =
         bundle.getEntry().stream()
+            // all but delete operations should result in persisting the included resource
+            // ignoring HTTP patch for now.
+            .filter(e -> e.getRequest().getMethod() != HTTPVerb.DELETE)
             .map(BundleEntryComponent::getResource)
             .sorted(Comparator.comparing(r -> r.getIdElement().getIdPart()))
             .map(
@@ -76,13 +92,38 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
                     })
             .collect(Collectors.toCollection(ArrayList::new));
 
-    retryTemplate.execute(
-        (context) ->
-            dataSinkTemplate.batchUpdate(
-                "INSERT INTO resources (fhir_id, type, data)"
-                    + "VALUES (?, ?, ?::json)"
-                    + "ON CONFLICT (fhir_id, type)"
-                    + "DO UPDATE set data = EXCLUDED.data, last_updated_at = NOW()",
-                insertValues));
+    if (!insertValues.isEmpty()) {
+      retryTemplate.execute(
+          (context) ->
+              dataSinkTemplate.batchUpdate(
+                  "INSERT INTO resources (fhir_id, type, data)"
+                      + "VALUES (?, ?, ?::json)"
+                      + "ON CONFLICT (fhir_id, type)"
+                      + "DO UPDATE set data = EXCLUDED.data, last_updated_at = NOW(), is_deleted = false",
+                  insertValues));
+    }
+
+    return insertValues.size();
+  }
+
+  private int deleteResources(Bundle bundle) {
+    var deleteValues =
+        bundle.getEntry().stream()
+            .map(BundleEntryComponent::getRequest)
+            .filter(request -> request.getMethod() == HTTPVerb.DELETE)
+            .map(request -> (Object[]) request.getUrl().split("/"))
+            .collect(Collectors.toCollection(ArrayList::new));
+
+    if (!deleteValues.isEmpty()) {
+      retryTemplate.execute(
+          (context) ->
+              dataSinkTemplate.batchUpdate(
+                  "UPDATE resources "
+                      + "SET last_updated_at = NOW(), is_deleted = true "
+                      + "WHERE type = ? AND fhir_id = ?",
+                  deleteValues));
+    }
+
+    return deleteValues.size();
   }
 }

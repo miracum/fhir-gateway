@@ -23,15 +23,54 @@ To configure your deployment, you can change the following environment variables
 | SPRING_DATASOURCE_URL          | JDBC url of the Postgres DB to store the received FHIR resources, needs to be set to an empty variable if no PSQL db is to be connected to | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME     | Username of the Postgres DB                                                                                                                | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD     | Password for the Postgres DB                                                                                                               | postgres                                  |
-| SERVICES_PSEUDONYMIZER_ENABLED | Whether pseudonymization should be enabled.                                                                                                | true                                     |
+| SERVICES_PSEUDONYMIZER_ENABLED | Whether pseudonymization should be enabled.                                                                                                | true                                      |
 | GPAS_URL                       | URL of the gPAS service                                                                                                                    | <http://gpas:8080/gpas/gpasService>       |
 | SERVICES_LOINC_CONVERSIONS_URL | URL of [the LOINC conversion service](https://gitlab.miracum.org/miracum/etl/loinc-conversion)                                             | <http://loinc-converter:8080/conversions> |
-| SERVICES_FHIRSERVER_URL        | URL of the fhir server to send data to                                                                                                     | <http://fhir-server:8080/fhir>                   |
+| SERVICES_FHIRSERVER_URL        | URL of the fhir server to send data to                                                                                                     | <http://fhir-server:8080/fhir>            |
 | SERVICES_FHIRSERVER_ENABLED    | enables or disables sending to fhir server                                                                                                 | false                                     |
 | SERVICES_PSQL_ENABLED          | enables or disables sending to psql db                                                                                                     | true                                      |
 
 For the Kafka configuration and other configuration options,
 see [application.yml](src/main/resources/application.yml).
+
+## Supported Operations
+
+The FHIR Gateway is not a fully-fledged FHIR server and only supports a subset of the RESTful server
+interactions.
+
+### POST/PUT
+
+The Gateway only supports persisting resources that are HTTP POSTed as FHIR Bundles using
+the [update-as-create](https://www.hl7.org/fhir/http.html#upsert) semantics.
+See [bundle.json](tests/e2e/data/bundle.json) for an example.
+
+### DELETE
+
+FHIR Bundles containing `DELETE` requests are also handled and will result in deleting the resource
+specified in the request URL. Note that the resources are marked as `is_deleted` in the Gateway's
+PostgreSQL DB instead of being physically deleted.
+
+Note that neither conditional creates nor deletes are supported. While this works:
+
+```json
+{
+  "request": {
+    "method": "DELETE",
+    "url": "Patient/234"
+  }
+}
+```
+
+This does not:
+
+```json
+{
+  "request": {
+    "method": "DELETE",
+    "url": "Patient?identifier=123456"
+  }
+}
+```
 
 ## Development
 
@@ -43,3 +82,41 @@ docker-compose -f deploy/docker-compose.dev.yml -f deploy/docker-compose.yml -f 
 
 Note that this contains a few optional services: Kafka, a FHIR server, gPAS. You might simplify the
 docker-compose.dev.yml and only include relevant components for development.
+
+## Database Tuning
+
+### Partitioning
+
+If the size of the `resources` table is expected to grow significantly, you can leverage
+partitioning to split the stored resources by type. Run the following **before** starting the
+FHIR-Gateway to create the `resources` table with partitions for the most common resource types:
+
+```postgresql
+CREATE TABLE resources
+(
+    id              serial,
+    fhir_id         varchar(64) NOT NULL,
+    type            varchar(64) NOT NULL,
+    data            jsonb       NOT NULL,
+    created_at      timestamp   NOT NULL DEFAULT NOW(),
+    last_updated_at timestamp   NOT NULL DEFAULT NOW(),
+    is_deleted      boolean     NOT NULL DEFAULT FALSE,
+    CONSTRAINT fhir_id_unique UNIQUE (fhir_id, type)
+) PARTITION BY LIST (type);
+
+CREATE TABLE resources_patient PARTITION OF resources FOR VALUES IN ('Patient');
+CREATE TABLE resources_encounter PARTITION OF resources FOR VALUES IN ('Encounter');
+CREATE TABLE resources_condition PARTITION OF resources FOR VALUES IN ('Condition');
+CREATE TABLE resources_observation PARTITION OF resources FOR VALUES IN ('Observation');
+CREATE TABLE resources_medication PARTITION OF resources FOR VALUES IN ('Medication');
+CREATE TABLE resources_medication_statement PARTITION OF resources FOR VALUES IN ('MedicationStatement');
+CREATE TABLE resources_medication_administration PARTITION OF resources FOR VALUES IN ('MedicationAdministration');
+CREATE TABLE resources_others PARTITION OF resources DEFAULT;
+
+CREATE INDEX resource_id_idx ON resources (id);
+CREATE INDEX resource_type_idx ON resources (type);
+CREATE INDEX last_updated_at_idx ON resources (last_updated_at DESC);
+```
+
+This isn't part of the default initialization schema, but may become the default as part of the next
+major release.

@@ -1,0 +1,12 @@
+{
+  "resourceType": "Bundle",
+  "type": "batch",
+  "entry": [
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "Patient/pid-02cb8631-8342-4343-84d7-cd364e0ab101"
+      }
+    }
+  ]
+}
