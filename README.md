@@ -23,10 +23,10 @@ To configure your deployment, you can change the following environment variables
 | SPRING_DATASOURCE_URL          | JDBC url of the Postgres DB to store the received FHIR resources, needs to be set to an empty variable if no PSQL db is to be connected to | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME     | Username of the Postgres DB                                                                                                                | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD     | Password for the Postgres DB                                                                                                               | postgres                                  |
-| SERVICES_PSEUDONYMIZER_ENABLED | Whether pseudonymization should be enabled.                                                                                                | true                                     |
+| SERVICES_PSEUDONYMIZER_ENABLED | Whether pseudonymization should be enabled.                                                                                                | true                                      |
 | GPAS_URL                       | URL of the gPAS service                                                                                                                    | <http://gpas:8080/gpas/gpasService>       |
 | SERVICES_LOINC_CONVERSIONS_URL | URL of [the LOINC conversion service](https://gitlab.miracum.org/miracum/etl/loinc-conversion)                                             | <http://loinc-converter:8080/conversions> |
-| SERVICES_FHIRSERVER_URL        | URL of the fhir server to send data to                                                                                                     | <http://fhir-server:8080/fhir>                   |
+| SERVICES_FHIRSERVER_URL        | URL of the fhir server to send data to                                                                                                     | <http://fhir-server:8080/fhir>            |
 | SERVICES_FHIRSERVER_ENABLED    | enables or disables sending to fhir server                                                                                                 | false                                     |
 | SERVICES_PSQL_ENABLED          | enables or disables sending to psql db                                                                                                     | true                                      |
 
@@ -52,23 +52,23 @@ PostgreSQL DB instead of being physically deleted.
 
 Note that neither conditional creates nor deletes are supported. While this works:
 
-```json 
+```json
 {
-    "request": {
-        "method": "DELETE",
-        "url": "Patient/234"
-    } 
+  "request": {
+    "method": "DELETE",
+    "url": "Patient/234"
+  }
 }
 ```
 
 This does not:
 
-```json 
+```json
 {
-    "request": {
-        "method": "DELETE",
-        "url": "Patient?identifier=123456"
-    }
+  "request": {
+    "method": "DELETE",
+    "url": "Patient?identifier=123456"
+  }
 }
 ```
 

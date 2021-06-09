@@ -11,6 +11,7 @@ from urllib3.util.retry import Retry
 LOG = logging.getLogger(__name__)
 
 BUNDLE_PATH = "data/bundle.json"
+DELETE_BUNDLE_PATH = "data/delete-bundle.json"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -20,7 +21,9 @@ def wait_for_server_to_be_up(request):
     s.mount("http://", HTTPAdapter(max_retries=retries))
 
     print("FHIR: ", os.environ["FHIR_SERVER_URL"])
-    response = s.get(os.environ["FHIR_SERVER_URL"] + "/metadata",)
+    response = s.get(
+        os.environ["FHIR_SERVER_URL"] + "/metadata",
+    )
 
     if response.status_code != 200:
         pytest.fail("Failed to wait for server to be up")
@@ -35,10 +38,19 @@ def smart():
 
 @pytest.fixture
 def bundle():
-    with open(BUNDLE_PATH, "r") as obs_file:
-        obs_json = json.load(obs_file)
+    with open(BUNDLE_PATH, "r") as bundle_file:
+        bundle_json = json.load(bundle_file)
 
-    bundle = b.Bundle(obs_json)
+    bundle = b.Bundle(bundle_json)
+    return bundle
+
+
+@pytest.fixture
+def delete_bundle():
+    with open(DELETE_BUNDLE_PATH, "r") as bundle_file:
+        bundle_json = json.load(bundle_file)
+
+    bundle = b.Bundle(bundle_json)
     return bundle
 
 
@@ -74,8 +86,15 @@ def test_observation_is_pseudonymized(smart, bundle):
 
 
 def test_patient_is_pseudonymized(smart, bundle):
-    patient_id = bundle.entry[1].resource.id
+    original_patient_id = bundle.entry[1].resource.id
     response_json = bundle.create(smart.server)
     bundle_response = b.Bundle(response_json)
 
-    assert not patient_id in bundle_response.entry[1].resource.id
+    assert not original_patient_id in bundle_response.entry[1].resource.id
+
+
+def test_send_delete_bundle(smart, delete_bundle):
+    response_json = delete_bundle.create(smart.server)
+    bundle_response = b.Bundle(response_json)
+
+    assert bundle_response
