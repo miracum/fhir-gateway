@@ -43,3 +43,41 @@ docker-compose -f deploy/docker-compose.dev.yml -f deploy/docker-compose.yml -f 
 
 Note that this contains a few optional services: Kafka, a FHIR server, gPAS. You might simplify the
 docker-compose.dev.yml and only include relevant components for development.
+
+## Database Tuning
+
+### Partitioning
+
+If the size of the `resources` table is expected to grow significantly, you can leverage
+partitioning to split the stored resources by type. Run the following **before** starting the
+FHIR-Gateway to create the `resources` table with partitions for the most common resource types:
+
+```postgresql
+CREATE TABLE resources
+(
+    id              serial,
+    fhir_id         varchar(64) NOT NULL,
+    type            varchar(64) NOT NULL,
+    data            jsonb       NOT NULL,
+    created_at      timestamp   NOT NULL DEFAULT NOW(),
+    last_updated_at timestamp   NOT NULL DEFAULT NOW(),
+    is_deleted      boolean     NOT NULL DEFAULT FALSE,
+    CONSTRAINT fhir_id_unique UNIQUE (fhir_id, type)
+) PARTITION BY LIST (type);
+
+CREATE TABLE resources_patient PARTITION OF resources FOR VALUES IN ('Patient');
+CREATE TABLE resources_encounter PARTITION OF resources FOR VALUES IN ('Encounter');
+CREATE TABLE resources_condition PARTITION OF resources FOR VALUES IN ('Condition');
+CREATE TABLE resources_observation PARTITION OF resources FOR VALUES IN ('Observation');
+CREATE TABLE resources_medication PARTITION OF resources FOR VALUES IN ('Medication');
+CREATE TABLE resources_medication_statement PARTITION OF resources FOR VALUES IN ('MedicationStatement');
+CREATE TABLE resources_medication_administration PARTITION OF resources FOR VALUES IN ('MedicationAdministration');
+CREATE TABLE resources_others PARTITION OF resources DEFAULT;
+
+CREATE INDEX resource_id_idx ON resources (id);
+CREATE INDEX resource_type_idx ON resources (type);
+CREATE INDEX last_updated_at_idx ON resources (last_updated_at DESC);
+```
+
+This isn't part of the default initialization schema, but may become the default as part of the next
+major release.
