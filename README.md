@@ -118,5 +118,7 @@ CREATE INDEX resource_type_idx ON resources (type);
 CREATE INDEX last_updated_at_idx ON resources (last_updated_at DESC);
 ```
 
+Be sure to set `SPRING_SQL_INIT_ENABLED=false` before starting the FHIR GW.
+
 This isn't part of the default initialization schema, but may become the default as part of the next
 major release.
