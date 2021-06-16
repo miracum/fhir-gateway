@@ -111,6 +111,7 @@ CREATE TABLE resources_observation PARTITION OF resources FOR VALUES IN ('Observ
 CREATE TABLE resources_medication PARTITION OF resources FOR VALUES IN ('Medication');
 CREATE TABLE resources_medication_statement PARTITION OF resources FOR VALUES IN ('MedicationStatement');
 CREATE TABLE resources_medication_administration PARTITION OF resources FOR VALUES IN ('MedicationAdministration');
+CREATE TABLE resources_procuedure PARTITION OF resources FOR VALUES IN ('Procedure');
 CREATE TABLE resources_others PARTITION OF resources DEFAULT;
 
 CREATE INDEX resource_id_idx ON resources (id);
