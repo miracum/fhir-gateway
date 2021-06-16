@@ -19,6 +19,9 @@ services:
     enabled: true
   kafka:
     enabled: true
+    generate-output-topic:
+      match-expression: "fhir\\."
+      replace-with: "fhir.post-gateway-pseuded-"
 
 opentracing:
   jaeger:
@@ -33,3 +36,8 @@ spring:
     password: postgres
   kafka:
     bootstrapServers: localhost:9092
+  cloud:
+    stream:
+      bindings:
+        process-in-0:
+          destination: ${INPUT_TOPIC:fhir.all,fhir.all-2}

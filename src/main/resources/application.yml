@@ -92,6 +92,9 @@ services:
     enabled: true
   kafka:
     enabled: false
+    generate-output-topic:
+      match-expression: ""
+      replace-with: ""
 
 fhir:
   systems:

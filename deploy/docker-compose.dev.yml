@@ -4,12 +4,15 @@ services:
   mock-data-loader:
     image: confluentinc/cp-kafkacat:6.2.0
     entrypoint: ["/bin/bash", "-c"]
-    command:
-      [
-        "while true; do kafkacat -b kafka1:19092 -K: -t fhir.all -P -l /data/mock-data.ndjson; sleep 5; done",
-      ]
+    command: >
+      "while true; do
+        kafkacat -b kafka1:19092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
+        kafkacat -b kafka1:19092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
+        sleep 10;
+      done"
     volumes:
       - ./mock-data.ndjson:/data/mock-data.ndjson:ro
+      - ./mock-data-2.ndjson:/data/mock-data-2.ndjson:ro
     depends_on:
       - kafka1
 
