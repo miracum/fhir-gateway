@@ -39,6 +39,8 @@ spring:
       key-store-password: ${SSL_KEY_STORE_PASSWORD}
     producer:
       compression-type: gzip
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
   cloud:
     stream:
       function.definition: process
@@ -54,12 +56,6 @@ spring:
           producer:
             useNativeEncoding: true
       kafka:
-        default:
-          consumer:
-            dlqProducerProperties:
-              configuration:
-                key.serializer: org.apache.kafka.common.serialization.StringSerializer
-                value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
         bindings:
           process-in-0:
             consumer:
@@ -70,8 +66,6 @@ spring:
           process-out-0:
             producer:
               configuration:
-                key.serializer: org.apache.kafka.common.serialization.StringSerializer
-                value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
                 compression.type: ${COMPRESSION_TYPE:gzip}
           binder:
             configuration:
@@ -98,6 +92,9 @@ services:
     enabled: true
   kafka:
     enabled: false
+    generate-output-topic:
+      match-expression: ""
+      replace-with: ""
 
 fhir:
   systems:

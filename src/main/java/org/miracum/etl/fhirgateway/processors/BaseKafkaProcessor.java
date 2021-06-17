@@ -16,11 +16,11 @@ import org.springframework.messaging.Message;
 @ConditionalOnProperty(value = "services.kafka.enabled", matchIfMissing = true)
 public abstract class BaseKafkaProcessor {
 
-  private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+  protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
   private final ResourcePipeline pipeline;
 
-  public BaseKafkaProcessor(ResourcePipeline pipeline) {
+  protected BaseKafkaProcessor(ResourcePipeline pipeline) {
     this.pipeline = pipeline;
   }
 
