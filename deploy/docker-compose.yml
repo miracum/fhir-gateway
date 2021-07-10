@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   gateway:
-    image: harbor.miracum.org/miracum-etl/fhir-gateway:${IMAGE_TAG:-v3.3}
+    image: ${IMAGE_TAG:-harbor.miracum.org/miracum-etl/fhir-gateway:v3.3}
     restart: on-failure
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
