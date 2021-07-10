@@ -72,11 +72,6 @@
         "verifyReleaseCmd": "echo ${nextRelease.version} > .VERSION"
       }
     ],
-    [
-      "@semantic-release/gitlab",
-      {
-        "gitlabUrl": "https://gitlab.miracum.org"
-      }
-    ]
+    "@semantic-release/github"
   ]
 }
