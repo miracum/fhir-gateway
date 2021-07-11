@@ -22,14 +22,3 @@ ARG VERSION=0.0.0
 ENV APP_VERSION=${VERSION} \
     SPRING_PROFILES_ACTIVE="prod"
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=85", "org.springframework.boot.loader.JarLauncher"]
-
-ARG GIT_REF=""
-ARG BUILD_TIME=""
-LABEL org.opencontainers.image.created=${BUILD_TIME} \
-    org.opencontainers.image.authors="miracum.org" \
-    org.opencontainers.image.source="https://gitlab.miracum.org/miracum/etl/fhir-gateway" \
-    org.opencontainers.image.version=${VERSION} \
-    org.opencontainers.image.revision=${GIT_REF} \
-    org.opencontainers.image.vendor="miracum.org" \
-    org.opencontainers.image.title="fhir-gateway" \
-    org.opencontainers.image.description="FHIR REST facade implementing various processing and persistence operations."
