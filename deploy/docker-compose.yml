@@ -25,7 +25,7 @@ services:
       - fhir-pseudonymizer
 
   jaeger:
-    image: jaegertracing/all-in-one:1.23
+    image: jaegertracing/all-in-one:1.24
 
   fhir-pseudonymizer:
     image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0

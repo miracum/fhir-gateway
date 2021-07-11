@@ -11,7 +11,7 @@ management:
   health:
     livenessstate:
       enabled: true
-    readynessstate:
+    readinessstate:
       enabled: true
 
 logging:
@@ -74,7 +74,7 @@ spring:
   sql:
     init:
       schema-locations: classpath:/schema.sql
-      enabled: true
+      mode: always
 
 services:
   loinc:
