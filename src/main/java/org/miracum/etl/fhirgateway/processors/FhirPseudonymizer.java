@@ -4,6 +4,9 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
+import java.time.Duration;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Parameters;
 import org.slf4j.Logger;
@@ -12,6 +15,14 @@ import org.springframework.retry.support.RetryTemplate;
 
 public class FhirPseudonymizer implements IPseudonymizer {
   private static final Logger LOGGER = LoggerFactory.getLogger(FhirPseudonymizer.class);
+
+  private static final Timer DE_IDENTIFICATION_DURATION_TIMER =
+      Timer.builder("fhirgateway.deidentify.duration.seconds")
+          .description("Time taken to de-identify the FHIR bundle")
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(10))
+          .publishPercentileHistogram()
+          .register(Metrics.globalRegistry);
 
   private final String pseudonymizerUrl;
   private final RetryTemplate retryTemplate;
@@ -32,14 +43,16 @@ public class FhirPseudonymizer implements IPseudonymizer {
     var param = new Parameters();
     param.addParameter().setName("resource").setResource(bundle);
 
-    return retryTemplate.execute(
-        ctx ->
-            client
-                .operation()
-                .onServer()
-                .named("de-identify")
-                .withParameters(param)
-                .returnResourceType(Bundle.class)
-                .execute());
+    return DE_IDENTIFICATION_DURATION_TIMER.record(
+        () ->
+            retryTemplate.execute(
+                ctx ->
+                    client
+                        .operation()
+                        .onServer()
+                        .named("de-identify")
+                        .withParameters(param)
+                        .returnResourceType(Bundle.class)
+                        .execute()));
   }
 }

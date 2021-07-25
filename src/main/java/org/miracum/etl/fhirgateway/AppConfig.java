@@ -140,7 +140,7 @@ public class AppConfig {
     retryableExceptions.put(ResourceNotFoundException.class, false);
     retryableExceptions.put(ResourceVersionConflictException.class, false);
 
-    var retryPolicy = new SimpleRetryPolicy(3, retryableExceptions);
+    var retryPolicy = new SimpleRetryPolicy(10, retryableExceptions);
 
     retryTemplate.setRetryPolicy(retryPolicy);
 

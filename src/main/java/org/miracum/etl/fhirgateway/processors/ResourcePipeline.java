@@ -1,5 +1,8 @@
 package org.miracum.etl.fhirgateway.processors;
 
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
+import java.time.Duration;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
@@ -11,6 +14,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ResourcePipeline {
+  private static final Timer PIPELINE_DURATION_TIMER =
+      Timer.builder("fhirgateway.pipeline.duration.seconds")
+          .description("Total resource pipeline processing duration.")
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(5))
+          .publishPercentileHistogram()
+          .register(Metrics.globalRegistry);
+
   private final FhirResourceRepository psqlStore;
   private final FhirResourceRepository fhirStore;
   private final LoincHarmonizer loincHarmonizer;
@@ -50,28 +61,32 @@ public class ResourcePipeline {
   public Bundle process(Bundle bundle) {
     MDC.put("bundleId", bundle.getId());
 
-    // pseudonymization should be the first task to ensure all other processors only
-    // ever work with de-identified data.
-    var pseudonymized = pseudonymizer.process(bundle);
+    return PIPELINE_DURATION_TIMER.record(
+        () -> {
 
-    // this logic may be refactored and cleaned up by creating a genuine pipeline class with
-    // optionally
-    // added stages. A base for this would be an abstract ResourceProcessor
-    if (this.isLoincHarmonizationEnabled) {
-      for (var entry : pseudonymized.getEntry()) {
-        var resource = entry.getResource();
+          // pseudonymization should be the first task to ensure all other processors only
+          // ever work with de-identified data.
+          var pseudonymized = pseudonymizer.process(bundle);
 
-        if (resource instanceof Observation) {
-          try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-            var obs = loincHarmonizer.process((Observation) resource);
-            entry.setResource(obs);
+          // this logic may be refactored and cleaned up by creating a genuine pipeline class with
+          // optionally
+          // added stages. A base for this would be an abstract ResourceProcessor
+          if (this.isLoincHarmonizationEnabled) {
+            for (var entry : pseudonymized.getEntry()) {
+              var resource = entry.getResource();
+
+              if (resource instanceof Observation) {
+                try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
+                  var obs = loincHarmonizer.process((Observation) resource);
+                  entry.setResource(obs);
+                }
+              }
+            }
           }
-        }
-      }
-    }
 
-    saveToStores(pseudonymized);
+          saveToStores(pseudonymized);
 
-    return pseudonymized;
+          return pseudonymized;
+        });
   }
 }

@@ -4,7 +4,9 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import java.net.URI;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import org.hl7.fhir.r4.model.Observation;
@@ -24,7 +26,13 @@ import org.springframework.web.util.UriTemplate;
 @Service
 public class LoincHarmonizer {
   private static final Logger log = LoggerFactory.getLogger(LoincHarmonizer.class);
-
+  private static final Timer CONVERSION_DURATION_TIMER =
+      Timer.builder("fhirgateway.loinc.conversion.duration.seconds")
+          .description("Time taken to harmonize a single Observation resource")
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofMillis(500))
+          .publishPercentileHistogram()
+          .register(Metrics.globalRegistry);
   private static final String CONVERSION_ERROR_METRIC_NAME =
       "fhirgateway.loinc.conversion.errors.total";
   private static final HashMap<String, Counter> metricsLookup = new HashMap<>();
@@ -49,7 +57,10 @@ public class LoincHarmonizer {
   }
 
   public Observation process(final Observation originalObservation) {
+    return CONVERSION_DURATION_TIMER.record(() -> harmonizeObservation(originalObservation));
+  }
 
+  private Observation harmonizeObservation(final Observation originalObservation) {
     var loincCode =
         originalObservation.getCode().getCoding().stream()
             .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))

@@ -5,6 +5,8 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +28,22 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PostgresFhirResourceRepository implements FhirResourceRepository {
+  private static final Timer INSERT_DURATION_TIMER =
+      Timer.builder("fhirgateway.postgres.store.duration.seconds")
+          .description("Time taken to store all resources from a FHIR bundle in the database")
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(5))
+          .publishPercentileHistogram()
+          .tags("operation", "insert")
+          .register(Metrics.globalRegistry);
+  private static final Timer DELETE_DURATION_TIMER =
+      Timer.builder("fhirgateway.postgres.delete.duration.seconds")
+          .description("Time taken to delete all resources from a FHIR bundle from the database")
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(5))
+          .publishPercentileHistogram()
+          .tags("operation", "delete")
+          .register(Metrics.globalRegistry);
 
   private static final Logger log = LoggerFactory.getLogger(PostgresFhirResourceRepository.class);
 
@@ -93,14 +111,16 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
             .collect(Collectors.toCollection(ArrayList::new));
 
     if (!insertValues.isEmpty()) {
-      retryTemplate.execute(
-          (context) ->
-              dataSinkTemplate.batchUpdate(
-                  "INSERT INTO resources (fhir_id, type, data)"
-                      + "VALUES (?, ?, ?::json)"
-                      + "ON CONFLICT (fhir_id, type)"
-                      + "DO UPDATE set data = EXCLUDED.data, last_updated_at = NOW(), is_deleted = false",
-                  insertValues));
+      INSERT_DURATION_TIMER.record(
+          () ->
+              retryTemplate.execute(
+                  (context) ->
+                      dataSinkTemplate.batchUpdate(
+                          "INSERT INTO resources (fhir_id, type, data)"
+                              + "VALUES (?, ?, ?::json)"
+                              + "ON CONFLICT (fhir_id, type)"
+                              + "DO UPDATE set data = EXCLUDED.data, last_updated_at = NOW(), is_deleted = false",
+                          insertValues)));
     }
 
     return insertValues.size();
@@ -115,13 +135,15 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
             .collect(Collectors.toCollection(ArrayList::new));
 
     if (!deleteValues.isEmpty()) {
-      retryTemplate.execute(
-          (context) ->
-              dataSinkTemplate.batchUpdate(
-                  "UPDATE resources "
-                      + "SET last_updated_at = NOW(), is_deleted = true "
-                      + "WHERE type = ? AND fhir_id = ?",
-                  deleteValues));
+      DELETE_DURATION_TIMER.record(
+          () ->
+              retryTemplate.execute(
+                  (context) ->
+                      dataSinkTemplate.batchUpdate(
+                          "UPDATE resources "
+                              + "SET last_updated_at = NOW(), is_deleted = true "
+                              + "WHERE type = ? AND fhir_id = ?",
+                          deleteValues)));
     }
 
     return deleteValues.size();
