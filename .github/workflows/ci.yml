@@ -28,6 +28,7 @@ jobs:
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FILTER_REGEX_EXCLUDE: "gradlew"
+          VALIDATE_JAVA: false
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
         with:
@@ -96,16 +97,16 @@ jobs:
           echo "##[set-output name=image_name;]${IMAGES[0]}"
       - name: Run E2E tests
         env:
-          IMAGE_TAG: "${{ steps.list_images.outputs.image_name }}"
+          FHIR_GATEWAY_IMAGE_NAME: "${{ steps.list_images.outputs.image_name }}"
         run: |
-          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run gpasinit
-          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
+          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
+          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run gpasinit
+          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
       - name: Print E2E logs
         if: always()
         run: |
-          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml logs
-          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
+          docker-compose -p $GITHUB_JOB-e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   release:
     needs: build
