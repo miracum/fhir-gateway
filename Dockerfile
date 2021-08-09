@@ -3,7 +3,10 @@ WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
 COPY build.gradle settings.gradle ./
-RUN gradle build || true
+
+# Only download dependencies
+# see https://zwbetz.com/why-is-my-gradle-build-in-docker-so-slow/
+RUN gradle clean build --no-daemon > /dev/null 2>&1 || true
 
 COPY --chown=gradle:gradle . .
 RUN gradle build --info && \
