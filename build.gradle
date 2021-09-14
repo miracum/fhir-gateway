@@ -3,7 +3,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "5.14.2"
+    id "com.diffplug.spotless" version "5.15.0"
 }
 
 group = "org.miracum.etl"
@@ -46,11 +46,11 @@ dependencies {
 
     implementation "net.logstash.logback:logstash-logback-encoder:6.6"
 
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-base:5.4.2"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-client:5.4.2"
-    implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:5.4.10"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:5.4.2"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:5.4.2"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-base:5.5.1"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-client:5.5.1"
+    implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:5.5.3"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:5.5.1"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:5.5.1"
 
     implementation "io.opentracing.contrib:opentracing-spring-web-starter:4.1.0"
     implementation "io.opentracing.contrib:opentracing-spring-jaeger-web-starter:3.3.1"
