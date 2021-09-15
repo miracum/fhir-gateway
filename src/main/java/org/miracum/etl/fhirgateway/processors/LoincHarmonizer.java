@@ -27,10 +27,10 @@ import org.springframework.web.util.UriTemplate;
 public class LoincHarmonizer {
   private static final Logger log = LoggerFactory.getLogger(LoincHarmonizer.class);
   private static final Timer CONVERSION_DURATION_TIMER =
-      Timer.builder("fhirgateway.loinc.conversion.duration.seconds")
+      Timer.builder("fhirgateway.loinc.conversion.duration")
           .description("Time taken to harmonize a single Observation resource")
-          .minimumExpectedValue(Duration.ofMillis(1))
-          .maximumExpectedValue(Duration.ofMillis(500))
+          .minimumExpectedValue(Duration.ofMillis(5))
+          .maximumExpectedValue(Duration.ofSeconds(5))
           .publishPercentileHistogram()
           .register(Metrics.globalRegistry);
   private static final String CONVERSION_ERROR_METRIC_NAME =

@@ -29,17 +29,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostgresFhirResourceRepository implements FhirResourceRepository {
   private static final Timer INSERT_DURATION_TIMER =
-      Timer.builder("fhirgateway.postgres.operation.duration.seconds")
+      Timer.builder("fhirgateway.postgres.operation.duration")
           .description("Time taken to store all resources from a FHIR bundle in the database")
-          .minimumExpectedValue(Duration.ofMillis(1))
+          .minimumExpectedValue(Duration.ofMillis(10))
           .maximumExpectedValue(Duration.ofSeconds(5))
           .publishPercentileHistogram()
           .tags("operation", "insert")
           .register(Metrics.globalRegistry);
   private static final Timer DELETE_DURATION_TIMER =
-      Timer.builder("fhirgateway.postgres.operation.duration.seconds")
+      Timer.builder("fhirgateway.postgres.operation.duration")
           .description("Time taken to delete all resources from a FHIR bundle from the database")
-          .minimumExpectedValue(Duration.ofMillis(1))
+          .minimumExpectedValue(Duration.ofMillis(10))
           .maximumExpectedValue(Duration.ofSeconds(5))
           .publishPercentileHistogram()
           .tags("operation", "delete")
