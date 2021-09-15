@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourcePipeline {
   private static final Timer PIPELINE_DURATION_TIMER =
-      Timer.builder("fhirgateway.pipeline.duration.seconds")
+      Timer.builder("fhirgateway.pipeline.duration")
           .description("Total resource pipeline processing duration.")
-          .minimumExpectedValue(Duration.ofMillis(1))
+          .minimumExpectedValue(Duration.ofMillis(50))
           .maximumExpectedValue(Duration.ofSeconds(5))
           .publishPercentileHistogram()
           .register(Metrics.globalRegistry);

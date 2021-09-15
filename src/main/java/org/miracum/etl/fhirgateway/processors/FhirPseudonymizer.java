@@ -17,7 +17,7 @@ public class FhirPseudonymizer implements IPseudonymizer {
   private static final Logger LOGGER = LoggerFactory.getLogger(FhirPseudonymizer.class);
 
   private static final Timer DE_IDENTIFICATION_DURATION_TIMER =
-      Timer.builder("fhirgateway.deidentify.duration.seconds")
+      Timer.builder("fhirgateway.deidentify.duration")
           .description("Time taken to de-identify the FHIR bundle")
           .minimumExpectedValue(Duration.ofMillis(1))
           .maximumExpectedValue(Duration.ofSeconds(10))
