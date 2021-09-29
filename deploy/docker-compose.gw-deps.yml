@@ -44,7 +44,7 @@ services:
     image: ghcr.io/chgl/hapi/hapi-fhir-jpaserver-starter:5.4.2-distroless
 
   gpasinit-patient:
-    image: curlimages/curl:7.78.0
+    image: curlimages/curl:7.79.1
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -73,7 +73,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.78.0
+    image: curlimages/curl:7.79.1
     command: |
       -X POST
       -H 'Content-Type:application/xml'
