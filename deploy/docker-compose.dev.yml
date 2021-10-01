@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   mock-data-loader:
-    image: confluentinc/cp-kafkacat:6.2.0
+    image: confluentinc/cp-kafkacat:6.2.1
     entrypoint: ["/bin/bash", "-c"]
     command: >
       "while true; do
@@ -26,7 +26,7 @@ services:
       ZOO_SERVERS: server.1=zoo1:2888:3888;2181
 
   kafka1:
-    image: confluentinc/cp-kafka:6.2.0
+    image: confluentinc/cp-kafka:6.2.1
     hostname: kafka1
     ports:
       - "9092:9092"
