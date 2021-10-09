@@ -1,4 +1,4 @@
-FROM gradle:7.2-jdk11 AS build
+FROM gradle:7.2-jdk17 AS build
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
@@ -14,10 +14,11 @@ RUN gradle build --info && \
     awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/jacoco/coverage.csv && \
     java -Djarmode=layertools -jar build/libs/*.jar extract
 
-FROM gcr.io/distroless/java-debian11:11
+FROM ghcr.io/chgl/distroless/java:17
 WORKDIR /opt/fhir-gateway
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./
+COPY --from=build /home/gradle/src/snapshot-dependencies/ ./
 COPY --from=build /home/gradle/src/application/ ./
 
 USER 65532
