@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
     "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
-  private String generateTopicMatchExpression;
-  private String generateTopicReplacement;
+  private final String generateTopicMatchExpression;
+  private final String generateTopicReplacement;
 
   @Autowired
   public KafkaProcessor(
@@ -45,7 +45,10 @@ public class KafkaProcessor extends BaseKafkaProcessor {
           MessageBuilder.withPayload(processed)
               .setHeaderIfAbsent(
                   KafkaHeaders.MESSAGE_KEY,
-                  message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, null));
+                  message
+                      .getHeaders()
+                      .getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, null)
+                      .toString());
 
       var inputTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC).toString();
 
