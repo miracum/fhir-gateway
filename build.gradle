@@ -3,12 +3,12 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "5.15.2"
+    id "com.diffplug.spotless" version "5.16.0"
 }
 
 group = "org.miracum.etl"
 version = "0.0.1-SNAPSHOT"
-sourceCompatibility = "11"
+sourceCompatibility = "17"
 
 configurations {
     developmentOnly
@@ -21,7 +21,7 @@ configurations {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.4")
+    set("springCloudVersion", "2020.0.4")
 }
 
 repositories {
@@ -76,7 +76,7 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.7"
 }
 
 jacocoTestReport {

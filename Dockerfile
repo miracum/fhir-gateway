@@ -1,20 +1,21 @@
-FROM gradle:7.2-jdk11 AS build
+# syntax = docker/dockerfile:experimental
+FROM gradle:7.2-jdk17 AS build
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
 COPY build.gradle settings.gradle ./
 
-# Only download dependencies
-# see https://zwbetz.com/why-is-my-gradle-build-in-docker-so-slow/
-RUN gradle clean build --no-daemon > /dev/null 2>&1 || true
+RUN --mount=type=cache,id=gradle,target=/gradle \
+	  gradle build --no-daemon --warning-mode all --info > /dev/null 2>&1 || true
 
 COPY --chown=gradle:gradle . .
-RUN gradle build --info && \
+RUN --mount=type=cache,id=gradle,target=/gradle \
+    gradle build --info && \
     gradle jacocoTestReport && \
     awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/jacoco/coverage.csv && \
     java -Djarmode=layertools -jar build/libs/*.jar extract
 
-FROM gcr.io/distroless/java-debian11:11
+FROM ghcr.io/chgl/distroless/java:17
 WORKDIR /opt/fhir-gateway
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./

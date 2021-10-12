@@ -46,7 +46,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -126,7 +125,6 @@ celerybeat-schedule
 
 # Mr Developer
 .mr.developer.cfg
-.project
 .pydevproject
 
 # mkdocs documentation
