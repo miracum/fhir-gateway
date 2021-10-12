@@ -3,7 +3,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "5.15.2"
+    id "com.diffplug.spotless" version "5.16.0"
 }
 
 group = "org.miracum.etl"
