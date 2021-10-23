@@ -42,6 +42,10 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: "trivy-results.sarif"
+      - uses: JetBrains/qodana-action@v3.2.1
+        with:
+          linter: qodana-jvm-community
+          fail-threshold: 10
   build:
     name: Build
     runs-on: ubuntu-20.04
