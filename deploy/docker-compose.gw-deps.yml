@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.26
+    image: jaegertracing/all-in-one:1.27
 
   fhir-pseudonymizer:
     image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0
