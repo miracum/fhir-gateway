@@ -3,6 +3,7 @@
   "extends": [
     "github>whitesource/merge-confidence:beta",
     "config:base",
-    "group:allNonMajor"
+    "group:allNonMajor",
+    ":disableDependencyDashboard"
   ]
 }

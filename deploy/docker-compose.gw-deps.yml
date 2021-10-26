@@ -41,7 +41,7 @@ services:
         -Djava.awt.headless=true
 
   fhir-server:
-    image: ghcr.io/chgl/hapi/hapi-fhir-jpaserver-starter:5.4.2-distroless
+    image: docker.io/hapiproject/hapi:v5.5.1-distroless
 
   gpasinit-patient:
     image: curlimages/curl:7.79.1
