@@ -41,11 +41,12 @@ public class KafkaProcessor extends BaseKafkaProcessor {
     return message -> {
       var processed = super.process(message);
 
+      var messageKey =
+          message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, "").toString();
+
       var messageBuilder =
           MessageBuilder.withPayload(processed)
-              .setHeaderIfAbsent(
-                  KafkaHeaders.MESSAGE_KEY,
-                  message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, null));
+              .setHeaderIfAbsent(KafkaHeaders.MESSAGE_KEY, messageKey);
 
       var inputTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC).toString();
 
