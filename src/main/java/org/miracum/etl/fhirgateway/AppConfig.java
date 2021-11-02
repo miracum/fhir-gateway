@@ -5,6 +5,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
+import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
 import io.jaegertracing.internal.propagation.TraceContextCodec;
@@ -37,7 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.backoff.ExponentialRandomBackOffPolicy;
 import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -124,12 +125,13 @@ public class AppConfig {
 
   @Bean
   @Qualifier("restRetryTemplate")
-  public RetryTemplate retryTemplate() {
+  public RetryTemplate retryTemplate(@Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
     var retryTemplate = new RetryTemplate();
 
-    var backOffPolicy = new ExponentialBackOffPolicy();
-    backOffPolicy.setInitialInterval(5000);
-    backOffPolicy.setMultiplier(1.25);
+    var backOffPolicy = new ExponentialRandomBackOffPolicy();
+    backOffPolicy.setInitialInterval(5_000); // 5 seconds
+    backOffPolicy.setMaxInterval(300_000); // 5 minutes
+
     retryTemplate.setBackOffPolicy(backOffPolicy);
 
     var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
@@ -139,10 +141,11 @@ public class AppConfig {
     retryableExceptions.put(FhirClientConnectionException.class, true);
     retryableExceptions.put(ResourceNotFoundException.class, false);
     retryableExceptions.put(ResourceVersionConflictException.class, false);
+    retryableExceptions.put(InternalErrorException.class, true);
 
-    var retryPolicy = new SimpleRetryPolicy(10, retryableExceptions);
+    var maxAttempts = isKafkaEnabled ? Integer.MAX_VALUE : 5;
 
-    retryTemplate.setRetryPolicy(retryPolicy);
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, retryableExceptions));
 
     retryTemplate.registerListener(
         new RetryListenerSupport() {
@@ -150,9 +153,40 @@ public class AppConfig {
           public <T, E extends Throwable> void onError(
               RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
             LOG.warn(
-                "HTTP Error occurred: {}. Retrying {}",
+                "HTTP Error occurred: {}. Retrying {} out of {}",
                 throwable.getMessage(),
-                kv("attempt", context.getRetryCount()));
+                kv("attempt", context.getRetryCount()),
+                kv("maxAttempts", maxAttempts));
+          }
+        });
+
+    return retryTemplate;
+  }
+
+  @Bean
+  @Qualifier("databaseRetryTemplate")
+  public RetryTemplate databaseRetryTemplate(
+      @Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
+    var retryTemplate = new RetryTemplate();
+
+    var backOffPolicy = new ExponentialRandomBackOffPolicy();
+    backOffPolicy.setInitialInterval(5_000); // 5 seconds
+    backOffPolicy.setMaxInterval(300_000); // 5 minutes
+
+    var maxAttempts = isKafkaEnabled ? Integer.MAX_VALUE : 5;
+
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts));
+
+    retryTemplate.registerListener(
+        new RetryListenerSupport() {
+          @Override
+          public <T, E extends Throwable> void onError(
+              RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
+            LOG.warn(
+                "Database Error occurred: {}. Retrying {} out of {}",
+                throwable.getMessage(),
+                kv("attempt", context.getRetryCount()),
+                kv("maxAttempts", maxAttempts));
           }
         });
 
