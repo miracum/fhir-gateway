@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   mock-data-loader:
-    image: confluentinc/cp-kafkacat:6.2.1
+    image: confluentinc/cp-kafkacat:7.0.0
     entrypoint: [ "/bin/bash", "-c" ]
     command: >
       "while true; do
