@@ -60,7 +60,7 @@ dependencies {
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
     runtimeOnly "org.postgresql:postgresql:42.3.0"
-    runtimeOnly "com.h2database:h2:1.4.200"
+    runtimeOnly "com.h2database:h2:2.0.202"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
