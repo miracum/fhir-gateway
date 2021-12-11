@@ -3,12 +3,13 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "6.0.0"
+    id "com.diffplug.spotless" version "6.0.2"
 }
 
 group = "org.miracum.etl"
 version = "0.0.1-SNAPSHOT"
-sourceCompatibility = "11"
+sourceCompatibility = "17"
+targetCompatibility = "17"
 
 configurations {
     developmentOnly
@@ -21,7 +22,7 @@ configurations {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.4")
+    set("springCloudVersion", "2020.0.4")
 }
 
 repositories {
@@ -63,6 +64,16 @@ dependencies {
     runtimeOnly "com.h2database:h2:2.0.202"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
+
+// Mitigation for CVE-2021-44228
+// https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == "org.apache.logging.log4j") {
+            details.useVersion "2.15.0"
+        }
+    }
 }
 
 dependencyManagement {
