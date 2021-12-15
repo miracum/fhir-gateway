@@ -3,7 +3,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "6.0.2"
+    id "com.diffplug.spotless" version "6.0.4"
 }
 
 group = "org.miracum.etl"
@@ -45,16 +45,16 @@ dependencies {
 
     implementation "org.miracum:kafka-fhir-serializer:1.0.2"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.7.5"
-    implementation "io.micrometer:micrometer-core:1.7.5"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.8.1"
+    implementation "io.micrometer:micrometer-core:1.8.1"
 
     implementation "net.logstash.logback:logstash-logback-encoder:7.0.1"
 
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-base:5.5.1"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-client:5.5.1"
-    implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:5.5.8"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:5.5.1"
-    implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:5.5.1"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-base:5.6.1"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-client:5.6.1"
+    implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:5.6.15"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:5.6.1"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:5.6.1"
 
     implementation "io.opentracing.contrib:opentracing-spring-web-starter:4.1.0"
     implementation "io.opentracing.contrib:opentracing-spring-jaeger-web-starter:3.3.1"
@@ -63,7 +63,7 @@ dependencies {
     implementation "io.jaegertracing:jaeger-client:1.6.0"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "org.postgresql:postgresql:42.3.0"
+    runtimeOnly "org.postgresql:postgresql:42.3.1"
     runtimeOnly "com.h2database:h2:2.0.202"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
