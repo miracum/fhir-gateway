@@ -23,6 +23,9 @@ configurations {
 
 ext {
     set("springCloudVersion", "2020.0.4")
+    // Mitigation for CVE-2021-44228
+    // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
+    set("log4j2.version", "2.16.0")
 }
 
 repositories {
@@ -64,16 +67,6 @@ dependencies {
     runtimeOnly "com.h2database:h2:2.0.202"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
-}
-
-// Mitigation for CVE-2021-44228
-// https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        if (details.requested.group == "org.apache.logging.log4j") {
-            details.useVersion "2.15.0"
-        }
-    }
 }
 
 dependencyManagement {
