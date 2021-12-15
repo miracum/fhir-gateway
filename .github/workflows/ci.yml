@@ -136,7 +136,7 @@ jobs:
         run: |
           while read -r image; do
             echo "Signing $image"
-            cosign sign -key /tmp/cosign.key "$image"
+            cosign sign --key /tmp/cosign.key "$image"
           done <<< "$IMAGES"
   release:
     needs: build
