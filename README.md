@@ -99,6 +99,8 @@ FHIR-Gateway to create the `resources` table with partitions for the most common
 CREATE TABLE IF NOT EXISTS resources
 (
     id              bigserial PRIMARY KEY,
+    patient_id      varchar(64) NOT NULL,
+    encounter_id    varchar(64) NOT NULL,
     fhir_id         varchar(64) NOT NULL,
     type            varchar(64) NOT NULL,
     data            jsonb       NOT NULL,
@@ -121,6 +123,9 @@ CREATE TABLE resources_others PARTITION OF resources DEFAULT;
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS resource_id_idx ON resources (id);
 CREATE INDEX IF NOT EXISTS resource_type_idx ON resources (type);
 CREATE INDEX IF NOT EXISTS last_updated_at_idx ON resources (last_updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS resource_pat_id_idx ON resources (patient_id);
+CREATE INDEX IF NOT EXISTS resource_enc_id_idx ON resources (encounter_id);
 ```
 
 Be sure to set `SPRING_SQL_INIT_MODE=never` before starting the FHIR GW.
