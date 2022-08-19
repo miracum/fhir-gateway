@@ -83,13 +83,18 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
             .map(
                 resource ->
                     new Object[] {
-                    // TODO add encounter id / patient id / encounter_start date here
-                    // this would depend also on the resources, e.g.
-                    // type = "Patient": Encounter-ID: NULL, Patient-ID: Patient.id
-                    // type = "Encounter": Encounter-ID: Encounter.id, Patient.id: REPLACE(jsonb_path_query(Encounter.DATA, '$.subject') ->> 'reference', 'Patient/', '')
-                    // type = "Condition": Encounter-ID: REPLACE(Condition.DATA -> 'encounter' ->> 'reference', 'Encounter/', '')
-                    // type = "Procedure": Encounter-ID: REPLACE(Procedure.DATA -> 'encounter' ->> 'reference', 'Encounter/', '')
-                    // type = "Observation": Encounter-ID: REPLACE(Observation.DATA -> 'encounter' ->> 'reference', 'Encounter/', '')
+                      // TODO add encounter id / patient id / encounter_start date here
+                      // this would depend also on the resources, e.g.
+                      // type = "Patient": Encounter-ID: NULL, Patient-ID: Patient.id
+                      // type = "Encounter": Encounter-ID: Encounter.id, Patient.id:
+                      // REPLACE(jsonb_path_query(Encounter.DATA, '$.subject') ->> 'reference',
+                      // 'Patient/', '')
+                      // type = "Condition": Encounter-ID: REPLACE(Condition.DATA -> 'encounter' ->>
+                      // 'reference', 'Encounter/', '')
+                      // type = "Procedure": Encounter-ID: REPLACE(Procedure.DATA -> 'encounter' ->>
+                      // 'reference', 'Encounter/', '')
+                      // type = "Observation": Encounter-ID: REPLACE(Observation.DATA -> 'encounter'
+                      // ->> 'reference', 'Encounter/', '')
                       resource.getIdElement().getIdPart(),
                       resource.fhirType(),
                       fhirParser.encodeResourceToString(resource)
