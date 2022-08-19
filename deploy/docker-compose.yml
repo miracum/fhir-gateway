@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   gateway:
-    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.2}
+    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.3}
     restart: on-failure
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
