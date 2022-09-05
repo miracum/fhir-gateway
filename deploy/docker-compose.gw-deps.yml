@@ -5,11 +5,12 @@ services:
     image: jaegertracing/all-in-one:1.37
 
   fhir-pseudonymizer:
-    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0
+    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v2.12.0
     environment:
       JAEGER__HOST: jaeger
       JAEGER__PORT: 6831
       GPAS__URL: ${GPAS_URL:-http://gpas:8080/gpas/gpasService}
+      GPAS__VERSION: "1.9.1"
     volumes:
       - ./anonymization.yaml:/etc/anonymization.yaml:ro
     depends_on:
