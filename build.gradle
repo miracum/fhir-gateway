@@ -22,7 +22,7 @@ configurations {
 }
 
 ext {
-    set("springCloudVersion", "2020.0.4")
+    set("springCloudVersion", "2021.0.4")
     // Mitigation for CVE-2021-44228
     // https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot
     set("log4j2.version", "2.16.0")
