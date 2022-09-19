@@ -1,0 +1,27 @@
+# add system-properties for ttp-fhir
+####################################
+
+# env TTP_FHIR_KEYCLOAK_ENABLE=true
+set fhirEnabled=${TTP_FHIR_KEYCLOAK_ENABLE}
+
+if (result ~= "(?i)(on|true|yes|1)") of :resolve-expression(expression=$fhirEnabled)
+	echo \>\>\> add system-properties TTP-FHIR
+
+	# env TTP_FHIR_KEYCLOAK_SERVER_URL=<PROTOCOL://HOST_OR_IP:PORT/auth/>
+	set fhirBaseUrl=${TTP_FHIR_KEYCLOAK_SERVER_URL}
+
+	# env TTP_FHIR_KEYCLOAK_REALM=ttp
+	set fhirRealm=${TTP_FHIR_KEYCLOAK_REALM}
+
+	# env TTP_FHIR_KEYCLOAK_CLIENT_ID=ttp-fhir
+	set fhirClientId=${TTP_FHIR_KEYCLOAK_CLIENT_ID}
+
+	# env TTP_FHIR_KEYCLOAK_CLIENT_SECRET=<CLIENT_SECRET>
+	set fhirSecret=${TTP_FHIR_KEYCLOAK_CLIENT_SECRET}
+
+	/system-property=ttp.fhir.keycloak.realm:add(value=$fhirRealm)
+	/system-property=ttp.fhir.keycloak.clientId:add(value=$fhirClientId)
+	/system-property=ttp.fhir.keycloak.baseUrl:add(value=$fhirBaseUrl)
+	/system-property=ttp.fhir.keycloak.secret:add(value=$fhirSecret)
+	/system-property=ttp.fhir.keycloak.enabled:add(value=$fhirEnabled)
+end-if

@@ -5,13 +5,12 @@ services:
     image: jaegertracing/all-in-one:1.37
 
   fhir-pseudonymizer:
-    # image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v2.12.0
-    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0
+    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v2.12.0
     environment:
       JAEGER__HOST: jaeger
       JAEGER__PORT: 6831
       GPAS__URL: ${GPAS_URL:-http://gpas:8080/gpas/gpasService}
-      GPAS__VERSION: ${GPAS_URL:-1.9.1}
+      GPAS__VERSION: ${GPAS_VERSION:-1.11.0}
     volumes:
       - ./anonymization.yaml:/etc/anonymization.yaml:ro
     depends_on:
@@ -31,16 +30,35 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
 
-  gpas:
-    image: tmfev/gpas:1.9.1
+  mysql:
+    image: mysql/mysql-server:8.0.30
+    ports:
+      - "3306:3306"
     environment:
-      JAVA_OPTS: >-
-        -Xms512m
-        -Xmx1G
-        -XX:MetaspaceSize=96M
-        -XX:MaxMetaspaceSize=256m
-        -Djava.net.preferIPv4Stack=true
-        -Djava.awt.headless=true
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./wildfly/sqls:/docker-entrypoint-initdb.d
+      #- ./wildfly/db_data:/var/lib/mysql
+
+  gpas:
+    image: mosaicgreifswald/wildfly:24.0.1.Final-20210917
+    ports:
+      - "8088:8080"
+      - "9990:9990"
+    environment:
+      CONSOLE_LOG_LEVEL: DEBUG
+      GPAS_FILE_LOG: "true"
+      GPAS_LOG_LEVEL: DEBUG
+      WILDFLY_PASS: wildfly_password
+      JAVA_OPTS: "-server -Xms512m -Xmx1G -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -XX:StringTableSize=1000003 -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Djboss.modules.system.pkgs=org.jboss.byteman"
+    depends_on:
+      - mysql
+    volumes:
+      - ./wildfly/jboss:/entrypoint-wildfly-cli
+      - ./wildfly/deployments:/entrypoint-wildfly-deployments
+      - ./wildfly/logs:/entrypoint-wildfly-logs
+    entrypoint: /bin/bash
+    command: -c "./wait-for-it.sh mysql:3306 -t 120 && ./run.sh"
 
   fhir-server:
     image: docker.io/hapiproject/hapi:v5.6.0-distroless
