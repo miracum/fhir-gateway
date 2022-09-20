@@ -52,7 +52,7 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:${hapiVersion}"
     // implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
-    // implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
     implementation "io.opentracing.contrib:opentracing-spring-web-starter:4.1.0"
     implementation "io.opentracing.contrib:opentracing-spring-jaeger-web-starter:3.3.1"
