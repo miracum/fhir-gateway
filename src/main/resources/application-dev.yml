@@ -14,6 +14,8 @@ services:
     url: "http://localhost:5000/fhir"
   fhirServer:
     url: "http://localhost:8082/fhir"
+    username: ""
+    password: ""
     enabled: false
   psql:
     enabled: true

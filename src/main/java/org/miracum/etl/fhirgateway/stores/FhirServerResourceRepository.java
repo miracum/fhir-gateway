@@ -2,7 +2,10 @@ package org.miracum.etl.fhirgateway.stores;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
+import com.google.common.base.Strings;
 import io.micrometer.core.instrument.Metrics;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hl7.fhir.r4.model.Bundle;
@@ -33,9 +36,23 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
 
   @Autowired
   public FhirServerResourceRepository(
-      FhirContext fhirContext, @Value("${services.fhirServer.url}") String fhirServerUrl) {
+      FhirContext fhirContext,
+      @Value("${services.fhirServer.url}") String fhirServerUrl,
+      @Value("${services.fhirServer.username:}") String fhirServerUsername,
+      @Value("${services.fhirServer.password:}") String fhirServerPassword) {
+
     this.fhirParser = fhirContext.newJsonParser();
     this.client = fhirContext.newRestfulGenericClient(fhirServerUrl);
+
+    if (Strings.isNullOrEmpty(fhirServerUsername)) {
+      log.debug("Client config for FHIR server: Basic auth disabled");
+    } else {
+      log.debug("Client config for FHIR server: Basic auth enabled");
+      // Create an HTTP basic auth interceptor
+      IClientInterceptor authInterceptor =
+          new BasicAuthInterceptor(fhirServerUsername, fhirServerPassword);
+      this.client.registerInterceptor(authInterceptor);
+    }
 
     this.retryTemplate = new RetryTemplate();
 

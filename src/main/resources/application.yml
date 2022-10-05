@@ -89,6 +89,8 @@ services:
     url: ""
   fhirServer:
     url: ""
+    username: ""
+    password: ""
     enabled: false
   psql:
     enabled: true
