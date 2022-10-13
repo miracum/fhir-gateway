@@ -5,7 +5,7 @@ services:
     image: jaegertracing/all-in-one:1.38
 
   fhir-pseudonymizer:
-    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0
+    image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v2.14.0
     environment:
       JAEGER__HOST: jaeger
       JAEGER__PORT: 6831
