@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.38
+    image: jaegertracing/all-in-one:1.40
 
   fhir-pseudonymizer:
     image: harbor.miracum.org/miracum-etl/fhir-pseudonymizer:v1.6.0
@@ -24,7 +24,7 @@ services:
       - jaeger
 
   fhir-db:
-    image: postgres:14.5
+    image: postgres:14.6
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
@@ -44,7 +44,7 @@ services:
     image: docker.io/hapiproject/hapi:v5.6.0-distroless
 
   gpasinit-patient:
-    image: curlimages/curl:7.85.0
+    image: curlimages/curl:7.86.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
@@ -73,7 +73,7 @@ services:
       - gpas
 
   gpasinit-fall:
-    image: curlimages/curl:7.85.0
+    image: curlimages/curl:7.86.0
     command: |
       -X POST
       -H 'Content-Type:application/xml'
