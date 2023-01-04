@@ -1,13 +1,11 @@
-version: "3.7"
-
 services:
   mock-data-loader:
-    image: confluentinc/cp-kafkacat:7.1.4
-    entrypoint: [ "/bin/bash", "-c" ]
+    image: docker.io/edenhill/kcat:1.7.1
+    entrypoint: ["/bin/sh", "-c"]
     command: >
       "while true; do
-        kafkacat -b kafka1:19092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
-        kafkacat -b kafka1:19092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
+        kcat -b kafka1:19092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
+        kcat -b kafka1:19092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
         sleep 10;
       done"
     volumes:
@@ -17,7 +15,7 @@ services:
       - kafka1
 
   kafka1:
-    image: docker.vectorized.io/vectorized/redpanda:v22.3.7
+    image: docker.io/vectorized/redpanda:v22.3.9
     container_name: kafka1
     command:
       - redpanda

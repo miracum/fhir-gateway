@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   gateway:
     image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.6}
