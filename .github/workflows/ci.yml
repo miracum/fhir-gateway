@@ -103,7 +103,7 @@ jobs:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         run: |
           docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run gpasinit
+          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run vfps-init-test
           docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
 
       - name: Print E2E logs
