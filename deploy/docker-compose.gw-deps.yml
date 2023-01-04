@@ -17,7 +17,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.13.3
+    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.13.4@sha256:3522a3e463239c80a0d4ac7751fe188b160681a7e5dbeea3d998499eb7570125
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
