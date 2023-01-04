@@ -5,13 +5,14 @@ services:
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.15.0@sha256:8953eb45d1c66d52631fab51a525b0479df7a7811fa4ac0aef0ef2e6515fb12f
     environment:
-      JAEGER__HOST: jaeger
-      JAEGER__PORT: 6831
+      Tracing__Enabled: "true"
+      Tracing__Jaeger__AgentHost: jaeger
+      Tracing__Jaeger__AgentPort: 6831
       Vfps__Address: "dns:///vfps:8081"
       UseSystemTextJsonFhirSerializer: "true"
       PseudonymizationService: "Vfps"
     volumes:
-      - ./anonymization.yaml:/etc/anonymization.yaml:ro
+      - ${PWD}/deploy/anonymization.yaml:/etc/anonymization.yaml:ro
     depends_on:
       - jaeger
       - vfps

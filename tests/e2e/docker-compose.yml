@@ -5,24 +5,3 @@ services:
       FHIR_SERVER_URL: "http://gateway:8080/fhir"
     depends_on:
       - gateway
-
-  fhir-pseudonymizer:
-    volumes:
-      - ${PWD}/tests/e2e/data/anonymization.yaml:/etc/anonymization.yaml:ro
-
-  vfps-init-test:
-    image: docker.io/curlimages/curl:7.87.0
-    command: |
-      -X POST
-      -H 'Content-Type: application/json'
-      --fail
-      --retry-connrefuse
-      --connect-timeout 10
-      --max-time 120
-      --retry 10
-      --retry-delay 10
-      -d '{"name": "TEST", "pseudonymGenerationMethod": 0, "pseudonymLength": 32, "pseudonymPrefix": "p-"}'
-      http://vfps:8080/v1/namespaces
-    depends_on:
-      vfps:
-        condition: service_started

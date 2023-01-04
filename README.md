@@ -1,6 +1,6 @@
 # FHIR Gateway
 
-![License](https://img.shields.io/github/license/miracum/vfps)
+![License](https://img.shields.io/github/license/miracum/fhir-gateway)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/miracum/fhir-gateway/badge)](https://api.securityscorecards.dev/projects/github.com/miracum/fhir-gateway)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 

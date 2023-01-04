@@ -10,4 +10,4 @@ COPY . .
 
 USER 65534:65534
 ENTRYPOINT ["pytest"]
-CMD [ "test.py" ]
+CMD [ "-p", "no:cacheprovider", "test.py" ]

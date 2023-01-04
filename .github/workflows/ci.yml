@@ -98,21 +98,25 @@ jobs:
           load: ${{ github.event_name == 'pull_request' }}
           platforms: ${{ steps.platforms.outputs.platforms }}
 
+      - uses: KengoTODA/actions-setup-docker-compose@main
+        with:
+          version: '2.14.2' # the full version of `docker-compose` command
+
       - name: Run E2E tests
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         run: |
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run vfps-init-test
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
+          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
+          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
+          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
 
       - name: Print E2E logs
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
-        if: always()
+        if: ${{ always() }}
         run: |
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
-          docker compose -p "$GITHUB_JOB-e2e" -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
+          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   sign-images:
     name: sign images
