@@ -43,6 +43,8 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-22.04
+    permissions:
+      packages: write
     outputs:
       image-tags: ${{ steps.container_meta.outputs.tags }}
       image-digest: ${{ steps.build.outputs.digest }}
@@ -100,7 +102,7 @@ jobs:
 
       - uses: KengoTODA/actions-setup-docker-compose@main
         with:
-          version: '2.14.2' # the full version of `docker-compose` command
+          version: "2.14.2" # the full version of `docker-compose` command
 
       - name: Run E2E tests
         env:
