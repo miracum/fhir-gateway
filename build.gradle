@@ -1,9 +1,9 @@
 plugins {
-    id "org.springframework.boot" version "2.7.4"
-    id "io.spring.dependency-management" version "1.0.14.RELEASE"
+    id "org.springframework.boot" version "2.7.6"
+    id "io.spring.dependency-management" version "1.1.0"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "6.11.0"
+    id "com.diffplug.spotless" version "6.12.1"
 }
 
 group = "org.miracum.etl"
@@ -22,8 +22,8 @@ configurations {
 }
 
 ext {
-    set("springCloudVersion", "2021.0.4")
-    set('hapiVersion', "6.1.2")
+    set("springCloudVersion", "2021.0.5")
+    set("hapiVersion", "6.2.2")
 }
 
 repositories {
@@ -43,14 +43,13 @@ dependencies {
 
     implementation "org.miracum:kafka-fhir-serializer:1.0.2"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.9.5"
-    implementation "io.micrometer:micrometer-core:1.9.5"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.10.2"
+    implementation "io.micrometer:micrometer-core:1.10.2"
 
     implementation "net.logstash.logback:logstash-logback-encoder:7.2"
 
     implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:${hapiVersion}"
-    // implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
@@ -61,7 +60,7 @@ dependencies {
     implementation "io.jaegertracing:jaeger-client:1.8.1"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "org.postgresql:postgresql:42.5.0"
+    runtimeOnly "org.postgresql:postgresql:42.5.1"
     runtimeOnly "com.h2database:h2:2.1.214"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -73,8 +72,8 @@ dependencyManagement {
     }
 }
 
-test {
-    useJUnitPlatform()
+tasks.named("test") {
+  useJUnitPlatform()
 }
 
 jacoco {
@@ -96,12 +95,8 @@ jar {
 
 spotless {
     java {
-        importOrder() // standard import order
-        // You probably want an empty string at the end - all of the
-        // imports you didn't specify explicitly will go there.
-
+        importOrder()
         removeUnusedImports()
-
-        googleJavaFormat() // has its own section below
+        googleJavaFormat()
     }
 }

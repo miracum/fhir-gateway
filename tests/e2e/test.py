@@ -1,7 +1,8 @@
-import fhirclient.models.bundle as b
 import json
 import logging
 import os
+
+import fhirclient.models.bundle as b
 import pytest
 import requests
 from fhirclient import client
@@ -75,13 +76,13 @@ def test_observation_is_pseudonymized(smart, bundle):
     observation_response = bundle_response.entry[0].resource
 
     assert (
-        not encounter_id_part
-        in observation_response.encounter.processedReferenceIdentifier()
+        encounter_id_part
+        not in observation_response.encounter.processedReferenceIdentifier()
     )
 
     assert (
-        not subject_id_part
-        in observation_response.subject.processedReferenceIdentifier()
+        subject_id_part
+        not in observation_response.subject.processedReferenceIdentifier()
     )
 
 
@@ -90,7 +91,7 @@ def test_patient_is_pseudonymized(smart, bundle):
     response_json = bundle.create(smart.server)
     bundle_response = b.Bundle(response_json)
 
-    assert not original_patient_id in bundle_response.entry[1].resource.id
+    assert original_patient_id not in bundle_response.entry[1].resource.id
 
 
 def test_send_delete_bundle(smart, delete_bundle):

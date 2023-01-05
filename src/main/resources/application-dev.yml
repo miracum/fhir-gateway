@@ -7,7 +7,7 @@ services:
   loinc:
     conversions:
       url: "http://localhost:19090/api/v1"
-      enabled: true
+      enabled: false
       failOnError: false
   pseudonymizer:
     enabled: true
