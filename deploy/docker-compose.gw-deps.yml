@@ -1,6 +1,6 @@
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.40
+    image: jaegertracing/all-in-one:1.41@sha256:a4f4e57343203e58c53874cb0c764b7523b8c3e2a308ebac845ed1b822166351
 
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.15.0@sha256:8953eb45d1c66d52631fab51a525b0479df7a7811fa4ac0aef0ef2e6515fb12f
