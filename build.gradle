@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "2.7.6"
+    id "org.springframework.boot" version "2.7.7"
     id "io.spring.dependency-management" version "1.1.0"
     id "java"
     id "jacoco"
@@ -23,7 +23,7 @@ configurations {
 
 ext {
     set("springCloudVersion", "2021.0.5")
-    set("hapiVersion", "6.2.2")
+    set("hapiVersion", "6.2.3")
 }
 
 repositories {
@@ -41,7 +41,7 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
     implementation "org.springframework.kafka:spring-kafka"
 
-    implementation "org.miracum:kafka-fhir-serializer:1.0.2"
+    implementation "org.miracum:kafka-fhir-serializer:1.0.3"
 
     implementation "io.micrometer:micrometer-registry-prometheus:1.10.2"
     implementation "io.micrometer:micrometer-core:1.10.2"
