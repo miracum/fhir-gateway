@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.6}
+    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.6@sha256:81de5bd53e599828e21638910ff6894ae49c51a31859f14ccdf199661a0fcad5}
     restart: on-failure
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}

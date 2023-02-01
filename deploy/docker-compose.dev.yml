@@ -1,6 +1,6 @@
 services:
   mock-data-loader:
-    image: docker.io/edenhill/kcat:1.7.1
+    image: docker.io/edenhill/kcat:1.7.1@sha256:8f16a5fed099931ce1122420b7473efe467ff9841d53680b99db25dd1723d711
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "while true; do
@@ -15,7 +15,7 @@ services:
       - kafka1
 
   kafka1:
-    image: docker.io/vectorized/redpanda:v22.3.9
+    image: docker.io/vectorized/redpanda:v22.3.9@sha256:faa195849019842bd024fc1a42738698670f31902b4fd4325be35780c2ef492f
     container_name: kafka1
     command:
       - redpanda
@@ -37,7 +37,7 @@ services:
       - 9644:9644
 
   akhq:
-    image: tchiotludo/akhq:0.23.0
+    image: tchiotludo/akhq:0.23.0@sha256:6beade9f8c3fe19d76bebeb525a20d005cfe75fdc2e7b4df7847a1a8085e2d2d
     environment:
       AKHQ_CONFIGURATION: |
         akhq:

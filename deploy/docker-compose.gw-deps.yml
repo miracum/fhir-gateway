@@ -83,7 +83,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:7.87.0
+    image: docker.io/curlimages/curl:7.87.0@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     command: |
       -X POST
       -H 'Content-Type: application/json'
@@ -100,7 +100,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:7.87.0
+    image: docker.io/curlimages/curl:7.87.0@sha256:f7f265d5c64eb4463a43a99b6bf773f9e61a50aaa7cefaf564f43e42549a01dd
     command: |
       -X POST
       -H 'Content-Type: application/json'
