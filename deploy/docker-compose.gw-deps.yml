@@ -25,7 +25,7 @@ services:
       - jaeger
 
   vfps-db:
-    image: docker.io/library/postgres:15.1@sha256:f4cd32e7a418d9c9ba043e7d561243388202b654c740bcc85ca40b41d9fb4f1e
+    image: docker.io/library/postgres:15.1@sha256:02547253a07e6edd0c070caba1d2a019b7dc7df98b948dc9a909e1808eb77024
     restart: unless-stopped
     deploy:
       resources:
@@ -77,7 +77,7 @@ services:
     image: docker.io/hapiproject/hapi:v6.2.2@sha256:9c4e8af94d81ac0049dbb589e4cd855bf78c9c13be6f6844e814c63d63545b44
 
   fhir-db:
-    image: docker.io/library/postgres:15.1@sha256:f4cd32e7a418d9c9ba043e7d561243388202b654c740bcc85ca40b41d9fb4f1e
+    image: docker.io/library/postgres:15.1@sha256:02547253a07e6edd0c070caba1d2a019b7dc7df98b948dc9a909e1808eb77024
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
