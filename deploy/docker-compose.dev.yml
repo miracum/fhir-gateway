@@ -15,7 +15,7 @@ services:
       - kafka1
 
   kafka1:
-    image: docker.io/vectorized/redpanda:v22.3.9
+    image: docker.io/vectorized/redpanda:v22.3.13@sha256:955620233046b2760b732e0bd18c8a7cfd7fabcddcb84b505c4b66d6371988b8
     container_name: kafka1
     command:
       - redpanda
