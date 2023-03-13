@@ -1,9 +1,9 @@
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.41@sha256:a4f4e57343203e58c53874cb0c764b7523b8c3e2a308ebac845ed1b822166351
+    image: jaegertracing/all-in-one:1.42@sha256:7d32a4eddec7b9a6d8265d4320a224e06ab5fe0753869715e5852401e8e7d6eb
 
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.15.1@sha256:84d60b439bd1535de941a70c578b8e092f2d7091b57b887d55394588c72873de
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.17.0@sha256:431a7f4516c1f641966c507941b87a997441665656572a1c00c44376ef08fe24
     environment:
       Tracing__IsEnabled: "true"
       Tracing__Jaeger__AgentHost: jaeger
@@ -18,14 +18,14 @@ services:
       - vfps
 
   loinc-converter:
-    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.13.4@sha256:3522a3e463239c80a0d4ac7751fe188b160681a7e5dbeea3d998499eb7570125
+    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.13.5@sha256:3c7acc89f97d2c7eb6060a5975abe653e3da8d6c22a537236f6fdfaa17517c30
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
       - jaeger
 
   vfps-db:
-    image: docker.io/library/postgres:15.1@sha256:f4cd32e7a418d9c9ba043e7d561243388202b654c740bcc85ca40b41d9fb4f1e
+    image: docker.io/library/postgres:15.2@sha256:50a96a21f2992518c2cb4601467cf27c7ac852542d8913c1872fe45cd6449947
     restart: unless-stopped
     deploy:
       resources:
@@ -74,16 +74,16 @@ services:
       - vfps-db
 
   fhir-server:
-    image: docker.io/hapiproject/hapi:v6.2.2@sha256:9c4e8af94d81ac0049dbb589e4cd855bf78c9c13be6f6844e814c63d63545b44
+    image: docker.io/hapiproject/hapi:v6.4.0@sha256:638b8df98fcfc074404520700923c07d313f62c5dcad49ca569cdb8041c7cc57
 
   fhir-db:
-    image: docker.io/library/postgres:15.1@sha256:f4cd32e7a418d9c9ba043e7d561243388202b654c740bcc85ca40b41d9fb4f1e
+    image: docker.io/library/postgres:15.2@sha256:50a96a21f2992518c2cb4601467cf27c7ac852542d8913c1872fe45cd6449947
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:7.87.0
+    image: docker.io/curlimages/curl:7.88.1@sha256:48318407b8d98e8c7d5bd4741c88e8e1a5442de660b47f63ba656e5c910bc3da
     command: |
       -X POST
       -H 'Content-Type: application/json'
@@ -100,7 +100,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:7.87.0
+    image: docker.io/curlimages/curl:7.88.1@sha256:48318407b8d98e8c7d5bd4741c88e8e1a5442de660b47f63ba656e5c910bc3da
     command: |
       -X POST
       -H 'Content-Type: application/json'
