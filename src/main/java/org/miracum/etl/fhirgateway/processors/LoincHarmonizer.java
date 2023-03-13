@@ -84,11 +84,13 @@ public class LoincHarmonizer {
         harmonized.setValue(result.getFirst());
         Pair<Quantity, LoincConversion> finalResult = result;
         harmonized.getCode().getCoding().stream()
-          .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
-          .findFirst().ifPresent( loinc -> {
-            loinc.setCode(finalResult.getSecond().getLoinc());
-            loinc.setDisplay(finalResult.getSecond().getDisplay());
-          });
+            .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
+            .findFirst()
+            .ifPresent(
+                loinc -> {
+                  loinc.setCode(finalResult.getSecond().getLoinc());
+                  loinc.setDisplay(finalResult.getSecond().getDisplay());
+                });
       }
 
       if (!originalObservation.hasReferenceRange()) {
