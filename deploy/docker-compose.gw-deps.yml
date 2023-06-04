@@ -1,6 +1,6 @@
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.42@sha256:7d32a4eddec7b9a6d8265d4320a224e06ab5fe0753869715e5852401e8e7d6eb
+    image: jaegertracing/all-in-one:1.45@sha256:5d5c9d2d8c8cbb42f1db4aac1f1f8487bac63da6802004d0da8580fc0c7311a1
 
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.17.0@sha256:431a7f4516c1f641966c507941b87a997441665656572a1c00c44376ef08fe24
@@ -18,14 +18,14 @@ services:
       - vfps
 
   loinc-converter:
-    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.13.5@sha256:3c7acc89f97d2c7eb6060a5975abe653e3da8d6c22a537236f6fdfaa17517c30
+    image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.14.2@sha256:9815eb71c13fa2a0b74df6492f41cc2d7b9969696984e6045b6217600ad1f0e1
     environment:
       JAEGER_AGENT_HOST: jaeger
     depends_on:
       - jaeger
 
   vfps-db:
-    image: docker.io/library/postgres:15.2@sha256:50a96a21f2992518c2cb4601467cf27c7ac852542d8913c1872fe45cd6449947
+    image: docker.io/library/postgres:15.3@sha256:31c9342603866f29206a06b77c8fed48b3c3f70d710a4be4e8216b134f92d0df
     restart: unless-stopped
     deploy:
       resources:
@@ -44,7 +44,7 @@ services:
       POSTGRES_DB: vfps
 
   vfps:
-    image: ghcr.io/miracum/vfps:v1.1.3@sha256:a4940766829e5d5f330030e8813049d2f074651876853f672f45de0709e35fbf
+    image: ghcr.io/miracum/vfps:v1.2.0@sha256:ec09f1badfaca056b0a7be976fd6acdbf1b331194997d4d993938d86d83592f8
     restart: unless-stopped
     deploy:
       resources:
@@ -74,10 +74,10 @@ services:
       - vfps-db
 
   fhir-server:
-    image: docker.io/hapiproject/hapi:v6.4.0@sha256:638b8df98fcfc074404520700923c07d313f62c5dcad49ca569cdb8041c7cc57
+    image: docker.io/hapiproject/hapi:v6.6.0@sha256:c00367865ae5dad4e171cbb68bfc1c39818854079d1565bee4c86a45e78335d0
 
   fhir-db:
-    image: docker.io/library/postgres:15.2@sha256:50a96a21f2992518c2cb4601467cf27c7ac852542d8913c1872fe45cd6449947
+    image: docker.io/library/postgres:15.3@sha256:31c9342603866f29206a06b77c8fed48b3c3f70d710a4be4e8216b134f92d0df
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
