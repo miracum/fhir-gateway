@@ -88,8 +88,14 @@ docker compose \
   -f deploy/docker-compose.exposed.yml up
 ```
 
-Note that this contains a few optional services: Kafka, a FHIR server, gPAS. You might simplify the
+Note that this contains a few optional services: Kafka, a FHIR server, Vfps. You might simplify the
 docker-compose.dev.yml and only include relevant components for development.
+
+Build and run the FHIR Gateway:
+
+```shell
+./gradlew bootRun
+```
 
 ## Database Tuning
 

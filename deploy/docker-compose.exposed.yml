@@ -23,3 +23,7 @@ services:
   loinc-converter:
     ports:
       - 127.0.0.1:19090:8080
+
+  kafka:
+    ports:
+      - 127.0.0.1:9094:9094
