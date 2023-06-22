@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM docker.io/library/gradle:7.6.1-jdk17@sha256:4b2997d35c891c405c053c653965d45348ba36e8d10d40dcbba7e05fc0bff389 AS build
+FROM docker.io/library/gradle:8.1.1-jdk17@sha256:e7a4bc8f4ee27feae2eac4de61ca64406b7137e6f6b107052accd24bf0806043 AS build
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
@@ -10,9 +10,9 @@ RUN gradle --no-daemon build || true
 COPY --chown=gradle:gradle . .
 
 RUN <<EOF
-gradle build --info
-gradle jacocoTestReport
-awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/jacoco/coverage.csv
+gradle --no-daemon build  --info
+gradle --no-daemon jacocoTestReport
+awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
 java -Djarmode=layertools -jar build/libs/*.jar extract
 EOF
 
