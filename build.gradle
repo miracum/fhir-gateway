@@ -1,9 +1,9 @@
 plugins {
-    id "org.springframework.boot" version "2.7.9"
+    id "org.springframework.boot" version "2.7.13"
     id "io.spring.dependency-management" version "1.1.0"
     id "java"
     id "jacoco"
-    id "com.diffplug.spotless" version "6.16.0"
+    id "com.diffplug.spotless" version "6.19.0"
 }
 
 group = "org.miracum.etl"
@@ -22,8 +22,8 @@ configurations {
 }
 
 ext {
-    set("springCloudVersion", "2021.0.6")
-    set("hapiVersion", "6.4.2")
+    set("springCloudVersion", "2021.0.7")
+    set("hapiVersion", "6.6.1")
 }
 
 repositories {
@@ -41,12 +41,12 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
     implementation "org.springframework.kafka:spring-kafka"
 
-    implementation "org.miracum:kafka-fhir-serializer:1.0.3"
+    implementation "org.miracum:kafka-fhir-serializer:1.0.4"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.10.4"
-    implementation "io.micrometer:micrometer-core:1.10.4"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.11.1"
+    implementation "io.micrometer:micrometer-core:1.11.1"
 
-    implementation "net.logstash.logback:logstash-logback-encoder:7.3"
+    implementation "net.logstash.logback:logstash-logback-encoder:7.4"
 
     implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:${hapiVersion}"
@@ -60,7 +60,7 @@ dependencies {
     implementation "io.jaegertracing:jaeger-client:1.8.1"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "org.postgresql:postgresql:42.5.4"
+    runtimeOnly "org.postgresql:postgresql:42.6.0"
     runtimeOnly "com.h2database:h2:2.1.214"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
