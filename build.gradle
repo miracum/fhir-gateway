@@ -12,13 +12,9 @@ sourceCompatibility = "17"
 targetCompatibility = "17"
 
 configurations {
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
 }
 
 ext {
@@ -81,11 +77,9 @@ jacoco {
 
 jacocoTestReport {
     reports {
-        html.enabled true
-        xml.enabled true
-        csv.enabled true
-        csv.destination file("${buildDir}/jacoco/coverage.csv")
-        html.destination file("${buildDir}/jacoco/html")
+        html.required = true
+        xml.required = false
+        csv.required = true
     }
 }
 

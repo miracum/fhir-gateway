@@ -10,9 +10,9 @@ RUN gradle --no-daemon build || true
 COPY --chown=gradle:gradle . .
 
 RUN <<EOF
-gradle build --info
-gradle jacocoTestReport
-awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/jacoco/coverage.csv
+gradle --no-daemon build  --info
+gradle --no-daemon jacocoTestReport
+awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
 java -Djarmode=layertools -jar build/libs/*.jar extract
 EOF
 
