@@ -18,7 +18,7 @@ configurations {
 }
 
 ext {
-    set("springCloudVersion", "2021.0.7")
+    set("springCloudVersion", "2022.0.4")
     set("hapiVersion", "6.6.1")
 }
 
