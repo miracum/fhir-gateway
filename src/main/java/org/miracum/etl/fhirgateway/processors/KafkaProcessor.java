@@ -7,16 +7,15 @@ import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 @ConditionalOnExpression(
     "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
 public class KafkaProcessor extends BaseKafkaProcessor {
@@ -24,7 +23,6 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   private String generateTopicMatchExpression;
   private String generateTopicReplacement;
 
-  @Autowired
   public KafkaProcessor(
       ResourcePipeline pipeline,
       @Value("${services.kafka.generate-output-topic.match-expression}")
@@ -37,7 +35,7 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   }
 
   @Bean
-  public Function<Message<Resource>, Message<Bundle>> process() {
+  Function<Message<Resource>, Message<Bundle>> process() {
     return message -> {
       var processed = super.process(message);
 
@@ -51,8 +49,8 @@ public class KafkaProcessor extends BaseKafkaProcessor {
       var inputTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC).toString();
 
       var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
-      // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 for details on
-      // "spring.cloud.stream.sendto.destination"
+      // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 for
+      // details on "spring.cloud.stream.sendto.destination"
       outputTopic.ifPresent(
           s -> messageBuilder.setHeader("spring.cloud.stream.sendto.destination", s));
 
@@ -72,6 +70,10 @@ public class KafkaProcessor extends BaseKafkaProcessor {
           kv("generateTopicReplacement", generateTopicReplacement),
           kv("inputTopic", inputTopic),
           kv("outputTopic", outputTopic));
+
+      if (inputTopic.equals(outputTopic)) {
+        return Optional.empty();
+      }
 
       return Optional.of(outputTopic);
     }
