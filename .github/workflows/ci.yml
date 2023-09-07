@@ -127,14 +127,14 @@ jobs:
       packages: write
     steps:
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@c85d0e205a72a294fe064f618a87dbac13084086 # v2.8.1
+        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
 
       - name: Sign image
         env:
@@ -155,13 +155,11 @@ jobs:
       actions: read # for detecting the Github Actions environment.
       id-token: write # for creating OIDC tokens for signing.
       packages: write # for uploading attestations.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.6.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
     with:
       image: ${{ needs.build.outputs.image-name }}
       digest: ${{ needs.build.outputs.image-digest }}
       registry-username: ${{ github.actor }}
-      # TODO(https://github.com/slsa-framework/slsa-github-generator/issues/492): Remove after GA release.
-      compile-generator: true
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -176,12 +174,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@3b88c82b34098e8b51e401c1082c9170b0a3ec3c # tag=v3
+        uses: cycjimmy/semantic-release-action@61680d0e9b02ff86f5648ade99e01be17f0260a4 # tag=v4.0.0
         with:
           extra_plugins: |
             conventional-changelog-conventionalcommits@5.0.0
