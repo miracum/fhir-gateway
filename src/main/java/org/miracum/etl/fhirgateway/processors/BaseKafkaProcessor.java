@@ -32,7 +32,7 @@ public abstract class BaseKafkaProcessor {
     }
 
     var incomingTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC);
-    var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, null);
+    var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, null);
     var resource = message.getPayload();
 
     LOG.debug(

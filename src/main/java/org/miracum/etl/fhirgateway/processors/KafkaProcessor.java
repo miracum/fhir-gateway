@@ -2,6 +2,7 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
@@ -20,8 +21,8 @@ import org.springframework.messaging.Message;
     "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
-  private String generateTopicMatchExpression;
-  private String generateTopicReplacement;
+  private final String generateTopicMatchExpression;
+  private final String generateTopicReplacement;
 
   public KafkaProcessor(
       ResourcePipeline pipeline,
@@ -39,14 +40,13 @@ public class KafkaProcessor extends BaseKafkaProcessor {
     return message -> {
       var processed = super.process(message);
 
-      var messageKey =
-          message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_MESSAGE_KEY, "").toString();
+      var messageKey = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
 
       var messageBuilder =
-          MessageBuilder.withPayload(processed)
-              .setHeaderIfAbsent(KafkaHeaders.MESSAGE_KEY, messageKey);
+          MessageBuilder.withPayload(processed).setHeaderIfAbsent(KafkaHeaders.KEY, messageKey);
 
-      var inputTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC).toString();
+      var inputTopic =
+          Objects.requireNonNull(message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).toString();
 
       var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
       // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 for
