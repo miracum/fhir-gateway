@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.17.0@sha256:431a7f4516c1f641966c507941b87a997441665656572a1c00c44376ef08fe24
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.20.0@sha256:8128ddc10f3abfcd59a32e2f90ddfa622b58ac6bda95182d056aa0c98411efa2
     environment:
       Vfps__Address: "dns:///vfps:8081"
       UseSystemTextJsonFhirSerializer: "true"
@@ -14,7 +14,7 @@ services:
     image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.14.2@sha256:9815eb71c13fa2a0b74df6492f41cc2d7b9969696984e6045b6217600ad1f0e1
 
   vfps-db:
-    image: docker.io/library/postgres:15.3@sha256:31c9342603866f29206a06b77c8fed48b3c3f70d710a4be4e8216b134f92d0df
+    image: docker.io/library/postgres:15.4@sha256:760b5eab1487afaaedee7f265931a6d203b2d42140e09400dbf54e83a4e6eff1
     restart: unless-stopped
     deploy:
       resources:
@@ -33,7 +33,7 @@ services:
       POSTGRES_DB: vfps
 
   vfps:
-    image: ghcr.io/miracum/vfps:v1.2.0@sha256:ec09f1badfaca056b0a7be976fd6acdbf1b331194997d4d993938d86d83592f8
+    image: ghcr.io/miracum/vfps:v1.3.0@sha256:16d723600764eeebb49c88c4bfdf2bd7f84e3d5f9602c25b307bf52cf50e7e37
     restart: unless-stopped
     deploy:
       resources:
@@ -64,13 +64,13 @@ services:
     image: docker.io/hapiproject/hapi:v6.6.0@sha256:c00367865ae5dad4e171cbb68bfc1c39818854079d1565bee4c86a45e78335d0
 
   fhir-db:
-    image: docker.io/library/postgres:15.3@sha256:31c9342603866f29206a06b77c8fed48b3c3f70d710a4be4e8216b134f92d0df
+    image: docker.io/library/postgres:15.4@sha256:760b5eab1487afaaedee7f265931a6d203b2d42140e09400dbf54e83a4e6eff1
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.1.2@sha256:fcf8b68aa7af25898d21b47096ceb05678665ae182052283bd0d7128149db55f
+    image: docker.io/curlimages/curl:8.2.1@sha256:bb0843a1307b1aa73f65f24379d11dde881c16db62ba50810de0c64d48e740ed
     command: |
       -X POST
       -H 'Content-Type: application/json'
@@ -87,7 +87,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.1.2@sha256:fcf8b68aa7af25898d21b47096ceb05678665ae182052283bd0d7128149db55f
+    image: docker.io/curlimages/curl:8.2.1@sha256:bb0843a1307b1aa73f65f24379d11dde881c16db62ba50810de0c64d48e740ed
     command: |
       -X POST
       -H 'Content-Type: application/json'
