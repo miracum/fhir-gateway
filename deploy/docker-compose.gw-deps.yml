@@ -1,28 +1,17 @@
 services:
-  jaeger:
-    image: jaegertracing/all-in-one:1.45@sha256:5d5c9d2d8c8cbb42f1db4aac1f1f8487bac63da6802004d0da8580fc0c7311a1
-
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.17.0@sha256:431a7f4516c1f641966c507941b87a997441665656572a1c00c44376ef08fe24
     environment:
-      Tracing__IsEnabled: "true"
-      Tracing__Jaeger__AgentHost: jaeger
-      Tracing__Jaeger__AgentPort: 6831
       Vfps__Address: "dns:///vfps:8081"
       UseSystemTextJsonFhirSerializer: "true"
       PseudonymizationService: "Vfps"
     volumes:
       - ${PWD}/deploy/anonymization.yaml:/etc/anonymization.yaml:ro
     depends_on:
-      - jaeger
       - vfps
 
   loinc-converter:
     image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.14.2@sha256:9815eb71c13fa2a0b74df6492f41cc2d7b9969696984e6045b6217600ad1f0e1
-    environment:
-      JAEGER_AGENT_HOST: jaeger
-    depends_on:
-      - jaeger
 
   vfps-db:
     image: docker.io/library/postgres:15.3@sha256:31c9342603866f29206a06b77c8fed48b3c3f70d710a4be4e8216b134f92d0df
@@ -67,8 +56,6 @@ services:
       ConnectionStrings__PostgreSQL: "Host=vfps-db:5432;Database=vfps;Timeout=60;Max Auto Prepare=5;Application Name=vfps;Maximum Pool Size=50;"
       PGUSER: postgres
       PGPASSWORD: postgres
-      Tracing__IsEnabled: "true"
-      Tracing__Jaeger__AgentHost: "jaeger"
       Pseudonymization__Caching__Namespaces__IsEnabled: "true"
     depends_on:
       - vfps-db

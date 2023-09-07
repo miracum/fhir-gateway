@@ -44,8 +44,8 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
   cloud:
+    function.definition: process
     stream:
-      function.definition: process
       bindings:
         process-in-0:
           consumer:
@@ -101,12 +101,6 @@ services:
 fhir:
   systems:
     loinc: "http://loinc.org"
-
-opentracing:
-  jaeger:
-    udp-sender:
-      host: localhost
-    log-spans: false
 
 app:
   version: 0.0.0-dev
