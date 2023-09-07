@@ -88,8 +88,13 @@ services:
     enabled: true
     url: ""
   fhirServer:
-    url: ""
     enabled: false
+    url: ""
+    auth:
+      basic:
+        enabled: false
+        username: ""
+        password: ""
   psql:
     enabled: true
   kafka:
