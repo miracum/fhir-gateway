@@ -2,17 +2,13 @@ package org.miracum.etl.fhirgateway.stores;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
-import com.google.common.base.Strings;
 import io.micrometer.core.instrument.Metrics;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hl7.fhir.r4.model.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
@@ -35,33 +31,16 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
   private final RetryTemplate retryTemplate;
 
   @Autowired
-  public FhirServerResourceRepository(
-      FhirContext fhirContext,
-      @Value("${services.fhirServer.url}") String fhirServerUrl,
-      @Value("${services.fhirServer.username:}") String fhirServerUsername,
-      @Value("${services.fhirServer.password:}") String fhirServerPassword) {
+  public FhirServerResourceRepository(FhirContext fhirContext, IGenericClient client) {
 
     this.fhirParser = fhirContext.newJsonParser();
-    this.client = fhirContext.newRestfulGenericClient(fhirServerUrl);
-
-    if (Strings.isNullOrEmpty(fhirServerUsername)) {
-      log.debug("Client config for FHIR server: Basic auth disabled");
-    } else {
-      log.debug("Client config for FHIR server: Basic auth enabled");
-      // Create an HTTP basic auth interceptor
-      IClientInterceptor authInterceptor =
-          new BasicAuthInterceptor(fhirServerUsername, fhirServerPassword);
-      this.client.registerInterceptor(authInterceptor);
-    }
+    this.client = client;
 
     this.retryTemplate = new RetryTemplate();
-
     var fixedBackOffPolicy = new FixedBackOffPolicy();
     fixedBackOffPolicy.setBackOffPeriod(5_000);
     retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-
     retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5));
-
     this.retryTemplate.registerListener(
         new RetryListenerSupport() {
           @Override

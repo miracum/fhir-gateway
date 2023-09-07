@@ -4,7 +4,9 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
+import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
@@ -67,6 +69,22 @@ public class AppConfig {
 
     fhirContext.setRestfulClientFactory(okHttpFactory);
     return fhirContext;
+  }
+
+  @Bean
+  IGenericClient fhirClient(
+      FhirContext fhirContext,
+      @Value("${services.fhirServer.auth.basic.username}") String username,
+      @Value("${services.fhirServer.auth.basic.password}") String password,
+      @Value("${services.fhirServer.auth.basic.enabled}") boolean isBasicAuthEnabled,
+      @Value("${services.fhirServer.url}") String fhirServerUrl) {
+    var client = fhirContext.newRestfulGenericClient(fhirServerUrl);
+
+    if (isBasicAuthEnabled) {
+      client.registerInterceptor(new BasicAuthInterceptor(username, password));
+    }
+
+    return client;
   }
 
   @Bean
