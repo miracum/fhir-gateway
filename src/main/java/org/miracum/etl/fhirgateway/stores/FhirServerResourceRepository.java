@@ -54,6 +54,7 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
                 "Trying to sent resource to FHIR server caused error. {} attempt.",
                 context.getRetryCount(),
                 throwable);
+            assert saveFailedCounter != null;
             saveFailedCounter.incrementAndGet();
           }
         });

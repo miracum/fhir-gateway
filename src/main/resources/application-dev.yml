@@ -23,12 +23,6 @@ services:
       match-expression: "fhir\\."
       replace-with: "fhir.post-gateway-pseuded-"
 
-opentracing:
-  jaeger:
-    probabilistic-sampler:
-      sampling-rate: 1
-    log-spans: true
-
 spring:
   datasource:
     url: jdbc:postgresql://localhost:15432/fhir
