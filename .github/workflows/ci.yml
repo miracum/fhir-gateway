@@ -104,17 +104,17 @@ jobs:
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         run: |
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
 
       - name: Print E2E logs
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         if: ${{ always() }}
         run: |
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   sign-images:
     name: sign images
