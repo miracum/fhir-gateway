@@ -23,7 +23,7 @@ curl -d @tests/e2e/data/bundle.json -H "Content-Type: application/json" -X POST 
 To configure your deployment, you can change the following environment variables:
 
 | Variable                                              | Description                                                                                                                                                                                                                                                                                                                          | Default                                   |
-|-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
 | SPRING_DATASOURCE_URL                                 | JDBC URL of the Postgres DB to store the received FHIR resources, needs to be set to an empty variable if no PSQL db is to be connected to                                                                                                                                                                                           | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME                            | Username of the Postgres DB                                                                                                                                                                                                                                                                                                          | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD                            | Password for the Postgres DB                                                                                                                                                                                                                                                                                                         | postgres                                  |
@@ -84,15 +84,24 @@ This does not:
 
 Start all fixtures to run the FHIR GW:
 
-```shell
+```sh
 docker compose \
   -f deploy/docker-compose.dev.yml \
   -f deploy/docker-compose.gw-deps.yml \
   -f deploy/docker-compose.exposed.yml up
 ```
 
-Note that this contains a few optional services: Kafka, a FHIR server, gPAS. You might simplify the
+This contains a few optional services: Kafka, a FHIR server, FHIR Pseudonymizer, Vfps. You might simplify the
 docker-compose.dev.yml and only include relevant components for development.
+
+Run the FHIR Gateway from your terminal:
+
+```sh
+./gradlew :bootRun
+```
+
+By default, this runs using Kafka as a source of FHIR resources to process. You can view the generated Kafka topics
+at <http://localhost:9000/ui/kafka/topic>.
 
 ## Database Tuning
 
