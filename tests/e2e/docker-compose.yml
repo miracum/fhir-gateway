@@ -1,6 +1,13 @@
 services:
   tester:
     build: .
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    privileged: false
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
     environment:
       FHIR_SERVER_URL: "http://gateway:8080/fhir"
     depends_on:
