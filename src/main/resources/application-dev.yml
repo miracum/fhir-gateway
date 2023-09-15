@@ -32,9 +32,10 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:15432/fhir
     username: postgres
+    # kics-scan ignore-line
     password: postgres
   kafka:
-    bootstrapServers: localhost:9092
+    bootstrapServers: localhost:9094
   cloud:
     stream:
       bindings:

@@ -28,3 +28,9 @@ REPOSITORY_TRIVY_ARGUMENTS:
   - "--ignore-unfixed"
 
 JAVA_CHECKSTYLE_CONFIG_FILE: .checkstyle/checkstyle.xml
+
+MARKDOWN_MARKDOWN_TABLE_FORMATTER_ARGUMENTS:
+  - "--columnpadding 1"
+
+REPOSITORY_KICS_ARGUMENTS:
+  - --fail-on=HIGH

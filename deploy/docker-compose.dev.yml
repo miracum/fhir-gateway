@@ -4,48 +4,58 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "while true; do
-        kcat -b kafka1:19092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
-        kcat -b kafka1:19092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
+        kcat -b kafka:9092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
+        kcat -b kafka:9092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
         sleep 10;
       done"
     volumes:
       - ./mock-data.ndjson:/data/mock-data.ndjson:ro
       - ./mock-data-2.ndjson:/data/mock-data-2.ndjson:ro
     depends_on:
-      - kafka1
+      - kafka
 
-  kafka1:
-    image: docker.io/vectorized/redpanda:v23.2.8@sha256:254d4c717bac58512c21c926e00bace8614f669ed204a1fe6465f6ced1740cd9
-    container_name: kafka1
-    command:
-      - redpanda
-      - start
-      - --smp
-      - "1"
-      - --reserve-memory
-      - 0M
-      - --overprovisioned
-      - --node-id
-      - "0"
-      - --kafka-addr
-      - PLAINTEXT://0.0.0.0:19092,OUTSIDE://0.0.0.0:9092
-      - --advertise-kafka-addr
-      - PLAINTEXT://kafka1:19092,OUTSIDE://localhost:9092
+  kafka:
+    image: docker.io/bitnami/kafka:3.5.1@sha256:a6de8c395d8fe2126f57178a95bbd8c825b88a103c5b3f9a2ed7774a6fd44f84
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    privileged: false
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      KAFKA_CFG_NODE_ID: "0"
+      KAFKA_RAFT_CLUSTER_ID: "fhir-gateway"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
+      KAFKA_CFG_PROCESS_ROLES: "controller,broker"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_MESSAGE_MAX_BYTES: "31457280"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_LOG_CLEANUP_POLICY: compact
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
     ports:
-      - 9092:9092
-      - 19092:19092
-      - 9644:9644
+      - 127.0.0.1:9094:9094
 
   akhq:
     image: tchiotludo/akhq:0.24.0@sha256:6ccf8323ae6e93a893107f857cd9f7210add3569743b2c8528c6567967cc636f
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    privileged: false
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
     environment:
       AKHQ_CONFIGURATION: |
         akhq:
           connections:
-            docker-kafka-server:
+            kafka:
               properties:
-                bootstrap.servers: "kafka1:19092"
+                bootstrap.servers: "kafka:9092"
     ports:
-      - 9000:8080
+      - 127.0.0.1:9000:8080
     depends_on:
-      - kafka1
+      - kafka

@@ -2,9 +2,19 @@ services:
   gateway:
     image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.10.9@sha256:f4bae212ee8c137c522df7610b931d648ee7a5dd237f842432ae092fc3adbd0a}
     restart: on-failure
+    cap_drop:
+      - ALL
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    read_only: true
+    tmpfs:
+      - /tmp
+    privileged: false
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      # kics-scan ignore-line
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
       SERVICES_PSEUDONYMIZER_ENABLED: ${SERVICES_PSEUDONYMIZER_ENABLED:-true}
       SERVICES_PSEUDONYMIZER_URL: ${SERVICES_PSEUDONYMIZER_URL:-http://fhir-pseudonymizer:8080/fhir}

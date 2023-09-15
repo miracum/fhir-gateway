@@ -21,7 +21,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
         with:
           fetch-depth: 0
 
@@ -51,7 +51,7 @@ jobs:
       image-name: ${{ env.IMAGE_NAME }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
 
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@55e685c48d84285a5b0418cd094606e199cca3b6 # v1
@@ -90,7 +90,7 @@ jobs:
 
       - name: Build and push
         id: build
-        uses: docker/build-push-action@1104d471370f9806843c095c1db02b5a90c5f8b6 # v3
+        uses: docker/build-push-action@4e4ee680f69700760d5620a94c020aef883043aa # v4
         with:
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -104,17 +104,17 @@ jobs:
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         run: |
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
 
       - name: Print E2E logs
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
         if: ${{ always() }}
         run: |
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
-          docker-compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
+          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   sign-images:
     name: sign images
@@ -151,7 +151,8 @@ jobs:
       - build
     permissions:
       actions: read # for detecting the Github Actions environment.
-      id-token: write # for creating OIDC tokens for signing.
+      # for creating OIDC tokens for signing.
+      id-token: write
       packages: write # for uploading attestations.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
     with:

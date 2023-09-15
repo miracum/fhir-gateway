@@ -1,7 +1,15 @@
 services:
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.20.0@sha256:8128ddc10f3abfcd59a32e2f90ddfa622b58ac6bda95182d056aa0c98411efa2
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
     environment:
+      DOTNET_EnableDiagnostics: "0"
       Vfps__Address: "dns:///vfps:8081"
       UseSystemTextJsonFhirSerializer: "true"
       PseudonymizationService: "Vfps"
@@ -12,37 +20,29 @@ services:
 
   loinc-converter:
     image: harbor.miracum.org/miracum-etl/loinc-conversion:v1.14.2@sha256:9815eb71c13fa2a0b74df6492f41cc2d7b9969696984e6045b6217600ad1f0e1
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
 
   vfps-db:
     image: docker.io/library/postgres:15.4@sha256:760b5eab1487afaaedee7f265931a6d203b2d42140e09400dbf54e83a4e6eff1
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-          cpus: "1"
-        reservations:
-          memory: 1g
-          cpus: "1"
     ipc: private
     security_opt:
       - "no-new-privileges:true"
     privileged: false
     environment:
+      # kics-scan ignore-line
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: vfps
 
   vfps:
     image: ghcr.io/miracum/vfps:v1.3.0@sha256:16d723600764eeebb49c88c4bfdf2bd7f84e3d5f9602c25b307bf52cf50e7e37
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512m
-          cpus: "2"
-        reservations:
-          memory: 512m
-          cpus: "2"
     ipc: none
     cap_drop:
       - ALL
@@ -51,10 +51,11 @@ services:
     security_opt:
       - "no-new-privileges:true"
     environment:
-      COMPlus_EnableDiagnostics: "0"
+      DOTNET_EnableDiagnostics: "0"
       ForceRunDatabaseMigrations: "true"
       ConnectionStrings__PostgreSQL: "Host=vfps-db:5432;Database=vfps;Timeout=60;Max Auto Prepare=5;Application Name=vfps;Maximum Pool Size=50;"
       PGUSER: postgres
+      # kics-scan ignore-line
       PGPASSWORD: postgres
       Pseudonymization__Caching__Namespaces__IsEnabled: "true"
     depends_on:
@@ -62,15 +63,42 @@ services:
 
   fhir-server:
     image: docker.io/hapiproject/hapi:v6.6.0@sha256:c00367865ae5dad4e171cbb68bfc1c39818854079d1565bee4c86a45e78335d0
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    deploy:
+      resources:
+        limits:
+          memory: 4096m
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/target
+    privileged: false
 
   fhir-db:
     image: docker.io/library/postgres:15.4@sha256:760b5eab1487afaaedee7f265931a6d203b2d42140e09400dbf54e83a4e6eff1
+    ipc: private
+    security_opt:
+      - "no-new-privileges:true"
+    privileged: false
     environment:
+      # kics-scan ignore-line
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
 
   vfps-init-patient:
     image: docker.io/curlimages/curl:8.2.1@sha256:bb0843a1307b1aa73f65f24379d11dde881c16db62ba50810de0c64d48e740ed
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
     command: |
       -X POST
       -H 'Content-Type: application/json'
@@ -88,6 +116,13 @@ services:
 
   vfps-init-fall:
     image: docker.io/curlimages/curl:8.2.1@sha256:bb0843a1307b1aa73f65f24379d11dde881c16db62ba50810de0c64d48e740ed
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
     command: |
       -X POST
       -H 'Content-Type: application/json'
