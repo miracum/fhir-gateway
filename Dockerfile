@@ -16,7 +16,7 @@ awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", 
 java -Djarmode=layertools -jar build/libs/*.jar extract
 EOF
 
-FROM gcr.io/distroless/java17-debian11:nonroot@sha256:2932ac32282d72dd7205393eedef8882694d26e2213b2f001ee2a6ffa09760fd
+FROM gcr.io/distroless/java17-debian12:nonroot@sha256:74aa41e4cb8b6cc76391c0679370be6bd75ebf60917a7f9fb5dd1b4c7b1a1854
 WORKDIR /opt/fhir-gateway
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./
