@@ -90,4 +90,4 @@ jobs:
       pull-requests: write
       issues: write
     secrets:
-      semantic-release-token: ${{ secrets.GITHUB_TOKEN }}
+      semantic-release-token: ${{ secrets.MIRACUM_BOT_SEMANTIC_RELEASE_TOKEN }}
