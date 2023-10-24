@@ -10,99 +10,49 @@ on:
 
 permissions: read-all
 
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
-
 jobs:
-  trivy:
-    name: trivy scan Code Base
-    runs-on: ubuntu-22.04
-    permissions:
-      security-events: write
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
-        with:
-          fetch-depth: 0
-
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@fbd16365eb88e12433951383f5e99bd901fc618f # 0.12.0
-        with:
-          scan-type: "fs"
-          ignore-unfixed: true
-          format: "template"
-          template: "@/contrib/sarif.tpl"
-          output: "trivy-results.sarif"
-          severity: "CRITICAL"
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@ddccb873888234080b77e9bc2d4764d5ccaaccf9 # v2.21.9
-        with:
-          sarif_file: "trivy-results.sarif"
-
   build:
-    name: build
-    runs-on: ubuntu-22.04
+    uses: miracum/.github/.github/workflows/standard-build.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
     permissions:
+      contents: read
+      id-token: write
       packages: write
-    outputs:
-      image-tags: ${{ steps.container_meta.outputs.tags }}
-      image-digest: ${{ steps.build.outputs.digest }}
-      image-name: ${{ env.IMAGE_NAME }}
+      pull-requests: write
+      actions: read
+      security-events: write
+    with:
+      enable-build-test-layer: false
+      enable-upload-test-image: false
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    runs-on: ubuntu-22.04
+    needs:
+      - build
     steps:
-      - name: Checkout code
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
-
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 # v1
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3
-
-      - name: Container meta
-        id: container_meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5
+      - name: "Checkout code"
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
-          images: |
-            ${{ env.IMAGE_NAME }}
+          persist-credentials: false
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3
-        if: ${{ github.event_name != 'pull_request' }}
+      - name: Download build image
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        if: ${{ github.event_name == 'pull_request' }}
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: container-image
+          path: /tmp
 
-      - name: Get platforms to build
-        id: platforms
+      - name: load image
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
-          if [ "$IS_PULL_REQUEST" == "true" ]; then
-            echo "{platforms}={linux/amd64}" >> "$GITHUB_OUTPUT"
-          else
-            echo "{platforms}={linux/amd64}" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
-
-      - name: Build and push
-        id: build
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5
-        with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.container_meta.outputs.tags }}
-          labels: ${{ steps.container_meta.outputs.labels }}
-          load: ${{ github.event_name == 'pull_request' }}
-          platforms: ${{ steps.platforms.outputs.platforms }}
+          ls -lsa /tmp
+          docker load --input /tmp/image.tar
+          docker image ls
 
       - name: Run E2E tests
         env:
-          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
+          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         run: |
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
@@ -110,77 +60,34 @@ jobs:
 
       - name: Print E2E logs
         env:
-          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(steps.container_meta.outputs.json).tags[0] }}"
+          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         if: ${{ always() }}
         run: |
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
-  sign-images:
-    name: sign images
-    runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'pull_request' }}
-    needs:
-      - build
+  lint:
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
     permissions:
-      id-token: write
-      packages: write
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
-
-      # via <https://github.com/actions/starter-workflows/blob/main/ci/docker-publish.yml>
-      - name: Sign image
-        env:
-          # <https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable>
-          TAGS: ${{ needs.build.outputs.image-tags }}
-          DIGEST: ${{ needs.build.outputs.image-digest }}
-        run: |
-          echo "${TAGS}" | xargs -I {} cosign sign --yes {}@"${DIGEST}"
-
-  container-provenance:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
-    needs:
-      - build
-    permissions:
-      actions: read # for detecting the Github Actions environment.
-      # for creating OIDC tokens for signing.
-      id-token: write
-      packages: write # for uploading attestations.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+      contents: read
+      pull-requests: write
+      issues: write
+      security-events: write
+      actions: read
     with:
-      image: ${{ needs.build.outputs.image-name }}
-      digest: ${{ needs.build.outputs.image-digest }}
-      registry-username: ${{ github.actor }}
+      codeql-languages: '["java", "python"]'
+      enable-codeql: true
     secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
+    uses: miracum/.github/.github/workflows/standard-release.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
     needs:
       - build
-    name: release
-    runs-on: ubuntu-22.04
-    if: ${{ github.event_name != 'pull_request' }}
+      - test
     permissions:
       contents: write
       pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-        with:
-          fetch-depth: 0
-
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@61680d0e9b02ff86f5648ade99e01be17f0260a4 # tag=v4.0.0
-        with:
-          extra_plugins: |
-            conventional-changelog-conventionalcommits@5.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.MIRACUM_BOT_SEMANTIC_RELEASE_TOKEN }}
+      issues: write
+    secrets:
+      semantic-release-token: ${{ secrets.GITHUB_TOKEN }}
