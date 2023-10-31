@@ -12,7 +12,7 @@ permissions: read-all
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
+    uses: miracum/.github/.github/workflows/standard-build.yaml@a4a6c1a49dd35e232eceaa6e583cd9665572d90b # v1.3.0
     permissions:
       contents: read
       id-token: write
@@ -32,7 +32,7 @@ jobs:
       - build
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           persist-credentials: false
 
@@ -67,7 +67,7 @@ jobs:
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@a4a6c1a49dd35e232eceaa6e583cd9665572d90b # v1.3.0
     permissions:
       contents: read
       pull-requests: write
@@ -77,11 +77,12 @@ jobs:
     with:
       codeql-languages: '["java", "python"]'
       enable-codeql: true
+      java-version: "21"
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@40fda6d89054cbb816af5784a5edf2346dcf3e62 # v1.0.4
+    uses: miracum/.github/.github/workflows/standard-release.yaml@a4a6c1a49dd35e232eceaa6e583cd9665572d90b # v1.3.0
     needs:
       - build
       - test
