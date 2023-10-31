@@ -66,6 +66,41 @@
         }
       }
     ],
-    "@semantic-release/github"
+    "@semantic-release/github",
+    [
+      "semantic-release-replace-plugin",
+      {
+        "replacements": [
+          {
+            "files": ["src/main/resources/application.yml"],
+            "from": "version: .*",
+            "to": "version: ${nextRelease.version}",
+            "results": [
+              {
+                "file": "src/main/resources/application.yml",
+                "hasChanged": true
+              }
+            ]
+          },
+          {
+            "files": ["build.gradle"],
+            "from": "version = \".*\"",
+            "to": "version = \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "build.gradle",
+                "hasChanged": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["src/main/resources/application.yml", "build.gradle"]
+      }
+    ]
   ]
 }
