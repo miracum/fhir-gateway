@@ -19,7 +19,7 @@ configurations {
 
 ext {
     set("springCloudVersion", "2022.0.4")
-    set("hapiVersion", "6.8.3")
+    set("hapiVersion", "6.8.5")
 }
 
 repositories {
@@ -39,8 +39,8 @@ dependencies {
 
     implementation "org.miracum:kafka-fhir-serializer:1.0.4"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.11.4"
-    implementation "io.micrometer:micrometer-core:1.11.4"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.11.5"
+    implementation "io.micrometer:micrometer-core:1.11.5"
 
     implementation "net.logstash.logback:logstash-logback-encoder:7.4"
 
