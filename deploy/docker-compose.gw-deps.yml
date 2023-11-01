@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.20.0@sha256:8128ddc10f3abfcd59a32e2f90ddfa622b58ac6bda95182d056aa0c98411efa2
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.1@sha256:5aa89bff83b57d7206ec7c70363623ddfcc22936044325e34cc3075499e436ba
     ipc: none
     cap_drop:
       - ALL
@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:16.0@sha256:f1aaf6f8be5552bef66c5580efbd2942c37d7277cd0416ef4939fa34bf0baf31
+    image: docker.io/library/postgres:16.0@sha256:ba9f58ef09607a249d4a52980b19a6ad16f81223f5d6ce3be765144dfdb9cbbb
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -62,7 +62,7 @@ services:
       - vfps-db
 
   fhir-server:
-    image: docker.io/hapiproject/hapi:v6.8.0@sha256:b376ef983c54757aff719b17e97301eab43198564d23f2aa9609e9b5f83fa85f
+    image: docker.io/hapiproject/hapi:v6.8.3@sha256:6195f1116ebabfb0a608addde043b3e524c456c4d4f35b3d25025afd7dcd2e27
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:16.0@sha256:f1aaf6f8be5552bef66c5580efbd2942c37d7277cd0416ef4939fa34bf0baf31
+    image: docker.io/library/postgres:16.0@sha256:ba9f58ef09607a249d4a52980b19a6ad16f81223f5d6ce3be765144dfdb9cbbb
     ipc: private
     security_opt:
       - "no-new-privileges:true"
@@ -91,7 +91,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.3.0@sha256:961cf9e2a1939ea380b3f16e313a581b5d4681dd9dc4b1ace060eb396a71df0d
+    image: docker.io/curlimages/curl:8.4.0@sha256:4a3396ae573c44932d06ba33f8696db4429c419da87cbdc82965ee96a37dd0af
     ipc: none
     cap_drop:
       - ALL
@@ -115,7 +115,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.3.0@sha256:961cf9e2a1939ea380b3f16e313a581b5d4681dd9dc4b1ace060eb396a71df0d
+    image: docker.io/curlimages/curl:8.4.0@sha256:4a3396ae573c44932d06ba33f8696db4429c419da87cbdc82965ee96a37dd0af
     ipc: none
     cap_drop:
       - ALL
