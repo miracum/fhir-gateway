@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.12.5@sha256:e74c952c1aa0396150b55c0941dfc2782912d2e801f43bf29fc3e14fb1bd1f05}
+    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.12.6@sha256:f101b7897b36100a2b3bc16ecf6d02e199344b75fb65af2ae416e07c41d876fb}
     restart: on-failure
     cap_drop:
       - ALL
