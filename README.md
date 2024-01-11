@@ -41,6 +41,16 @@ To configure your deployment, you can change the following environment variables
 For the Kafka configuration and other configuration options,
 see [application.yml](src/main/resources/application.yml).
 
+### Running without database persistence
+
+By default, the FHIR gateway persists any received FHIR resource in a PostgreSQL database.
+To run without persistence, the following variables both need to be set:
+
+- `SPRING_SERVICE_PSQL_ENABLED="false"`
+- `SPRING_SQL_INIT_MODE="never"`
+
+this allows the gateway to start without the database.
+
 ## Supported Operations
 
 The FHIR Gateway is not a fully-fledged FHIR server and only supports a subset of the RESTful server
