@@ -20,8 +20,9 @@ FROM gcr.io/distroless/java21-debian12:nonroot@sha256:5b3594784a4479c9bcdde3ccd5
 WORKDIR /opt/fhir-gateway
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./
+COPY --from=build /home/gradle/src/snapshot-dependencies/ ./
 COPY --from=build /home/gradle/src/application/ ./
 
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=50", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
