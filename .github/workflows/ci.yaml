@@ -40,7 +40,7 @@ jobs:
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         if: ${{ github.event_name == 'pull_request' }}
         with:
-          name: container-image
+          name: ${{ needs.build.outputs.image-slug }}
           path: /tmp
 
       - name: load image
