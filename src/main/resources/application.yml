@@ -69,6 +69,8 @@ spring:
             producer:
               configuration:
                 compression.type: ${COMPRESSION_TYPE:gzip}
+                # 1 MiB = 1048576 Byte
+                max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576}
           binder:
             configuration:
               max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
