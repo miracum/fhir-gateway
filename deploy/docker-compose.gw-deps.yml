@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:16.1@sha256:4d1b17af6f66b852ee3a721f6691a2ca7352f9d28f570a6a48cee4ebe646b2fd
+    image: docker.io/library/postgres:16.1@sha256:09f23e02d76670d3b346a3c00aa33a27cf57aab8341eedfcdaed41459d14f5c4
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:16.1@sha256:4d1b17af6f66b852ee3a721f6691a2ca7352f9d28f570a6a48cee4ebe646b2fd
+    image: docker.io/library/postgres:16.1@sha256:09f23e02d76670d3b346a3c00aa33a27cf57aab8341eedfcdaed41459d14f5c4
     ipc: private
     security_opt:
       - "no-new-privileges:true"
