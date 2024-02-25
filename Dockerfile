@@ -3,7 +3,7 @@ FROM docker.io/library/gradle:8.6.0-jdk21@sha256:88bc36f015dbea081cc3e05439a54e3
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
-COPY build.gradle settings.gradle gradle.properties ./
+COPY build.gradle settings.gradle ./
 
 RUN gradle --no-daemon build || true
 

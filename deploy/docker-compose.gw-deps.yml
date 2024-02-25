@@ -103,7 +103,7 @@ services:
       -X POST
       -H 'Content-Type: application/json'
       --fail
-      --retry-connrefuse
+      --retry-connrefused
       --connect-timeout 10
       --max-time 120
       --retry 10
@@ -127,7 +127,7 @@ services:
       -X POST
       -H 'Content-Type: application/json'
       --fail
-      --retry-connrefuse
+      --retry-connrefused
       --connect-timeout 10
       --max-time 120
       --retry 10
