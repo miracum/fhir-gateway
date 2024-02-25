@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "3.2.2"
+    id "org.springframework.boot" version "3.2.3"
     id "io.spring.dependency-management" version "1.1.4"
     id "java"
     id "jacoco"
@@ -39,8 +39,8 @@ dependencies {
 
     implementation "org.miracum:kafka-fhir-serializer:1.0.4"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.12.2"
-    implementation "io.micrometer:micrometer-core:1.12.2"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.12.3"
+    implementation "io.micrometer:micrometer-core:1.12.3"
 
     implementation "net.logstash.logback:logstash-logback-encoder:7.4"
 
@@ -50,7 +50,7 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "org.postgresql:postgresql:42.7.1"
+    runtimeOnly "org.postgresql:postgresql:42.7.2"
     runtimeOnly 'com.h2database:h2:2.2.224'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
