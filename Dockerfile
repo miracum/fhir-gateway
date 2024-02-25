@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-FROM docker.io/library/gradle:8.5.0-jdk21@sha256:873def2b8a73d00f5616043ac9ff65576b055942701391ad66499f1a1f53f1b2 AS build
+FROM docker.io/library/gradle:8.6.0-jdk21@sha256:88bc36f015dbea081cc3e05439a54e37be491d553e8570cc5afe8c6783314161 AS build
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
 
-COPY build.gradle settings.gradle gradle.properties ./
+COPY build.gradle settings.gradle ./
 
 RUN gradle --no-daemon build || true
 

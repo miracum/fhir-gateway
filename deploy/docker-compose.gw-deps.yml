@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.5@sha256:3716c2f31a4d975dc5a301b5799f92a8d5ef126159110e4e57c3cac497bd45d2
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.6@sha256:47149d82a5e24248f97831baf406e5bb02f954016798051dcf4a39f845c3a435
     ipc: none
     cap_drop:
       - ALL
@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.14.5@sha256:5b4e8eb90b32b46cf93a5fa7e26c239793b6f18a548d0021d80fc4a584d22901
+    image: ghcr.io/miracum/loinc-conversion:v1.14.7@sha256:976a38044f131d773b547c7cbf07f977f9319ba43a661c628720b3d39c11dca6
     ipc: none
     cap_drop:
       - ALL
@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:16.1@sha256:09f23e02d76670d3b346a3c00aa33a27cf57aab8341eedfcdaed41459d14f5c4
+    image: docker.io/library/postgres:16.2@sha256:0e564daae78c2eea56ba57c64711bb9c408a512ce73cf81f9c78623354dd6976
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -41,7 +41,7 @@ services:
       POSTGRES_DB: vfps
 
   vfps:
-    image: ghcr.io/miracum/vfps:v1.3.2@sha256:3f53189024ab609b3b25f08b8270f9880a2d710d68e46d2d7a5e6258085de3d4
+    image: ghcr.io/miracum/vfps:v1.3.3@sha256:63f37d0541dc9742538cd65292abe314f668ff71308c3a68c8cc15f1281cc903
     restart: unless-stopped
     ipc: none
     cap_drop:
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:16.1@sha256:09f23e02d76670d3b346a3c00aa33a27cf57aab8341eedfcdaed41459d14f5c4
+    image: docker.io/library/postgres:16.2@sha256:0e564daae78c2eea56ba57c64711bb9c408a512ce73cf81f9c78623354dd6976
     ipc: private
     security_opt:
       - "no-new-privileges:true"
@@ -91,7 +91,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.5.0@sha256:08e466006f0860e54fc299378de998935333e0e130a15f6f98482e9f8dab3058
+    image: docker.io/curlimages/curl:8.6.0@sha256:c3b8bee303c6c6beed656cfc921218c529d65aa61114eb9e27c62047a1271b9b
     ipc: none
     cap_drop:
       - ALL
@@ -103,7 +103,7 @@ services:
       -X POST
       -H 'Content-Type: application/json'
       --fail
-      --retry-connrefuse
+      --retry-connrefused
       --connect-timeout 10
       --max-time 120
       --retry 10
@@ -115,7 +115,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.5.0@sha256:08e466006f0860e54fc299378de998935333e0e130a15f6f98482e9f8dab3058
+    image: docker.io/curlimages/curl:8.6.0@sha256:c3b8bee303c6c6beed656cfc921218c529d65aa61114eb9e27c62047a1271b9b
     ipc: none
     cap_drop:
       - ALL
@@ -127,7 +127,7 @@ services:
       -X POST
       -H 'Content-Type: application/json'
       --fail
-      --retry-connrefuse
+      --retry-connrefused
       --connect-timeout 10
       --max-time 120
       --retry 10
