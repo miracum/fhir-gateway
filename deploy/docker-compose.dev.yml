@@ -15,7 +15,7 @@ services:
       - kafka
 
   kafka:
-    image: docker.io/bitnami/kafka:3.6.1@sha256:5f0ed16902daa9797f5cc22d872e6e40aac729df031ee1db32ddbb74133faa4c
+    image: docker.io/bitnami/kafka:3.7.0@sha256:bb43dbbbe3e4c0e39e5ab41f349114073248dab391668c42ba7e9a6116db881d
     restart: unless-stopped
     cap_drop:
       - ALL

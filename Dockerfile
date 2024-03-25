@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.7@sha256:dbbd5e059e8a07ff7ea6233b213b36aa516b4c53c645f1817a4dd18b83cbea56
 FROM docker.io/library/gradle:8.6.0-jdk21@sha256:a337805a93ad42a5c7df5d81b8b3d44d8e1c8088f48ff11cc9e80eef15459ca6 AS build
 WORKDIR /home/gradle/src
 ENV GRADLE_USER_HOME /gradle
