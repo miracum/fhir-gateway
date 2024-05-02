@@ -25,4 +25,4 @@ COPY --from=build /home/gradle/src/application/ ./
 
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "org.springframework.boot.loader.launch.JarLauncher"]
