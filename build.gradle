@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "org.miracum.etl"
-version = "3.12.12"
+version = "3.12.13"
 sourceCompatibility = "21"
 targetCompatibility = "21"
 
