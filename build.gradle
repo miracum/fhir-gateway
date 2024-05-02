@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "3.2.4"
+    id "org.springframework.boot" version "3.2.5"
     id "io.spring.dependency-management" version "1.1.4"
     id "java"
     id "jacoco"
@@ -39,8 +39,8 @@ dependencies {
 
     implementation "org.miracum:kafka-fhir-serializer:1.0.5"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.12.4"
-    implementation "io.micrometer:micrometer-core:1.12.4"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.12.5"
+    implementation "io.micrometer:micrometer-core:1.12.5"
 
     implementation "net.logstash.logback:logstash-logback-encoder:7.4"
 
