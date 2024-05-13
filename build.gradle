@@ -70,11 +70,11 @@ jacoco {
 }
 
 jacocoTestReport {
-    reports {
-        html.required = true
-        xml.required = false
-        csv.required = true
-    }
+	reports {
+		csv.required = true
+		html.required = true
+		xml.required = true
+	}
 }
 
 jar {

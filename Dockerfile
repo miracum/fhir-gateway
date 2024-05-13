@@ -1,28 +1,38 @@
-# syntax=docker/dockerfile:1.7@sha256:dbbd5e059e8a07ff7ea6233b213b36aa516b4c53c645f1817a4dd18b83cbea56
 FROM docker.io/library/gradle:8.7.0-jdk21@sha256:01ec604a8b1748c4678dfc214872487e154e13318f42bc4c01de644dc9c5d447 AS build
-WORKDIR /home/gradle/src
-ENV GRADLE_USER_HOME /gradle
-
-COPY build.gradle settings.gradle ./
-
-RUN gradle --no-daemon build || true
+WORKDIR /home/gradle/project
 
 COPY --chown=gradle:gradle . .
 
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches <<EOF
+gradle clean build --info --no-daemon
+gradle jacocoTestReport --no-daemon
+java -Djarmode=layertools -jar build/libs/fhirgateway-*.jar extract
+EOF
+
+FROM scratch AS test
+WORKDIR /test
+COPY --from=build /home/gradle/project/build/reports/ .
+ENTRYPOINT [ "true" ]
+
+FROM docker.io/library/debian:12.5-slim@sha256:155280b00ee0133250f7159b567a07d7cd03b1645714c3a7458b2287b0ca83cb AS jemalloc
+# hadolint ignore=DL3008
 RUN <<EOF
-gradle --no-daemon build  --info
-gradle --no-daemon jacocoTestReport
-awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, " instructions covered"; print 100*covered/instructions, "% covered" }' build/reports/jacoco/test/jacocoTestReport.csv
-java -Djarmode=layertools -jar build/libs/*.jar extract
+apt-get update
+apt-get install -y --no-install-recommends libjemalloc-dev
+apt-get clean
+rm -rf /var/lib/apt/lists/*
 EOF
 
 FROM gcr.io/distroless/java21-debian12:nonroot@sha256:58f89bf86a6d0f71904a14382bab3116f97b77cd07ee44416a6628cfd971f944
 WORKDIR /opt/fhir-gateway
-COPY --from=build /home/gradle/src/dependencies/ ./
-COPY --from=build /home/gradle/src/spring-boot-loader/ ./
-COPY --from=build /home/gradle/src/snapshot-dependencies/ ./
-COPY --from=build /home/gradle/src/application/ ./
+
+COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so /usr/lib/x86_64-linux-gnu/libjemalloc.so
+
+COPY --from=build /home/gradle/project/dependencies/ ./
+COPY --from=build /home/gradle/project/spring-boot-loader/ ./
+COPY --from=build /home/gradle/project/snapshot-dependencies/ ./
+COPY --from=build /home/gradle/project/application/ ./
 
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
