@@ -21,10 +21,50 @@ jobs:
       actions: read
       security-events: write
     with:
-      enable-build-test-layer: false
-      enable-upload-test-image: false
+      enable-build-test-layer: true
+      enable-upload-test-image: true
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  add-test-coverage:
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    permissions:
+      # for add Coverage PR Comment
+      pull-requests: write
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Download test image
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+        with:
+          name: ${{ needs.build.outputs.image-slug }}-test
+          path: /tmp
+
+      - name: Load test image
+        run: |
+          ls -lsa /tmp
+          docker load --input /tmp/image-test.tar
+          docker image ls
+
+      - name: Copy unit test coverage reports from test container
+        env:
+          UNIT_TEST_IMAGE: ${{ fromJson(needs.build.outputs.test-image-meta-json).tags[0] }}
+        run: |
+          docker create --name=unit-test-container "${UNIT_TEST_IMAGE}"
+          docker cp unit-test-container:/test ${{ github.workspace }}/test
+
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@db72e7e7c96f98d239967958b0a0a6ca7d3bb45f # v1.6.1
+        with:
+          paths: |
+            ${{ github.workspace }}/test/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
+          update-comment: true
+          title: "## Code Coverage Report"
 
   test:
     runs-on: ubuntu-22.04
