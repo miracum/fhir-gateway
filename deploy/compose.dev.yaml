@@ -1,4 +1,65 @@
 services:
+  mock-data-loader:
+    image: docker.io/edenhill/kcat:1.7.1@sha256:8f16a5fed099931ce1122420b7473efe467ff9841d53680b99db25dd1723d711
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "while true; do
+        kcat -b kafka:9092 -K: -t fhir.all -P -l /data/mock-data.ndjson;
+        kcat -b kafka:9092 -K: -t fhir.all-2 -P -l /data/mock-data-2.ndjson;
+        sleep 10;
+      done"
+    volumes:
+      - ./mock-data.ndjson:/data/mock-data.ndjson:ro
+      - ./mock-data-2.ndjson:/data/mock-data-2.ndjson:ro
+    depends_on:
+      - kafka
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.7.0@sha256:c1e54c8bc46edfc23c25d53f6de1b1433e2e919870c679fa7a846a8af0b03427
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    privileged: false
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      KAFKA_CFG_NODE_ID: "0"
+      KAFKA_RAFT_CLUSTER_ID: "fhir-gateway"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
+      KAFKA_CFG_PROCESS_ROLES: "controller,broker"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_MESSAGE_MAX_BYTES: "31457280"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_LOG_CLEANUP_POLICY: compact
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    ports:
+      - 127.0.0.1:9094:9094
+
+  akhq:
+    image: tchiotludo/akhq:0.24.0@sha256:6ccf8323ae6e93a893107f857cd9f7210add3569743b2c8528c6567967cc636f
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    privileged: false
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka:
+              properties:
+                bootstrap.servers: "kafka:9092"
+    ports:
+      - 127.0.0.1:9000:8080
+    depends_on:
+      - kafka
+
   fhir-pseudonymizer:
     image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.9@sha256:0511c4d723e5552fb6dbfbc993bd908fdac77d395fc836eb65dabf5dc3a8260c
     ipc: none
@@ -89,6 +150,8 @@ services:
       # kics-scan ignore-line
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: fhir
+    ports:
+      - 127.0.0.1:15432:5432
 
   vfps-init-patient:
     image: docker.io/curlimages/curl:8.7.1@sha256:25d29daeb9b14b89e2fa8cc17c70e4b188bca1466086907c2d9a4b56b59d8e21
@@ -137,3 +200,35 @@ services:
     depends_on:
       vfps:
         condition: service_started
+
+  gateway:
+    image: ${FHIR_GATEWAY_IMAGE_NAME:-ghcr.io/miracum/fhir-gateway:v3.12.8@sha256:00fcc8dc204e3a0759d25c7f45f31917649031bfc31328fee8fc52dfea9b4442}
+    profiles:
+      - with-gateway
+    restart: on-failure
+    cap_drop:
+      - ALL
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    read_only: true
+    tmpfs:
+      - /tmp
+    privileged: false
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-db:5432/fhir}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      # kics-scan ignore-line
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
+      SERVICES_PSEUDONYMIZER_ENABLED: ${SERVICES_PSEUDONYMIZER_ENABLED:-true}
+      SERVICES_PSEUDONYMIZER_URL: ${SERVICES_PSEUDONYMIZER_URL:-http://fhir-pseudonymizer:8080/fhir}
+      SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/api/v1}
+      SERVICES_FHIRSERVER_URL: ${SERVICES_FHIRSERVER_URL:-http://fhir-server:8080/fhir}
+      SERVICES_FHIRSERVER_ENABLED: ${SERVICES_FHIRSERVER_ENABLED:-false}
+      SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
+      SERVICES_KAFKA_ENABLED: ${SERVICES_KAFKA_ENABLED:-false}
+      BOOTSTRAP_SERVERS: ${BOOTSTRAP_SERVERS:-kafka1:19092}
+    depends_on:
+      - loinc-converter
+      - fhir-db
+      - fhir-pseudonymizer

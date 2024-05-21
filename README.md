@@ -95,10 +95,7 @@ This does not:
 Start all fixtures to run the FHIR GW:
 
 ```sh
-docker compose \
-  -f deploy/docker-compose.dev.yml \
-  -f deploy/docker-compose.gw-deps.yml \
-  -f deploy/docker-compose.exposed.yml up
+docker compose -f deploy/compose.dev.yaml up
 ```
 
 This contains a few optional services: Kafka, a FHIR server, FHIR Pseudonymizer, Vfps. You might simplify the

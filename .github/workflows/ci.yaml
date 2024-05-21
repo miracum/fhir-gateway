@@ -134,17 +134,17 @@ jobs:
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         run: |
-          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e build
-          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
-          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
+          docker compose --profile=with-gateway -p e2e -f deploy/compose.dev.yaml -f tests/e2e/compose.yaml --project-directory=tests/e2e build
+          docker compose --profile=with-gateway -p e2e -f deploy/compose.dev.yaml --project-directory=tests/e2e up -d
+          docker compose --profile=with-gateway -p e2e -f deploy/compose.dev.yaml -f tests/e2e/compose.yaml --project-directory=tests/e2e run tester
 
       - name: Print E2E logs
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         if: ${{ always() }}
         run: |
-          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml logs
-          docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
+          docker compose --profile=with-gateway -p e2e -f deploy/compose.dev.yaml -f tests/e2e/compose.yaml logs
+          docker compose --profile=with-gateway -p e2e -f deploy/compose.dev.yaml -f tests/e2e/compose.yaml down --volumes --remove-orphans
 
   lint:
     uses: miracum/.github/.github/workflows/standard-lint.yaml@392030c6f94fcfaa509a606af2b0907d022f2257 # v1.8.3
