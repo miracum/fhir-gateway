@@ -51,6 +51,7 @@ jobs:
       - name: bootBuildImage
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
+          SPRING_PROFILES_ACTIVE: "prod"
         run: ./gradlew bootBuildImage --imageName="${FHIR_GATEWAY_IMAGE_NAME}-native"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
