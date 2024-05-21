@@ -4,6 +4,7 @@ plugins {
     id "java"
     id "jacoco"
     id "com.diffplug.spotless" version "6.25.0"
+    id "org.graalvm.buildtools.native" version "0.9.28"
 }
 
 group = "org.miracum.etl"
@@ -70,11 +71,11 @@ jacoco {
 }
 
 jacocoTestReport {
-	reports {
-		csv.required = true
-		html.required = true
-		xml.required = true
-	}
+  reports {
+    csv.required = true
+    html.required = true
+    xml.required = true
+  }
 }
 
 jar {
@@ -83,6 +84,7 @@ jar {
 
 spotless {
     java {
+        target "src/*/java/**/*.java"
         importOrder()
         removeUnusedImports()
         googleJavaFormat()

@@ -2,11 +2,16 @@ name: ci
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+      - beta
   release:
-    types: [created]
+    types:
+      - created
   pull_request:
-    branches: [master]
+    branches:
+      - master
+      - beta
 
 permissions: read-all
 
@@ -25,6 +30,38 @@ jobs:
       enable-upload-test-image: true
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-native-image:
+    name: Build native image
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: Set up JDK
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
+      - name: bootBuildImage
+        env:
+          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
+        run: ./gradlew bootBuildImage --imageName="${FHIR_GATEWAY_IMAGE_NAME}-native"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push Docker image to registry
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
+        run: docker push "${FHIR_GATEWAY_IMAGE_NAME}-native"
 
   add-test-coverage:
     runs-on: ubuntu-22.04
