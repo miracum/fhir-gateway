@@ -1,4 +1,4 @@
-FROM docker.io/library/gradle:8.7.0-jdk21@sha256:01ec604a8b1748c4678dfc214872487e154e13318f42bc4c01de644dc9c5d447 AS build
+FROM docker.io/library/gradle:8.7.0-jdk21@sha256:afba668dbed80665ed2cee8b16010c51e9639be3424c3f897637701bdd89371b AS build
 WORKDIR /home/gradle/project
 
 COPY --chown=gradle:gradle . .
