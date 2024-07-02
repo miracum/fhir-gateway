@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.10@sha256:d70c5026beb7820a89a82fe26f0404688241c4ac5751a035d0778732fe3c5c93
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.21.11@sha256:ad3c9d72d763dd9d7f5195e01dc3f9e922a75ab33644c54435b050657c21dfeb
     ipc: none
     cap_drop:
       - ALL
