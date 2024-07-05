@@ -15,7 +15,7 @@ services:
       - kafka
 
   kafka:
-    image: docker.io/bitnami/kafka:3.7.0@sha256:c1e54c8bc46edfc23c25d53f6de1b1433e2e919870c679fa7a846a8af0b03427
+    image: docker.io/bitnami/kafka:3.7.1@sha256:246e723e8b887d5425e5cef7fa250771fe63aa2a0a2ad822d0e196ff3f5ca23d
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -40,7 +40,7 @@ services:
       - 127.0.0.1:9094:9094
 
   akhq:
-    image: tchiotludo/akhq:0.25.0@sha256:942807a2291f25b22047f8f56287e93cf9a43bf76f67a0eeca7e1eecc911c54c
+    image: tchiotludo/akhq:0.25.1@sha256:69e416d9dc52abb625e16d8b23696f664475adb723604923f8faf934a26956d1
     restart: unless-stopped
     cap_drop:
       - ALL
