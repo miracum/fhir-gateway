@@ -12,7 +12,7 @@ permissions: read-all
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@db8574b42e0c528f9cddc1ce84a40a837283cee0 # v1.10.2
+    uses: miracum/.github/.github/workflows/standard-build.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
     permissions:
       contents: read
       id-token: write
@@ -23,6 +23,9 @@ jobs:
     with:
       enable-build-test-layer: true
       enable-upload-test-image: true
+      platforms: |
+        linux/amd64
+        linux/arm64
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,8 +38,20 @@ jobs:
       pull-requests: write
     if: ${{ github.event_name == 'pull_request' }}
     steps:
+      # <https://docs.docker.com/storage/containerd/>
+      # via <https://github.com/docker/setup-buildx-action/issues/257>
+      - name: Set up containerd image store
+        shell: bash
+        run: |
+          jq '. | .+{"features": {"containerd-snapshotter": true}}' /etc/docker/daemon.json > /tmp/docker-daemon-with-containerd.json
+          sudo mv /tmp/docker-daemon-with-containerd.json /etc/docker/daemon.json
+          cat /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+          docker info -f '{{ .DriverStatus }}'
+
       - name: Download test image
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: ${{ needs.build.outputs.image-slug }}-test
           path: /tmp
@@ -71,13 +86,25 @@ jobs:
     needs:
       - build
     steps:
+      # <https://docs.docker.com/storage/containerd/>
+      # via <https://github.com/docker/setup-buildx-action/issues/257>
+      - name: Set up containerd image store
+        shell: bash
+        run: |
+          jq '. | .+{"features": {"containerd-snapshotter": true}}' /etc/docker/daemon.json > /tmp/docker-daemon-with-containerd.json
+          sudo mv /tmp/docker-daemon-with-containerd.json /etc/docker/daemon.json
+          cat /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+          docker info -f '{{ .DriverStatus }}'
+
       - name: "Checkout code"
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           persist-credentials: false
 
       - name: Download build image
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         if: ${{ github.event_name == 'pull_request' }}
         with:
           name: ${{ needs.build.outputs.image-slug }}
@@ -107,7 +134,7 @@ jobs:
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@db8574b42e0c528f9cddc1ce84a40a837283cee0 # v1.10.2
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
     permissions:
       contents: read
       pull-requests: write
@@ -122,7 +149,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@db8574b42e0c528f9cddc1ce84a40a837283cee0 # v1.10.2
+    uses: miracum/.github/.github/workflows/standard-release.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
     needs:
       - build
       - test
