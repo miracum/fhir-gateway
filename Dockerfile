@@ -14,19 +14,8 @@ WORKDIR /test
 COPY --from=build /home/gradle/project/build/reports/ .
 ENTRYPOINT [ "true" ]
 
-FROM docker.io/library/debian:12.6-slim@sha256:f528891ab1aa484bf7233dbcc84f3c806c3e427571d75510a9d74bb5ec535b33 AS jemalloc
-# hadolint ignore=DL3008
-RUN <<EOF
-apt-get update
-apt-get install -y --no-install-recommends libjemalloc-dev
-apt-get clean
-rm -rf /var/lib/apt/lists/*
-EOF
-
 FROM gcr.io/distroless/java21-debian12:nonroot@sha256:5723ccd77a896c16242057b788a3341b265329fc1cbcb5b0add34cfd97057554
 WORKDIR /opt/fhir-gateway
-
-COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so /usr/lib/x86_64-linux-gnu/libjemalloc.so
 
 COPY --from=build /home/gradle/project/dependencies/ ./
 COPY --from=build /home/gradle/project/spring-boot-loader/ ./
