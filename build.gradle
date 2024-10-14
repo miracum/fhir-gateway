@@ -31,8 +31,6 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-data-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
-    implementation "org.springframework.retry:spring-retry"
-
     implementation "org.springframework.cloud:spring-cloud-stream"
     implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
     implementation "org.springframework.kafka:spring-kafka"
