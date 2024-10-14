@@ -104,6 +104,11 @@ services:
     generate-output-topic:
       match-expression: ""
       replace-with: ""
+    crypto-hash-message-keys:
+      enabled: false
+      key: ""
+      # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
+      algorithm: "HMAC_SHA_256"
 
 fhir:
   systems:
