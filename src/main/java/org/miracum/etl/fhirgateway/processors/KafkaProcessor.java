@@ -5,34 +5,38 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.stereotype.Service;
 
-@Configuration
+@Service
 @ConditionalOnExpression(
     "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   private final String generateTopicMatchExpression;
   private final String generateTopicReplacement;
+  private final KafkaProcessorConfig config;
+  private HmacUtils hmac;
 
-  public KafkaProcessor(
-      ResourcePipeline pipeline,
-      @Value("${services.kafka.generate-output-topic.match-expression}")
-          String generateTopicMatchExpression,
-      @Value("${services.kafka.generate-output-topic.replace-with}")
-          String generateTopicReplacement) {
+  public KafkaProcessor(ResourcePipeline pipeline, KafkaProcessorConfig config) {
     super(pipeline);
-    this.generateTopicMatchExpression = generateTopicMatchExpression;
-    this.generateTopicReplacement = generateTopicReplacement;
+    this.generateTopicMatchExpression = config.generateOutputTopic().matchExpression();
+    this.generateTopicReplacement = config.generateOutputTopic().replaceWith();
+    this.config = config;
+
+    if (config.cryptoHashMessageKeys().enabled()) {
+      hmac =
+          new HmacUtils(
+              config.cryptoHashMessageKeys().algorithm(), config.cryptoHashMessageKeys().key());
+    }
   }
 
   @Bean
@@ -42,8 +46,12 @@ public class KafkaProcessor extends BaseKafkaProcessor {
 
       var messageKey = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
 
+      if (config.cryptoHashMessageKeys().enabled()) {
+        messageKey = hmac.hmacHex(messageKey);
+      }
+
       var messageBuilder =
-          MessageBuilder.withPayload(processed).setHeaderIfAbsent(KafkaHeaders.KEY, messageKey);
+          MessageBuilder.withPayload(processed).setHeader(KafkaHeaders.KEY, messageKey);
 
       var inputTopic =
           Objects.requireNonNull(message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).toString();
