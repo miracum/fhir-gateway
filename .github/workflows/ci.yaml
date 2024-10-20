@@ -12,9 +12,9 @@ permissions: read-all
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
+    uses: miracum/.github/.github/workflows/standard-build.yaml@1748b6a3730192d63e21629d6d84dafd495fe567 # v1.12.5
     permissions:
-      contents: read
+      contents: write
       id-token: write
       packages: write
       pull-requests: write
@@ -71,7 +71,7 @@ jobs:
 
       - name: Add coverage to PR
         id: jacoco
-        uses: madrapps/jacoco-report@db72e7e7c96f98d239967958b0a0a6ca7d3bb45f # v1.6.1
+        uses: madrapps/jacoco-report@7c362aca34caf958e7b1c03464bd8781db9f8da7 # v1.7.1
         with:
           paths: |
             ${{ github.workspace }}/test/jacoco/test/jacocoTestReport.xml
@@ -99,7 +99,7 @@ jobs:
           docker info -f '{{ .DriverStatus }}'
 
       - name: "Checkout code"
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           persist-credentials: false
 
@@ -134,7 +134,7 @@ jobs:
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@1748b6a3730192d63e21629d6d84dafd495fe567 # v1.12.5
     permissions:
       contents: read
       pull-requests: write
@@ -149,7 +149,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@028aedc2d5806bb362562560f5e871d9364902cd # v1.11.2
+    uses: miracum/.github/.github/workflows/standard-release.yaml@1748b6a3730192d63e21629d6d84dafd495fe567 # v1.12.5
     needs:
       - build
       - test
