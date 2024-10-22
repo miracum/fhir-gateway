@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.miracum.etl.fhirgateway.processors.FhirPseudonymizer;
@@ -43,6 +44,10 @@ public class AppConfig {
 
   private static final int MAX_IDLE_CONNECTIONS = 2;
   private static final int KEEP_ALIVE_DURATION_MILLISECONDS = 100;
+
+  private static final AtomicInteger batchUpdateFailed =
+      Metrics.globalRegistry.gauge(
+          "fhirgateway.postgres.batchupdate.errors.total", new AtomicInteger(0));
 
   @Bean
   public FhirContext fhirContext(
@@ -156,6 +161,8 @@ public class AppConfig {
                 throwable.getMessage(),
                 kv("attempt", context.getRetryCount()),
                 kv("maxAttempts", maxAttempts));
+
+            batchUpdateFailed.incrementAndGet();
           }
         });
 
