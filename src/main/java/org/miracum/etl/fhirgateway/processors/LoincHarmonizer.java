@@ -9,6 +9,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Quantity;
 import org.miracum.etl.fhirgateway.FhirSystemsConfig;
@@ -122,7 +123,7 @@ public class LoincHarmonizer {
     } catch (Exception exc) {
       log.debug(
           "LOINC harmonization failure {}; {}; {}",
-          kv("loinc", loincCode.orElse(null).getCode()),
+          kv("loinc", loincCode.orElse(new Coding()).getCode()),
           kv("unit", originalObservation.getValueQuantity().getUnit()),
           kv("code", originalObservation.getValueQuantity().getCode()),
           exc);

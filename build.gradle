@@ -4,6 +4,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'com.diffplug.spotless' version "6.25.0"
+	id "net.ltgt.errorprone" version "4.1.0"
 }
 
 group = "org.miracum.etl"
@@ -50,6 +51,8 @@ dependencies {
     runtimeOnly 'com.h2database:h2:2.2.224'
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    errorprone("com.google.errorprone:error_prone_core:2.34.0")
 }
 
 dependencyManagement {

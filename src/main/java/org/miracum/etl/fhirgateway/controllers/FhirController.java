@@ -56,8 +56,7 @@ public class FhirController {
 
     var resource = fhirParser.parseResource(body);
 
-    if (resource instanceof Bundle) {
-      var bundle = (Bundle) resource;
+    if (resource instanceof Bundle bundle) {
       log.debug("Got bundle of size {}", kv("bundleSize", bundle.getEntry().size()));
 
       if (bundle.isEmpty()) {

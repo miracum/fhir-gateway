@@ -9,7 +9,6 @@ import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -42,10 +41,6 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
           .register(Metrics.globalRegistry);
 
   private static final Logger log = LoggerFactory.getLogger(PostgresFhirResourceRepository.class);
-
-  private static final AtomicInteger batchUpdateFailed =
-      Metrics.globalRegistry.gauge(
-          "fhirgateway.postgres.batchupdate.errors.total", new AtomicInteger(0));
 
   private final IParser fhirParser;
   private final JdbcTemplate dataSinkTemplate;
