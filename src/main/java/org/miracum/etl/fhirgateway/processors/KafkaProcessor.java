@@ -2,6 +2,7 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import jakarta.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -24,7 +25,7 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   private final String generateTopicMatchExpression;
   private final String generateTopicReplacement;
   private final KafkaProcessorConfig config;
-  private HmacUtils hmac;
+  @Nullable private HmacUtils hmac;
 
   public KafkaProcessor(ResourcePipeline pipeline, KafkaProcessorConfig config) {
     super(pipeline);
@@ -46,7 +47,7 @@ public class KafkaProcessor extends BaseKafkaProcessor {
 
       var messageKey = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
 
-      if (config.cryptoHashMessageKeys().enabled()) {
+      if (config.cryptoHashMessageKeys().enabled() && hmac != null) {
         messageKey = hmac.hmacHex(messageKey);
       }
 

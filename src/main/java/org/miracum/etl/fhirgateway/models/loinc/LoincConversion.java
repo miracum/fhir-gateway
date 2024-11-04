@@ -3,28 +3,35 @@ package org.miracum.etl.fhirgateway.models.loinc;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoincConversion {
 
   @JsonProperty("loinc")
+  @Nullable
   private String loinc;
 
   @JsonProperty("unit")
+  @Nullable
   private String unit;
 
   @JsonProperty("value")
   @JsonFormat(shape = JsonFormat.Shape.STRING)
+  @Nullable
   private BigDecimal value;
 
   @JsonProperty("id")
+  @Nullable
   private String id;
 
   @JsonProperty("display")
+  @Nullable
   private String display;
 
   @JsonProperty("loinc")
+  @Nullable
   public String getLoinc() {
     return loinc;
   }
@@ -36,6 +43,7 @@ public class LoincConversion {
   }
 
   @JsonProperty("unit")
+  @Nullable
   public String getUnit() {
     return unit;
   }
@@ -47,6 +55,7 @@ public class LoincConversion {
   }
 
   @JsonProperty("value")
+  @Nullable
   public BigDecimal getValue() {
     return value;
   }
@@ -58,6 +67,7 @@ public class LoincConversion {
   }
 
   @JsonProperty("id")
+  @Nullable
   public String getId() {
     return id;
   }
@@ -69,6 +79,7 @@ public class LoincConversion {
   }
 
   @JsonProperty("display")
+  @Nullable
   public String getDisplay() {
     return display;
   }

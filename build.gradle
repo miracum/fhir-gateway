@@ -88,15 +88,15 @@ spotless {
 
 import net.ltgt.gradle.errorprone.CheckSeverity
 
-tasks.withType(JavaCompile) {
-  options.errorprone {
-    check("NullAway", CheckSeverity.ERROR)
-    option("NullAway:AnnotatedPackages", "org.miracum")
-  }
-  // Include to disable NullAway on test code
-  if (name.toLowerCase().contains("test")) {
+tasks.withType(JavaCompile).configureEach {
     options.errorprone {
-      disable("NullAway")
+        check("NullAway", CheckSeverity.ERROR)
+        option("NullAway:AnnotatedPackages", "org.miracum")
     }
-  }
+    // Include to disable NullAway on test code
+    if (name.toLowerCase().contains("test")) {
+        options.errorprone {
+            disable("NullAway")
+        }
+    }
 }

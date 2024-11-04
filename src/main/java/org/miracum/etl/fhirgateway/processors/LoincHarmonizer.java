@@ -9,6 +9,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Quantity;
@@ -81,9 +82,9 @@ public class LoincHarmonizer {
       // harmonize the observation's main code/value
       var result = getHarmonizedQuantity(originalObservation.getValueQuantity(), originalCode);
 
-      if (result != null) {
-        harmonized.setValue(result.getFirst());
-        Pair<Quantity, LoincConversion> finalResult = result;
+      if (result.isPresent()) {
+        harmonized.setValue(result.get().getFirst());
+        Pair<Quantity, LoincConversion> finalResult = result.get();
         harmonized.getCode().getCoding().stream()
             .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
             .findFirst()
@@ -105,8 +106,8 @@ public class LoincHarmonizer {
 
           result = getHarmonizedQuantity(rangeLow, originalCode);
 
-          if (result != null) {
-            rangeComponent.setLow(result.getFirst());
+          if (result.isPresent()) {
+            rangeComponent.setLow(result.get().getFirst());
           }
         }
 
@@ -115,8 +116,8 @@ public class LoincHarmonizer {
 
           result = getHarmonizedQuantity(rangeHigh, originalCode);
 
-          if (result != null) {
-            rangeComponent.setHigh(result.getFirst());
+          if (result.isPresent()) {
+            rangeComponent.setHigh(result.get().getFirst());
           }
         }
       }
@@ -144,7 +145,8 @@ public class LoincHarmonizer {
     return harmonized;
   }
 
-  private Pair<Quantity, LoincConversion> getHarmonizedQuantity(Quantity input, String loincCode) {
+  private Optional<Pair<Quantity, LoincConversion>> getHarmonizedQuantity(
+      Quantity input, String loincCode) {
 
     var requestUrl =
         UriComponentsBuilder.fromUri(loincConverterBaseUri)
@@ -176,9 +178,9 @@ public class LoincHarmonizer {
       quantity.setUnit(response.getUnit());
       quantity.setCode(response.getUnit());
       quantity.setSystem(input.getSystem());
-      return Pair.of(quantity, response);
+      return Optional.of(Pair.of(quantity, response));
     }
 
-    return null;
+    return Optional.empty();
   }
 }
