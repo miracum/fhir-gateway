@@ -2,6 +2,7 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import jakarta.annotation.Nullable;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
@@ -24,6 +25,7 @@ public abstract class BaseKafkaProcessor {
     this.pipeline = pipeline;
   }
 
+  @Nullable
   public Bundle process(Message<Resource> message) {
 
     if (message == null) {
