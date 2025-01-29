@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.0@sha256:d999debd8191486b14f18fa509f2a89f4148d8a0b7eca0f440c6f41f9e51708e
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.2@sha256:86b744b49c729e66d5605fcf11587711b563bdba87389bed0c055b5f68e9d073
     ipc: none
     cap_drop:
       - ALL
@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.15.2@sha256:52808f89d5139d0b1100a5697a5814b03b8e4a18a1d71c37089ab26914643b98
+    image: ghcr.io/miracum/loinc-conversion:v1.15.4@sha256:296b78c765111eb4e294656eff7cc43353a309f81d4e8ba2190639dd1165c623
     ipc: none
     cap_drop:
       - ALL
@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:17.0@sha256:8d3be35b184e70d81e54cbcbd3df3c0b47f37d06482c0dd1c140db5dbcc6a808
+    image: docker.io/library/postgres:17.2@sha256:87ec5e0a167dc7d4831729f9e1d2ee7b8597dcc49ccd9e43cc5f89e808d2adae
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -41,7 +41,7 @@ services:
       POSTGRES_DB: vfps
 
   vfps:
-    image: ghcr.io/miracum/vfps:v1.3.5@sha256:358427b400bd260000396aecb0d4a6f874d394ccb52c62897953493a2b8aac15
+    image: ghcr.io/miracum/vfps:v1.3.6@sha256:3f6648343cbc088b87b0890f653200ddf52e81af49d850134f13285fdf52d0dd
     restart: unless-stopped
     ipc: none
     cap_drop:
@@ -62,7 +62,7 @@ services:
       - vfps-db
 
   fhir-server:
-    image: docker.io/hapiproject/hapi:v7.4.0@sha256:f34b41f5002665f384cf344da2d8e653025bd095aa37aa6f5a9d6dc0dac75684
+    image: docker.io/hapiproject/hapi:v7.6.0@sha256:4771a178e764896c83881c1b3a52bd487e53d06e1acc3653ea0db0c6f6b2b8a1
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:17.0@sha256:8d3be35b184e70d81e54cbcbd3df3c0b47f37d06482c0dd1c140db5dbcc6a808
+    image: docker.io/library/postgres:17.2@sha256:87ec5e0a167dc7d4831729f9e1d2ee7b8597dcc49ccd9e43cc5f89e808d2adae
     ipc: private
     security_opt:
       - "no-new-privileges:true"
@@ -91,7 +91,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.10.1@sha256:d9b4541e214bcd85196d6e92e2753ac6d0ea699f0af5741f8c6cccbfcf00ef4b
+    image: docker.io/curlimages/curl:8.11.1@sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
     ipc: none
     cap_drop:
       - ALL
@@ -115,7 +115,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.10.1@sha256:d9b4541e214bcd85196d6e92e2753ac6d0ea699f0af5741f8c6cccbfcf00ef4b
+    image: docker.io/curlimages/curl:8.11.1@sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
     ipc: none
     cap_drop:
       - ALL
