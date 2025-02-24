@@ -62,7 +62,7 @@ services:
       - vfps-db
 
   fhir-server:
-    image: docker.io/hapiproject/hapi:v7.6.0@sha256:4771a178e764896c83881c1b3a52bd487e53d06e1acc3653ea0db0c6f6b2b8a1
+    image: docker.io/hapiproject/hapi:v8.0.0@sha256:bf6ecbb4492361ae258a2bde6d4daf4c505b1a98e0925745aa0689e95b2d157e
     restart: unless-stopped
     cap_drop:
       - ALL
