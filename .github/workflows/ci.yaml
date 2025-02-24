@@ -12,7 +12,7 @@ permissions: read-all
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@fc8f3798e3b8537a350cf51438e01a906811532c # v1.12.7
+    uses: miracum/.github/.github/workflows/standard-build.yaml@b09452445e168de479d5059026e8e8a54d11c8d8 # v1.13.2
     permissions:
       contents: write
       id-token: write
@@ -134,7 +134,7 @@ jobs:
           docker compose -p e2e -f deploy/docker-compose.yml -f deploy/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@fc8f3798e3b8537a350cf51438e01a906811532c # v1.12.7
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@b09452445e168de479d5059026e8e8a54d11c8d8 # v1.13.2
     permissions:
       contents: read
       pull-requests: write
@@ -149,7 +149,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@fc8f3798e3b8537a350cf51438e01a906811532c # v1.12.7
+    uses: miracum/.github/.github/workflows/standard-release.yaml@b09452445e168de479d5059026e8e8a54d11c8d8 # v1.13.2
     needs:
       - build
       - test
