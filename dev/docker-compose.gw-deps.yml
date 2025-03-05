@@ -14,7 +14,7 @@ services:
       UseSystemTextJsonFhirSerializer: "true"
       PseudonymizationService: "Vfps"
     volumes:
-      - ${PWD}/deploy/anonymization.yaml:/etc/anonymization.yaml:ro
+      - ${PWD}/dev/anonymization.yaml:/etc/anonymization.yaml:ro
     depends_on:
       - vfps
 
