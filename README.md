@@ -1,7 +1,7 @@
 # FHIR Gateway
 
 ![License](https://img.shields.io/github/license/miracum/fhir-gateway)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/miracum/fhir-gateway/badge)](https://api.securityscorecards.dev/projects/github.com/miracum/fhir-gateway)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/miracum/fhir-gateway/badge)](https://scorecard.dev/viewer/?uri=github.com/miracum/fhir-gateway)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 A thin layer between FHIR REST clients and resource processing pipelines.
@@ -12,11 +12,11 @@ A thin layer between FHIR REST clients and resource processing pipelines.
 
 ## Run it
 
-See <https://github.com/num-codex/num-knoten> for an example deployment.
+The recommended deployment is on Kubernetes. See <https://github.com/miracum/charts/tree/master/charts/fhir-gateway> for a Helm Chart.
 
-```sh
-curl -d @tests/e2e/data/bundle.json -H "Content-Type: application/json" -X POST http://localhost:18080/fhir
-```
+An example for deploying using (Docker) Compose can be found in the [deploy folder](./deploy/README.md).
+
+Also see the now archived <https://github.com/num-codex/num-knoten> for an example end-to-end deployment.
 
 ## Configuration
 
@@ -96,9 +96,9 @@ Start all fixtures to run the FHIR GW:
 
 ```sh
 docker compose \
-  -f deploy/docker-compose.dev.yml \
-  -f deploy/docker-compose.gw-deps.yml \
-  -f deploy/docker-compose.exposed.yml up
+  -f dev/docker-compose.dev.yml \
+  -f dev/docker-compose.gw-deps.yml \
+  -f dev/docker-compose.exposed.yml up
 ```
 
 This contains a few optional services: Kafka, a FHIR server, FHIR Pseudonymizer, Vfps. You might simplify the
