@@ -1,0 +1,97 @@
+services:
+  fhir-gateway:
+    image: ghcr.io/miracum/fhir-gateway:v3.12.8
+    restart: on-failure
+    cap_drop:
+      - ALL
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    read_only: true
+    tmpfs:
+      - /tmp
+    privileged: false
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://fhir-gateway-db:5432/fhir_gateway}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      # kics-scan ignore-line
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
+      SERVICES_PSEUDONYMIZER_ENABLED: ${SERVICES_PSEUDONYMIZER_ENABLED:-true}
+      SERVICES_PSEUDONYMIZER_URL: ${SERVICES_PSEUDONYMIZER_URL:-http://fhir-pseudonymizer:8080/fhir}
+      SERVICES_LOINC_CONVERSIONS_URL: ${SERVICES_LOINC_CONVERSIONS_URL:-http://loinc-converter:8080/api/v1}
+      SERVICES_LOINC_CONVERSIONS_ENABLED: ${SERVICES_LOINC_CONVERSIONS_ENABLED:-true}
+      SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
+      SERVICES_KAFKA_ENABLED: ${SERVICES_KAFKA_ENABLED:-false}
+    ports:
+      - 127.0.0.1:8080:8080
+    depends_on:
+      wait-for-db:
+        condition: service_completed_successfully
+      loinc-converter:
+        condition: service_started
+      fhir-pseudonymizer:
+        condition: service_started
+
+  wait-for-db:
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:41ad4f03c7842bed273dc308878a81c25131f55e038eb14979c43c4cc7ba9faf
+    ipc: none
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - ALL
+    privileged: false
+    restart: "no"
+    environment:
+      PGUSER: postgres
+      PGHOST: fhir-gateway-db
+      PGPORT: 5432
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until pg_isready; do
+          echo "Waiting for DB $${PGUSER}@$${PGHOST}:$${PGPORT} to be up";
+          sleep 5;
+        done;
+    depends_on:
+      fhir-gateway-db:
+        condition: service_started
+
+  fhir-gateway-db:
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:41ad4f03c7842bed273dc308878a81c25131f55e038eb14979c43c4cc7ba9faf
+    ipc: private
+    security_opt:
+      - "no-new-privileges:true"
+    privileged: false
+    environment:
+      # kics-scan ignore-line
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: fhir_gateway
+
+  loinc-converter:
+    image: ghcr.io/miracum/loinc-conversion:v1.15.4@sha256:296b78c765111eb4e294656eff7cc43353a309f81d4e8ba2190639dd1165c623
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      LOINC_VERSION: "2.77"
+
+  fhir-pseudonymizer:
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.4@sha256:f5ca147ab0ef1bd47fc73c0e1cd0ac1f4bf0d744ff83525eb365c28fed2394c2
+    ipc: none
+    cap_drop:
+      - ALL
+    read_only: true
+    privileged: false
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      DOTNET_EnableDiagnostics: "0"
+      UseSystemTextJsonFhirSerializer: "true"
+      PseudonymizationService: "None"
+      AnonymizationEngineConfigPath: "/opt/fhir-pseudonymizer/anonymization.yaml"
+    volumes:
+      - "./anonymization.yaml:/opt/fhir-pseudonymizer/anonymization.yaml:ro"

@@ -92,6 +92,17 @@
                 "hasChanged": true
               }
             ]
+          },
+          {
+            "files": ["deploy/compose.yaml"],
+            "from": "ghcr.io/miracum/fhir-gateway:v.*",
+            "to": "ghcr.io/miracum/fhir-gateway:v${nextRelease.version}",
+            "results": [
+              {
+                "file": "deploy/compose.yaml",
+                "hasChanged": true
+              }
+            ]
           }
         ]
       }
@@ -99,7 +110,11 @@
     [
       "@semantic-release/git",
       {
-        "assets": ["src/main/resources/application.yml", "build.gradle"]
+        "assets": [
+          "src/main/resources/application.yml",
+          "build.gradle",
+          "deploy/compose.yaml"
+        ]
       }
     ]
   ]
