@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.4@sha256:f5ca147ab0ef1bd47fc73c0e1cd0ac1f4bf0d744ff83525eb365c28fed2394c2
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.8@sha256:4d7997e729b709da13af249bd3c9ac70e8efd0b05bb70da73b9735b1d936e573
     ipc: none
     cap_drop:
       - ALL
@@ -91,7 +91,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.12.1@sha256:94e9e444bcba979c2ea12e27ae39bee4cd10bc7041a472c4727a558e213744e6
+    image: docker.io/curlimages/curl:8.13.0@sha256:d43bdb28bae0be0998f3be83199bfb2b81e0a30b034b6d7586ce7e05de34c3fd
     ipc: none
     cap_drop:
       - ALL
@@ -115,7 +115,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.12.1@sha256:94e9e444bcba979c2ea12e27ae39bee4cd10bc7041a472c4727a558e213744e6
+    image: docker.io/curlimages/curl:8.13.0@sha256:d43bdb28bae0be0998f3be83199bfb2b81e0a30b034b6d7586ce7e05de34c3fd
     ipc: none
     cap_drop:
       - ALL
