@@ -33,7 +33,7 @@ services:
         condition: service_started
 
   wait-for-db:
-    image: docker.io/bitnami/postgresql:17.4.0@sha256:41ad4f03c7842bed273dc308878a81c25131f55e038eb14979c43c4cc7ba9faf
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:b03f623716969693bf2f5ecf6578df3498024b38da2d8eb0565570fbec537dfc
     ipc: none
     security_opt:
       - "no-new-privileges:true"
@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   fhir-gateway-db:
-    image: docker.io/bitnami/postgresql:17.4.0@sha256:41ad4f03c7842bed273dc308878a81c25131f55e038eb14979c43c4cc7ba9faf
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:b03f623716969693bf2f5ecf6578df3498024b38da2d8eb0565570fbec537dfc
     ipc: private
     security_opt:
       - "no-new-privileges:true"
