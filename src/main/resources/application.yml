@@ -115,7 +115,7 @@ fhir:
     loinc: "http://loinc.org"
 
 app:
-  version: 3.14.6
+  version: 3.14.7
 
 features:
   use-load-balancer-optimized-connection-pool: false
