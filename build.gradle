@@ -35,7 +35,7 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
     implementation "org.springframework.kafka:spring-kafka"
 
-    implementation "org.miracum:kafka-fhir-serializer:1.0.8"
+    implementation "org.miracum:kafka-fhir-serializer:2.0.4"
 
     implementation "io.micrometer:micrometer-registry-prometheus:1.14.5"
     implementation "io.micrometer:micrometer-core:1.14.5"
