@@ -1,15 +1,15 @@
 plugins {
-    id 'org.springframework.boot' version "3.4.4"
-    id 'io.spring.dependency-management' version "1.1.7"
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id 'com.diffplug.spotless' version "7.0.2"
-    id "net.ltgt.errorprone" version "4.1.0"
-    id "org.sonarqube" version "6.1.0.5360"
+    id 'com.diffplug.spotless' version '7.0.2'
+    id 'net.ltgt.errorprone' version '4.1.0'
+    id 'org.sonarqube' version '6.1.0.5360'
 }
 
-group = "org.miracum.etl"
-version = "3.14.8"
+group = 'org.miracum.etl'
+version = '3.14.8'
 
 java {
   toolchain {
@@ -22,40 +22,40 @@ repositories {
 }
 
 ext {
-    set("springCloudVersion", "2024.0.1")
-    set("hapiVersion", "8.0.0")
+    set('springCloudVersion', '2024.0.1')
+    set('hapiVersion', '8.0.0')
 }
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "org.springframework.boot:spring-boot-starter-data-jdbc"
-    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    implementation "org.springframework.cloud:spring-cloud-stream"
-    implementation "org.springframework.cloud:spring-cloud-stream-binder-kafka"
-    implementation "org.springframework.kafka:spring-kafka"
+    implementation 'org.springframework.cloud:spring-cloud-stream'
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
+    implementation 'org.springframework.kafka:spring-kafka'
 
-    implementation "org.miracum:kafka-fhir-serializer:2.0.4"
+    implementation 'org.miracum:kafka-fhir-serializer:2.0.4'
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.14.5"
-    implementation "io.micrometer:micrometer-core:1.14.5"
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.14.5'
+    implementation 'io.micrometer:micrometer-core:1.14.5'
 
-    implementation "net.logstash.logback:logstash-logback-encoder:8.1"
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
 
     implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
-    developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "org.postgresql:postgresql:42.7.5"
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'org.postgresql:postgresql:42.7.5'
     runtimeOnly 'com.h2database:h2:2.3.232'
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.springframework.kafka:spring-kafka-test"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone("com.google.errorprone:error_prone_core:2.37.0")
-    errorprone("com.uber.nullaway:nullaway:0.12.6")
+    errorprone('com.google.errorprone:error_prone_core:2.37.0')
+    errorprone('com.uber.nullaway:nullaway:0.12.6')
 }
 
 dependencyManagement {
@@ -92,13 +92,13 @@ import net.ltgt.gradle.errorprone.CheckSeverity
 
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
-        check("NullAway", CheckSeverity.ERROR)
-        option("NullAway:AnnotatedPackages", "org.miracum")
+        check('NullAway', CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'org.miracum')
     }
     // Include to disable NullAway on test code
-    if (name.toLowerCase().contains("test")) {
+    if (name.toLowerCase().contains('test')) {
         options.errorprone {
-            disable("NullAway")
+            disable('NullAway')
         }
     }
 }
