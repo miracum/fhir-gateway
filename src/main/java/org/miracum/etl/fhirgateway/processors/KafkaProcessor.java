@@ -10,7 +10,7 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Resource;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -18,8 +18,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnExpression(
-    "${services.kafka.enabled:true} and !T(org.springframework.util.StringUtils).isEmpty('${spring.cloud.stream.bindings.process-out-0.destination:}')")
+@ConditionalOnProperty(value = "services.kafka.enabled", matchIfMissing = true)
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   private final String generateTopicMatchExpression;

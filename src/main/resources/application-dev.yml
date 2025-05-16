@@ -26,7 +26,7 @@ services:
     enabled: true
     generate-output-topic:
       match-expression: "fhir\\."
-      replace-with: "fhir.post-gateway-pseuded-"
+      replace-with: "fhir.pseudonymized."
 
 spring:
   datasource:
