@@ -30,7 +30,7 @@ spring:
   application:
     name: "fhir-gateway"
   kafka:
-    bootstrapServers: ${BOOTSTRAP_SERVERS}
+    bootstrapServers: ${BOOTSTRAP_SERVERS:localhost:9094}
     security.protocol: ${SECURITY_PROTOCOL:PLAINTEXT}
     ssl:
       trust-store-type: PKCS12
