@@ -61,13 +61,7 @@ spring:
             compression.type: ${COMPRESSION_TYPE:gzip}
             configuration:
               max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576}
-#        bindings:
-#          process-in-0:
-#            consumer:
-#              enableDlq: true
-#              configuration:
-#                key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#                value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+            useNativeEncoding: true
       bindings: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties
         process-in-0:
           consumer:
@@ -76,10 +70,7 @@ spring:
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          destination: ${OUTPUT_TOPIC:fhir.post-gateway}
-          producer:
-            useNativeEncoding: true
-
+          destination: null
   sql:
     init:
       schema-locations: classpath:/schema.sql
