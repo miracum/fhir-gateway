@@ -97,6 +97,7 @@ services:
     enabled: true
   kafka:
     enabled: false
+    consumeOnly: false
     generate-output-topic:
       match-expression: ""
       replace-with: ""

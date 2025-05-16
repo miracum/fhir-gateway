@@ -18,10 +18,7 @@ public class KafkaProcessorTests {
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {
-        "services.kafka.enabled=true",
-        "spring.cloud.stream.bindings.process-out-0.destination=fhir.post-gateway"
-      })
+      properties = {"services.kafka.enabled=true", "services.kafka.consumeOnly=false"})
   public class KafkaConsumerProducerTests {
 
     @Autowired private BaseKafkaProcessor processor;
@@ -36,10 +33,7 @@ public class KafkaProcessorTests {
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {
-        "services.kafka.enabled=true",
-        "spring.cloud.stream.bindings.process-out-0.destination="
-      })
+      properties = {"services.kafka.enabled=true", "services.kafka.consumeOnly=true"})
   public class KafkaConsumerTests {
 
     @Autowired private BaseKafkaProcessor consumer;
