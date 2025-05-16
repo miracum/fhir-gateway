@@ -46,35 +46,40 @@ spring:
   cloud:
     function.definition: process
     stream:
-      bindings:
+      kafka:
+        binder: # https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties
+          configuration:
+            max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
+            max.poll.records: ${MAX_POLL_RECORDS:500}
+        default:
+          consumer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
+            enableDlq: true
+            configuration:
+              key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+              value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+          producer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-producer-properties
+            compression.type: ${COMPRESSION_TYPE:gzip}
+            configuration:
+              max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576}
+#        bindings:
+#          process-in-0:
+#            consumer:
+#              enableDlq: true
+#              configuration:
+#                key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#                value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+      bindings: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties
         process-in-0:
           consumer:
             concurrency: ${CONSUMER_CONCURRENCY:1}
+            useNativeDecoding: true
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
-          useNativeDecoding: true
         process-out-0:
           destination: ${OUTPUT_TOPIC:fhir.post-gateway}
           producer:
             useNativeEncoding: true
-      kafka:
-        bindings:
-          process-in-0:
-            consumer:
-              enableDlq: true
-              configuration:
-                key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-                value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
-          process-out-0:
-            producer:
-              configuration:
-                compression.type: ${COMPRESSION_TYPE:gzip}
-                # 1 MiB = 1048576 Byte
-                max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576}
-          binder:
-            configuration:
-              max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
-              max.poll.records: ${MAX_POLL_RECORDS:500}
+
   sql:
     init:
       schema-locations: classpath:/schema.sql
