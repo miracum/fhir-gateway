@@ -70,7 +70,8 @@ spring:
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          destination: null
+          producer:
+            required-groups: []  # Prevents auto-provisioning of topics
   sql:
     init:
       schema-locations: classpath:/schema.sql
