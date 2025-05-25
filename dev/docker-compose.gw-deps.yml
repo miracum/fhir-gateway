@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.8@sha256:10965676b4fa8ef2997570036c7bef050e6f3066fb4c41d3355d845d53dc9327
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.9@sha256:c701d91b45a1ec3ec77b8e48bf8a45bdf130d48f352f924b7792f54530ad028d
     ipc: none
     cap_drop:
       - ALL
@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.15.4@sha256:296b78c765111eb4e294656eff7cc43353a309f81d4e8ba2190639dd1165c623
+    image: ghcr.io/miracum/loinc-conversion:v1.15.5@sha256:b1e3e620f60736bfe226e8c99c067d95ee31c526b7f606223e88521ac843efcd
     ipc: none
     cap_drop:
       - ALL
@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:17.4@sha256:304ab813518754228f9f792f79d6da36359b82d8ecf418096c636725f8c930ad
+    image: docker.io/library/postgres:17.5@sha256:6efd0df010dc3cb40d5e33e3ef84acecc5e73161bd3df06029ee8698e5e12c60
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:17.4@sha256:304ab813518754228f9f792f79d6da36359b82d8ecf418096c636725f8c930ad
+    image: docker.io/library/postgres:17.5@sha256:6efd0df010dc3cb40d5e33e3ef84acecc5e73161bd3df06029ee8698e5e12c60
     ipc: private
     security_opt:
       - "no-new-privileges:true"
