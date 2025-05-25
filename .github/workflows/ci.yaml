@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@ed920798bb7e30616049c9b5f7e3d6545d93fbb0 # v1.16.8
+    uses: miracum/.github/.github/workflows/standard-build.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
     permissions:
       contents: write
       id-token: write
@@ -53,7 +53,7 @@ jobs:
           docker info -f '{{ .DriverStatus }}'
 
       - name: Download test image
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ${{ needs.build.outputs.image-slug }}-test
           path: /tmp
@@ -73,7 +73,7 @@ jobs:
 
       - name: Add coverage to PR
         id: jacoco
-        uses: madrapps/jacoco-report@7c362aca34caf958e7b1c03464bd8781db9f8da7 # v1.7.1
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
         with:
           paths: |
             ${{ github.workspace }}/test/jacoco/test/jacocoTestReport.xml
@@ -107,7 +107,7 @@ jobs:
           persist-credentials: false
 
       - name: Download build image
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: ${{ github.event_name == 'pull_request' }}
         with:
           name: ${{ needs.build.outputs.image-slug }}
@@ -137,7 +137,7 @@ jobs:
           docker compose -p e2e -f dev/docker-compose.yml -f dev/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@ed920798bb7e30616049c9b5f7e3d6545d93fbb0 # v1.16.8
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
     permissions:
       contents: read
       pull-requests: write
@@ -152,7 +152,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@ed920798bb7e30616049c9b5f7e3d6545d93fbb0 # v1.16.8
+    uses: miracum/.github/.github/workflows/standard-release.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
     needs:
       - build
       - test
