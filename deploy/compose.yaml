@@ -33,7 +33,7 @@ services:
         condition: service_started
 
   wait-for-db:
-    image: docker.io/bitnami/postgresql:17.4.0@sha256:b03f623716969693bf2f5ecf6578df3498024b38da2d8eb0565570fbec537dfc
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:ee4a4905642645dbf947a9990eb121eb8fbd06703549f358b5b2ad73eb2973c4
     ipc: none
     security_opt:
       - "no-new-privileges:true"
@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   fhir-gateway-db:
-    image: docker.io/bitnami/postgresql:17.4.0@sha256:b03f623716969693bf2f5ecf6578df3498024b38da2d8eb0565570fbec537dfc
+    image: docker.io/bitnami/postgresql:17.4.0@sha256:ee4a4905642645dbf947a9990eb121eb8fbd06703549f358b5b2ad73eb2973c4
     ipc: private
     security_opt:
       - "no-new-privileges:true"
@@ -80,7 +80,7 @@ services:
       LOINC_VERSION: "2.77"
 
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.8@sha256:4d7997e729b709da13af249bd3c9ac70e8efd0b05bb70da73b9735b1d936e573
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.8@sha256:10965676b4fa8ef2997570036c7bef050e6f3066fb4c41d3355d845d53dc9327
     ipc: none
     cap_drop:
       - ALL
