@@ -1,11 +1,11 @@
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
+    id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id 'com.diffplug.spotless' version '7.0.2'
-    id 'net.ltgt.errorprone' version '4.1.0'
-    id 'org.sonarqube' version '6.1.0.5360'
+    id 'com.diffplug.spotless' version '7.0.3'
+    id 'net.ltgt.errorprone' version '4.2.0'
+    id 'org.sonarqube' version '6.2.0.5505'
 }
 
 group = 'org.miracum.etl'
@@ -23,7 +23,7 @@ repositories {
 
 ext {
     set('springCloudVersion', '2024.0.1')
-    set('hapiVersion', '8.0.0')
+    set('hapiVersion', '8.2.0')
 }
 
 dependencies {
@@ -37,8 +37,8 @@ dependencies {
 
     implementation 'org.miracum:kafka-fhir-serializer:2.0.4'
 
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.14.5'
-    implementation 'io.micrometer:micrometer-core:1.14.5'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.0'
+    implementation 'io.micrometer:micrometer-core:1.15.0'
 
     implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
 
@@ -54,8 +54,8 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone('com.google.errorprone:error_prone_core:2.37.0')
-    errorprone('com.uber.nullaway:nullaway:0.12.6')
+    errorprone('com.google.errorprone:error_prone_core:2.38.0')
+    errorprone('com.uber.nullaway:nullaway:0.12.7')
 }
 
 dependencyManagement {
