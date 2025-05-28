@@ -68,7 +68,7 @@ services:
       POSTGRESQL_DATABASE: fhir_gateway
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.15.5@sha256:b1e3e620f60736bfe226e8c99c067d95ee31c526b7f606223e88521ac843efcd
+    image: ghcr.io/miracum/loinc-conversion:v1.15.6@sha256:780a76434beab19cb5193ee9bad7371c289ae86dcfe096357bee31bd918dbf95
     ipc: none
     cap_drop:
       - ALL
@@ -80,7 +80,7 @@ services:
       LOINC_VERSION: "2.77"
 
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.9@sha256:c701d91b45a1ec3ec77b8e48bf8a45bdf130d48f352f924b7792f54530ad028d
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.22.10@sha256:88a8bf300a97acc7a493788add58c207d0ba0397431829c2377aab0eb39ae1d1
     ipc: none
     cap_drop:
       - ALL
