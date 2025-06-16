@@ -111,6 +111,14 @@ services:
 fhir:
   systems:
     loinc: "http://loinc.org"
+  validation:
+    enabled: false
+    package-base-directory-path: ""
+    fail-on-error: true
+    any-extension-allowed: true
+    concurrent-bundle-validation:
+      enabled: false
+      max-thread-count: 2
 
 app:
   version: 3.14.10

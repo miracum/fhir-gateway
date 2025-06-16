@@ -47,6 +47,15 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
+    // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-validation
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-validation:${hapiVersion}"
+    
+    // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-validation-resources-r4
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:${hapiVersion}"
+
+    // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-caching-caffeine
+    implementation "ca.uhn.hapi.fhir:hapi-fhir-caching-caffeine:${hapiVersion}"
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql:42.7.5'
     runtimeOnly 'com.h2database:h2:2.3.232'
