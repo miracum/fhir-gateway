@@ -71,7 +71,7 @@ spring:
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
           producer:
-            required-groups: []  # Prevents auto-provisioning of topics
+            required-groups: [] # Prevents auto-provisioning of topics
   sql:
     init:
       schema-locations: classpath:/schema.sql
@@ -111,6 +111,14 @@ services:
 fhir:
   systems:
     loinc: "http://loinc.org"
+  validation:
+    enabled: false
+    package-base-directory-path: ""
+    fail-on-error: true
+    any-extension-allowed: true
+    concurrent-bundle-validation:
+      enabled: false
+      max-thread-count: 2
 
 app:
   version: 3.14.10

@@ -3,6 +3,7 @@ package org.miracum.etl.fhirgateway.processors;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
+import java.util.Optional;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
@@ -29,12 +30,14 @@ public class ResourcePipeline {
   private final boolean isLoincHarmonizationEnabled;
   private final boolean isFhirServerEnabled;
   private final boolean isPsqlEnabled;
+  private Optional<ValidationProcessor> validationProcessor;
 
   public ResourcePipeline(
       PostgresFhirResourceRepository psqlStore,
       FhirServerResourceRepository fhirStore,
       LoincHarmonizer loincHarmonizer,
       IPseudonymizer pseudonymizer,
+      Optional<ValidationProcessor> validationProcessor,
       @Value("${services.loinc.conversions.enabled}") boolean isLoincHarmonizationEnabled,
       @Value("${services.fhirServer.enabled}") boolean isFhirServerEnabled,
       @Value("${services.psql.enabled}") boolean isPsqlEnabled) {
@@ -42,6 +45,7 @@ public class ResourcePipeline {
     this.fhirStore = fhirStore;
     this.loincHarmonizer = loincHarmonizer;
     this.pseudonymizer = pseudonymizer;
+    this.validationProcessor = validationProcessor;
     this.isLoincHarmonizationEnabled = isLoincHarmonizationEnabled;
     this.isFhirServerEnabled = isFhirServerEnabled;
     this.isPsqlEnabled = isPsqlEnabled;
@@ -66,13 +70,13 @@ public class ResourcePipeline {
 
           // pseudonymization should be the first task to ensure all other processors only
           // ever work with de-identified data.
-          var pseudonymized = pseudonymizer.process(bundle);
+          var processed = pseudonymizer.process(bundle);
 
           // this logic may be refactored and cleaned up by creating a genuine pipeline class with
           // optionally
           // added stages. A base for this would be an abstract ResourceProcessor
           if (this.isLoincHarmonizationEnabled) {
-            for (var entry : pseudonymized.getEntry()) {
+            for (var entry : processed.getEntry()) {
               var resource = entry.getResource();
 
               if (resource instanceof Observation) {
@@ -84,9 +88,13 @@ public class ResourcePipeline {
             }
           }
 
-          saveToStores(pseudonymized);
+          if (validationProcessor.isPresent()) {
+            processed = validationProcessor.get().process(processed);
+          }
 
-          return pseudonymized;
+          saveToStores(processed);
+
+          return processed;
         });
   }
 }

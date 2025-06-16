@@ -1,0 +1,6 @@
+fhir:
+  validation:
+    enabled: true
+    # keep this empty to not use any extra validation packages.
+    # not ideal, but works for testing
+    package-base-directory-path: ""

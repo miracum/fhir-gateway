@@ -1,5 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>miracum/.github//renovate/default", "schedule:quarterly"],
-  "ignoreDeps": ["ghcr.io/miracum/fhir-gateway"]
+  "ignoreDeps": ["ghcr.io/miracum/fhir-gateway"],
+  "ignorePaths": ["**/node_modules/**", "**/bower_components/**"]
 }
