@@ -5,7 +5,6 @@ import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.parser.DataFormatException;
 import ca.uhn.fhir.parser.StrictErrorHandler;
 import ca.uhn.fhir.validation.FhirValidator;
-import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,6 +47,11 @@ public class ValidationProcessor {
           if (Files.isDirectory(packagePath)) {
             var pkg = NpmPackage.fromFolder(packagePath.toAbsolutePath().toString());
             var packageFolder = pkg.getFolders().get("package");
+
+            if (packageFolder == null) {
+              LOG.warn("'package' folder not found in folder: {}", packageFolder);
+              continue;
+            }
 
             for (var nextFile : packageFolder.listFiles()) {
               if (nextFile.endsWith(".json") && !nextFile.endsWith(".lock.json")) {
@@ -95,7 +99,6 @@ public class ValidationProcessor {
     }
   }
 
-  @Nullable
   public Bundle process(Bundle bundle) {
 
     // Validate

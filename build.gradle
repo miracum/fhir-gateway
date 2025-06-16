@@ -12,9 +12,9 @@ group = 'org.miracum.etl'
 version = '3.14.10'
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
@@ -49,7 +49,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-validation
     implementation "ca.uhn.hapi.fhir:hapi-fhir-validation:${hapiVersion}"
-    
+
     // https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-validation-resources-r4
     implementation "ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:${hapiVersion}"
 
@@ -74,15 +74,15 @@ dependencyManagement {
 }
 
 tasks.named('test') {
-  useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 jacocoTestReport {
-	reports {
-		csv.required = true
-		html.required = true
-		xml.required = true
-	}
+    reports {
+        csv.required = true
+        html.required = true
+        xml.required = true
+    }
 }
 
 jar {

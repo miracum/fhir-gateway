@@ -1,7 +1,4 @@
-FROM docker.io/library/python:3.11-alpine@sha256:af8fef83397b3886ed93d2c81bf3b4e70d39c0789c1c6feb1ecb86ca9bc42a0a
-
-# hadolint ignore=DL3018
-RUN apk --no-cache add git
+FROM docker.io/library/python:3.12.11-slim@sha256:e55523f127124e5edc03ba201e3dbbc85172a2ec40d8651ac752364b23dfd733
 
 WORKDIR /opt/tests
 COPY requirements.txt .
