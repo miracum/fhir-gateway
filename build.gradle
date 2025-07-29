@@ -1,10 +1,10 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.0'
+    id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id 'com.diffplug.spotless' version '7.0.4'
-    id 'net.ltgt.errorprone' version '4.2.0'
+    id 'com.diffplug.spotless' version '7.2.1'
+    id 'net.ltgt.errorprone' version '4.3.0'
     id 'org.sonarqube' version '6.2.0.5505'
 }
 
@@ -22,8 +22,8 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', '2024.0.1')
-    set('hapiVersion', '8.2.0')
+    set('springCloudVersion', '2024.0.2')
+    set('hapiVersion', '8.2.1')
 }
 
 dependencies {
@@ -35,10 +35,10 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     implementation 'org.springframework.kafka:spring-kafka'
 
-    implementation 'org.miracum:kafka-fhir-serializer:2.0.5'
+    implementation 'org.miracum:kafka-fhir-serializer:2.0.6'
 
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.0'
-    implementation 'io.micrometer:micrometer-core:1.15.0'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.2'
+    implementation 'io.micrometer:micrometer-core:1.15.2'
 
     implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
 
@@ -48,13 +48,13 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'org.postgresql:postgresql:42.7.5'
+    runtimeOnly 'org.postgresql:postgresql:42.7.7'
     runtimeOnly 'com.h2database:h2:2.3.232'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone('com.google.errorprone:error_prone_core:2.38.0')
+    errorprone('com.google.errorprone:error_prone_core:2.41.0')
     errorprone('com.uber.nullaway:nullaway:0.12.7')
 }
 
