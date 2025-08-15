@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
+    uses: miracum/.github/.github/workflows/standard-build.yaml@61598243fff8ce6ef7bd312e26d586b2dd10d7b3 # v1.16.23
     permissions:
       contents: write
       id-token: write
@@ -31,6 +31,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   add-test-coverage:
+    name: "Add test coverage"
     runs-on: ubuntu-24.04
     needs:
       - build
@@ -41,7 +42,7 @@ jobs:
     steps:
       # <https://docs.docker.com/storage/containerd/>
       # via <https://github.com/docker/setup-buildx-action/issues/257>
-      - name: Set up containerd image store
+      - name: "Set up containerd image store"
         shell: bash
         run: |
           [ -f /etc/docker/daemon.json ] || echo "{}" | sudo tee /etc/docker/daemon.json
@@ -52,31 +53,34 @@ jobs:
 
           docker info -f '{{ .DriverStatus }}'
 
-      - name: Download test image
+      - name: "Download test image"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ${{ needs.build.outputs.image-slug }}-test
           path: /tmp
 
-      - name: Load test image
+      - name: "Load test image"
         run: |
           ls -lsa /tmp
           docker load --input /tmp/image-test.tar
           docker image ls
 
-      - name: Copy unit test coverage reports from test container
+      - name: "Copy unit test coverage reports from test container"
         env:
           UNIT_TEST_IMAGE: ${{ fromJson(needs.build.outputs.test-image-meta-json).tags[0] }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
           docker create --name=unit-test-container "${UNIT_TEST_IMAGE}"
-          docker cp unit-test-container:/test ${{ github.workspace }}/test
+          docker cp unit-test-container:/test "${GITHUB_WORKSPACE}/test"
 
-      - name: Add coverage to PR
+      - name: "Add coverage to PR"
         id: jacoco
         uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         with:
           paths: |
-            ${{ github.workspace }}/test/jacoco/test/jacocoTestReport.xml
+            "${GITHUB_WORKSPACE}/test/jacoco/test/jacocoTestReport.xml"
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 40
           min-coverage-changed-files: 60
@@ -84,13 +88,14 @@ jobs:
           title: "## Code Coverage Report"
 
   test:
+    name: "Test"
     runs-on: ubuntu-24.04
     needs:
       - build
     steps:
       # <https://docs.docker.com/storage/containerd/>
       # via <https://github.com/docker/setup-buildx-action/issues/257>
-      - name: Set up containerd image store
+      - name: "Set up containerd image store"
         shell: bash
         run: |
           [ -f /etc/docker/daemon.json ] || echo "{}" | sudo tee /etc/docker/daemon.json
@@ -102,25 +107,25 @@ jobs:
           docker info -f '{{ .DriverStatus }}'
 
       - name: "Checkout code"
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           persist-credentials: false
 
-      - name: Download build image
+      - name: "Download build image"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: ${{ github.event_name == 'pull_request' }}
         with:
           name: ${{ needs.build.outputs.image-slug }}
           path: /tmp
 
-      - name: load image
+      - name: "Load image"
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           ls -lsa /tmp
           docker load --input /tmp/image.tar
           docker image ls
 
-      - name: Run E2E tests
+      - name: "Run E2E tests"
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         run: |
@@ -128,7 +133,7 @@ jobs:
           docker compose -p e2e -f dev/docker-compose.yml -f dev/docker-compose.gw-deps.yml --project-directory=tests/e2e up -d
           docker compose -p e2e -f dev/docker-compose.yml -f dev/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml --project-directory=tests/e2e run tester
 
-      - name: Print E2E logs
+      - name: "Print E2E logs"
         env:
           FHIR_GATEWAY_IMAGE_NAME: "${{ fromJson(needs.build.outputs.image-meta-json).tags[0] }}"
         if: ${{ always() }}
@@ -137,7 +142,7 @@ jobs:
           docker compose -p e2e -f dev/docker-compose.yml -f dev/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@61598243fff8ce6ef7bd312e26d586b2dd10d7b3 # v1.16.23
     permissions:
       contents: read
       pull-requests: write
@@ -152,7 +157,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@563959ec1b63f91b8d12a170152b4537f1b43ba8 # v1.16.14
+    uses: miracum/.github/.github/workflows/standard-release.yaml@61598243fff8ce6ef7bd312e26d586b2dd10d7b3 # v1.16.23
     needs:
       - build
       - test
