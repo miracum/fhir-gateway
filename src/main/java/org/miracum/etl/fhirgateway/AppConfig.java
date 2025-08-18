@@ -13,13 +13,11 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
-import org.miracum.etl.fhirgateway.processors.FhirPseudonymizer;
-import org.miracum.etl.fhirgateway.processors.IPseudonymizer;
-import org.miracum.etl.fhirgateway.processors.NoopPseudonymizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -165,7 +163,7 @@ public class AppConfig {
                 kv("attempt", context.getRetryCount()),
                 kv("maxAttempts", maxAttempts));
 
-            batchUpdateFailed.incrementAndGet();
+            Objects.requireNonNull(batchUpdateFailed).incrementAndGet();
           }
         });
 
@@ -203,18 +201,5 @@ public class AppConfig {
         });
 
     return retryTemplate;
-  }
-
-  @Bean
-  public IPseudonymizer fhirPseudonymizer(
-      @Value("${services.pseudonymizer.enabled}") boolean isPseudonymizerEnabled,
-      @Value("${services.pseudonymizer.url}") String pseudonymizerUrl,
-      @Qualifier("restRetryTemplate") RetryTemplate retryTemplate,
-      FhirContext fhirContext) {
-    if (isPseudonymizerEnabled) {
-      return new FhirPseudonymizer(fhirContext, pseudonymizerUrl, retryTemplate);
-    } else {
-      return new NoopPseudonymizer();
-    }
   }
 }

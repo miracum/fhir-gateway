@@ -18,6 +18,7 @@ import org.miracum.etl.fhirgateway.models.loinc.LoincConversion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.util.Pair;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 
 @Service
+@ConditionalOnProperty("services.loinc.conversions.enabled")
 public class LoincHarmonizer {
   private static final Logger log = LoggerFactory.getLogger(LoincHarmonizer.class);
   private static final Timer CONVERSION_DURATION_TIMER =
