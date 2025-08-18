@@ -2,7 +2,6 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import jakarta.annotation.Nullable;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
@@ -25,14 +24,7 @@ public abstract class BaseKafkaProcessor {
     this.pipeline = pipeline;
   }
 
-  @Nullable
   public Bundle process(Message<Resource> message) {
-
-    if (message == null) {
-      LOG.warn("resource is null. Ignoring.");
-      return null;
-    }
-
     var incomingTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC);
     var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, null);
     var resource = message.getPayload();
@@ -44,8 +36,8 @@ public abstract class BaseKafkaProcessor {
         kv("key", key));
 
     Bundle bundle;
-    if (resource instanceof Bundle) {
-      bundle = (Bundle) resource;
+    if (resource instanceof Bundle b) {
+      bundle = b;
     } else {
       bundle = new Bundle();
       bundle.setType(BundleType.TRANSACTION);

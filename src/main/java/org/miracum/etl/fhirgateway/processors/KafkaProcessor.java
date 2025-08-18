@@ -18,7 +18,8 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnExpression("${services.kafka.enabled} and !${services.kafka.consumeOnly}")
+@ConditionalOnExpression(
+    "${services.kafka.enabled} and !${services.kafka.consumeOnly} and !${services.kafka.produceOnly.enabled}")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   private final String generateTopicMatchExpression;
@@ -42,6 +43,11 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   @Bean
   Function<Message<Resource>, Message<Bundle>> process() {
     return message -> {
+      if (message == null) {
+        LOG.warn("message is null. Ignoring.");
+        return null;
+      }
+
       var processed = super.process(message);
 
       var messageKey = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();

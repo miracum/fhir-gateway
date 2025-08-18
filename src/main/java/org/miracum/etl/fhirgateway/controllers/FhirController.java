@@ -121,10 +121,11 @@ public class FhirController {
 
     var resource = (Resource) fhirParser.parseResource(body);
 
-    var bundle = new Bundle();
-    if (resource instanceof Bundle) {
-      bundle = (Bundle) resource;
+    Bundle bundle;
+    if (resource instanceof Bundle b) {
+      bundle = b;
     } else {
+      bundle = new Bundle();
       bundle.setType(BundleType.TRANSACTION);
       bundle.setId(UUID.randomUUID().toString());
       bundle

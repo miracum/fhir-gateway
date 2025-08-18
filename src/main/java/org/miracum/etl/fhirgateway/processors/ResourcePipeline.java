@@ -75,9 +75,9 @@ public class ResourcePipeline {
             for (var entry : pseudonymized.getEntry()) {
               var resource = entry.getResource();
 
-              if (resource instanceof Observation) {
+              if (resource instanceof Observation observation) {
                 try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-                  var obs = loincHarmonizer.process((Observation) resource);
+                  var obs = loincHarmonizer.process(observation);
                   entry.setResource(obs);
                 }
               }

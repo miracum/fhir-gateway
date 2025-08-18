@@ -99,6 +99,9 @@ services:
   kafka:
     enabled: false
     consumeOnly: false
+    produceOnly:
+      enabled: false
+      output-topic: "fhir.gateway.ouput"
     generate-output-topic:
       match-expression: ""
       replace-with: ""

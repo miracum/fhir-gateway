@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.micrometer.core.instrument.Metrics;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hl7.fhir.r4.model.Bundle;
 import org.slf4j.Logger;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -31,16 +30,12 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
   private final RetryTemplate retryTemplate;
 
   @Autowired
-  public FhirServerResourceRepository(FhirContext fhirContext, IGenericClient client) {
+  public FhirServerResourceRepository(
+      FhirContext fhirContext, IGenericClient client, RetryTemplate retryTemplate) {
 
     this.fhirParser = fhirContext.newJsonParser();
     this.client = client;
-
-    this.retryTemplate = new RetryTemplate();
-    var fixedBackOffPolicy = new FixedBackOffPolicy();
-    fixedBackOffPolicy.setBackOffPeriod(5_000);
-    retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5));
+    this.retryTemplate = retryTemplate;
     this.retryTemplate.registerListener(
         new RetryListener() {
           @Override
@@ -50,8 +45,7 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
                 "Trying to sent resource to FHIR server caused error. {} attempt.",
                 context.getRetryCount(),
                 throwable);
-            assert saveFailedCounter != null;
-            saveFailedCounter.incrementAndGet();
+            Objects.requireNonNull(saveFailedCounter).incrementAndGet();
           }
         });
   }

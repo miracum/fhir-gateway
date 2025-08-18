@@ -106,9 +106,9 @@ public class LoincHarmonizer {
 
           result = getHarmonizedQuantity(rangeLow, originalCode);
 
-          if (result.isPresent()) {
-            rangeComponent.setLow(result.get().getFirst());
-          }
+          result.ifPresent(
+              quantityLoincConversionPair ->
+                  rangeComponent.setLow(quantityLoincConversionPair.getFirst()));
         }
 
         if (rangeComponent.hasHigh()) {
@@ -116,9 +116,9 @@ public class LoincHarmonizer {
 
           result = getHarmonizedQuantity(rangeHigh, originalCode);
 
-          if (result.isPresent()) {
-            rangeComponent.setHigh(result.get().getFirst());
-          }
+          result.ifPresent(
+              quantityLoincConversionPair ->
+                  rangeComponent.setHigh(quantityLoincConversionPair.getFirst()));
         }
       }
     } catch (Exception exc) {

@@ -24,9 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
@@ -98,6 +100,7 @@ public class AppConfig {
   }
 
   @Bean
+  @Primary
   @Qualifier("restRetryTemplate")
   public RetryTemplate retryTemplate(@Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
     var retryTemplate = new RetryTemplate();
@@ -163,6 +166,39 @@ public class AppConfig {
                 kv("maxAttempts", maxAttempts));
 
             batchUpdateFailed.incrementAndGet();
+          }
+        });
+
+    return retryTemplate;
+  }
+
+  @Bean
+  @ConditionalOnProperty(prefix = "services.kafka.produceOnly", name = "enabled")
+  @Qualifier("kafkaRetryTemplate")
+  public RetryTemplate kafkaRetryTemplate() {
+    var retryTemplate = new RetryTemplate();
+
+    var backOffPolicy = new ExponentialRandomBackOffPolicy();
+    backOffPolicy.setInitialInterval(5_000); // 5 seconds
+    backOffPolicy.setMaxInterval(300_000); // 5 minutes
+
+    retryTemplate.setBackOffPolicy(backOffPolicy);
+
+    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+
+    var maxAttempts = Integer.MAX_VALUE;
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, retryableExceptions));
+
+    retryTemplate.registerListener(
+        new RetryListener() {
+          @Override
+          public <T, E extends Throwable> void onError(
+              RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
+            LOG.warn(
+                "Error occurred when producing to Kafka: {}. Retrying {} out of {}",
+                throwable.getMessage(),
+                kv("attempt", context.getRetryCount()),
+                kv("maxAttempts", maxAttempts));
           }
         });
 
