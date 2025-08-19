@@ -140,6 +140,7 @@ public class AppConfig {
 
   @Bean
   @Qualifier("databaseRetryTemplate")
+  @ConditionalOnProperty("services.psql.enabled")
   public RetryTemplate databaseRetryTemplate(
       @Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
     var retryTemplate = new RetryTemplate();
@@ -171,8 +172,8 @@ public class AppConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(prefix = "services.kafka.produceOnly", name = "enabled")
   @Qualifier("kafkaRetryTemplate")
+  @ConditionalOnProperty("services.kafka.produceFromApi.enabled")
   public RetryTemplate kafkaRetryTemplate() {
     var retryTemplate = new RetryTemplate();
 

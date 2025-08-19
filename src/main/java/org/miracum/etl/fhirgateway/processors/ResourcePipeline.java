@@ -7,7 +7,6 @@ import java.util.Optional;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirServerResourceRepository;
-import org.miracum.etl.fhirgateway.stores.KafkaFhirResourceRepository;
 import org.miracum.etl.fhirgateway.stores.PostgresFhirResourceRepository;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
@@ -23,19 +22,16 @@ public class ResourcePipeline {
           .register(Metrics.globalRegistry);
 
   private final Optional<FhirServerResourceRepository> fhirStore;
-  private final Optional<KafkaFhirResourceRepository> kafkaStore;
   private final Optional<PostgresFhirResourceRepository> psqlStore;
   private final Optional<FhirPseudonymizer> pseudonymizer;
   private final Optional<LoincHarmonizer> loincHarmonizer;
 
   public ResourcePipeline(
       Optional<FhirServerResourceRepository> fhirStore,
-      Optional<KafkaFhirResourceRepository> kafkaStore,
       Optional<PostgresFhirResourceRepository> psqlStore,
       Optional<FhirPseudonymizer> pseudonymizer,
       Optional<LoincHarmonizer> loincHarmonizer) {
     this.fhirStore = fhirStore;
-    this.kafkaStore = kafkaStore;
     this.psqlStore = psqlStore;
     this.pseudonymizer = pseudonymizer;
     this.loincHarmonizer = loincHarmonizer;
@@ -77,10 +73,6 @@ public class ResourcePipeline {
 
     if (fhirStore.isPresent()) {
       this.fhirStore.get().save(bundle);
-    }
-
-    if (kafkaStore.isPresent()) {
-      this.kafkaStore.get().save(bundle);
     }
 
     if (psqlStore.isPresent()) {

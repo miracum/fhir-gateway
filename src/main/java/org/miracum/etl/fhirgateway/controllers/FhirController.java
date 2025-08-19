@@ -8,12 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Resource;
 import org.miracum.etl.fhirgateway.processors.ResourcePipeline;
+import org.miracum.etl.fhirgateway.stores.KafkaFhirResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +43,16 @@ public class FhirController {
 
   private final IParser fhirParser;
   private final ResourcePipeline pipeline;
+  private final Optional<KafkaFhirResourceRepository> kafkaStore;
 
   @Autowired
-  public FhirController(FhirContext fhirContext, ResourcePipeline pipeline) {
+  public FhirController(
+      FhirContext fhirContext,
+      ResourcePipeline pipeline,
+      Optional<KafkaFhirResourceRepository> kafkaStore) {
     this.fhirParser = fhirContext.newJsonParser();
     this.pipeline = pipeline;
+    this.kafkaStore = kafkaStore;
   }
 
   @PostMapping
@@ -65,6 +72,10 @@ public class FhirController {
       }
 
       var processed = pipeline.process(bundle);
+      if (kafkaStore.isPresent()) {
+        this.kafkaStore.get().save(processed);
+      }
+
       return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
     } else {
       log.error("Received a non-Bundle resource on the base endpoint");
@@ -138,6 +149,9 @@ public class FhirController {
     }
 
     var processed = pipeline.process(bundle);
+    if (kafkaStore.isPresent()) {
+      this.kafkaStore.get().save(processed);
+    }
     return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
   }
 }

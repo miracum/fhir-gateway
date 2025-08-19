@@ -18,8 +18,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnExpression(
-    "${services.kafka.enabled} and !${services.kafka.consumeOnly} and !${services.kafka.produceOnly.enabled}")
+@ConditionalOnExpression("${services.kafka.enabled} and !${services.kafka.consumeOnly}")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   private final String generateTopicMatchExpression;
@@ -63,8 +62,8 @@ public class KafkaProcessor extends BaseKafkaProcessor {
           Objects.requireNonNull(message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC)).toString();
 
       var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
-      // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 for
-      // details on "spring.cloud.stream.sendto.destination"
+      // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 and
+      // https://docs.spring.io/spring-cloud-stream/reference/spring-cloud-stream/event-routing.html#routing-from-consumer
       outputTopic.ifPresent(
           s -> messageBuilder.setHeader("spring.cloud.stream.sendto.destination", s));
 

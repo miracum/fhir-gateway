@@ -13,8 +13,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression(
-    "${services.kafka.enabled} and !${services.kafka.consumeOnly} and ${services.kafka.produceOnly.enabled}")
+@ConditionalOnExpression("${services.kafka.enabled} and ${services.kafka.produceFromApi.enabled}")
 public class KafkaFhirResourceRepository implements FhirResourceRepository {
 
   private static final Logger log = LoggerFactory.getLogger(KafkaFhirResourceRepository.class);
@@ -25,7 +24,7 @@ public class KafkaFhirResourceRepository implements FhirResourceRepository {
 
   public KafkaFhirResourceRepository(
       @Qualifier("kafkaRetryTemplate") RetryTemplate retryTemplate,
-      @Value("${services.kafka.produceOnly.output-topic}") String topic,
+      @Value("${services.kafka.produceFromApi.output-topic}") String topic,
       KafkaTemplate<String, Bundle> kafkaTemplate) {
     this.retryTemplate = retryTemplate;
     this.topic = topic;

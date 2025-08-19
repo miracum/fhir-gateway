@@ -48,6 +48,7 @@ spring:
     stream:
       kafka:
         binder: # https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties
+          autoCreateTopics: false
           configuration:
             max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
             max.poll.records: ${MAX_POLL_RECORDS:500}
@@ -67,11 +68,10 @@ spring:
           consumer:
             concurrency: ${CONSUMER_CONCURRENCY:1}
             useNativeDecoding: true
-          destination: ${INPUT_TOPIC:fhir.all}
+          destination: ${INPUT_TOPICS:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          producer:
-            required-groups: []  # Prevents auto-provisioning of topics
+          destination: ${SERVICES_KAFKA_PRODUCEFROMAPI_OUTPUT_TOPIC:fhir.gateway.output}
   sql:
     init:
       schema-locations: classpath:/schema.sql
@@ -99,9 +99,9 @@ services:
   kafka:
     enabled: false
     consumeOnly: false
-    produceOnly:
+    produceFromApi:
       enabled: false
-      output-topic: "fhir.gateway.ouput"
+      output-topic: fhir.gateway.output
     generate-output-topic:
       match-expression: ""
       replace-with: ""
