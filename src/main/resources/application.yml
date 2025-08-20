@@ -97,7 +97,8 @@ services:
     enabled: true
   kafka:
     enabled: false
-    consumeOnly: false
+    consume-only:
+      enabled: false
     produceFromApi:
       enabled: false
       output-topic: fhir.gateway.output
