@@ -99,7 +99,7 @@ services:
     enabled: false
     consume-only:
       enabled: false
-    produceFromApi:
+    produce-from-api:
       enabled: false
       output-topic: fhir.gateway.output
     generate-output-topic:
