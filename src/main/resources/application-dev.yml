@@ -27,6 +27,8 @@ services:
     generate-output-topic:
       match-expression: "fhir\\."
       replace-with: "fhir.pseudonymized."
+    produce-from-api:
+      enabled: true
 
 spring:
   datasource:
@@ -40,4 +42,4 @@ spring:
     stream:
       bindings:
         process-in-0:
-          destination: ${INPUT_TOPIC:fhir.all,fhir.all-2}
+          destination: fhir.all,fhir.all-2

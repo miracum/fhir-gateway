@@ -11,9 +11,14 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.stereotype.Service;
 
-public class FhirPseudonymizer implements IPseudonymizer {
+@Service
+@ConditionalOnProperty("services.pseudonymizer.enabled")
+public class FhirPseudonymizer {
   private static final Logger LOGGER = LoggerFactory.getLogger(FhirPseudonymizer.class);
 
   private static final Timer DE_IDENTIFICATION_DURATION_TIMER =
@@ -29,13 +34,14 @@ public class FhirPseudonymizer implements IPseudonymizer {
   private final IGenericClient client;
 
   public FhirPseudonymizer(
-      FhirContext fhirContext, String pseudonymizerUrl, RetryTemplate retryTemplate) {
+      FhirContext fhirContext,
+      @Value("${services.pseudonymizer.url}") String pseudonymizerUrl,
+      RetryTemplate retryTemplate) {
     this.client = fhirContext.newRestfulGenericClient(pseudonymizerUrl);
     this.pseudonymizerUrl = pseudonymizerUrl;
     this.retryTemplate = retryTemplate;
   }
 
-  @Override
   public Bundle process(Bundle bundle) {
     LOGGER.debug(
         "Invoking pseudonymization service @ {}", kv("pseudonymizerUrl", pseudonymizerUrl));

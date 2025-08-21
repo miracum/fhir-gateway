@@ -3,13 +3,12 @@ package org.miracum.etl.fhirgateway.processors;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
+import java.util.Optional;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
-import org.miracum.etl.fhirgateway.stores.FhirResourceRepository;
 import org.miracum.etl.fhirgateway.stores.FhirServerResourceRepository;
 import org.miracum.etl.fhirgateway.stores.PostgresFhirResourceRepository;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,40 +21,20 @@ public class ResourcePipeline {
           .publishPercentileHistogram()
           .register(Metrics.globalRegistry);
 
-  private final FhirResourceRepository psqlStore;
-  private final FhirResourceRepository fhirStore;
-  private final LoincHarmonizer loincHarmonizer;
-  private final IPseudonymizer pseudonymizer;
-  private final boolean isLoincHarmonizationEnabled;
-  private final boolean isFhirServerEnabled;
-  private final boolean isPsqlEnabled;
+  private final Optional<FhirServerResourceRepository> fhirStore;
+  private final Optional<PostgresFhirResourceRepository> psqlStore;
+  private final Optional<FhirPseudonymizer> pseudonymizer;
+  private final Optional<LoincHarmonizer> loincHarmonizer;
 
   public ResourcePipeline(
-      PostgresFhirResourceRepository psqlStore,
-      FhirServerResourceRepository fhirStore,
-      LoincHarmonizer loincHarmonizer,
-      IPseudonymizer pseudonymizer,
-      @Value("${services.loinc.conversions.enabled}") boolean isLoincHarmonizationEnabled,
-      @Value("${services.fhirServer.enabled}") boolean isFhirServerEnabled,
-      @Value("${services.psql.enabled}") boolean isPsqlEnabled) {
-    this.psqlStore = psqlStore;
+      Optional<FhirServerResourceRepository> fhirStore,
+      Optional<PostgresFhirResourceRepository> psqlStore,
+      Optional<FhirPseudonymizer> pseudonymizer,
+      Optional<LoincHarmonizer> loincHarmonizer) {
     this.fhirStore = fhirStore;
-    this.loincHarmonizer = loincHarmonizer;
+    this.psqlStore = psqlStore;
     this.pseudonymizer = pseudonymizer;
-    this.isLoincHarmonizationEnabled = isLoincHarmonizationEnabled;
-    this.isFhirServerEnabled = isFhirServerEnabled;
-    this.isPsqlEnabled = isPsqlEnabled;
-  }
-
-  private void saveToStores(Bundle bundle) {
-
-    if (isFhirServerEnabled) {
-      this.fhirStore.save(bundle);
-    }
-
-    if (isPsqlEnabled) {
-      this.psqlStore.save(bundle);
-    }
+    this.loincHarmonizer = loincHarmonizer;
   }
 
   public Bundle process(Bundle bundle) {
@@ -63,30 +42,41 @@ public class ResourcePipeline {
 
     return PIPELINE_DURATION_TIMER.record(
         () -> {
-
+          Bundle processing = bundle;
           // pseudonymization should be the first task to ensure all other processors only
           // ever work with de-identified data.
-          var pseudonymized = pseudonymizer.process(bundle);
+          if (pseudonymizer.isPresent()) {
+            processing = pseudonymizer.get().process(processing);
+          }
 
           // this logic may be refactored and cleaned up by creating a genuine pipeline class with
-          // optionally
-          // added stages. A base for this would be an abstract ResourceProcessor
-          if (this.isLoincHarmonizationEnabled) {
-            for (var entry : pseudonymized.getEntry()) {
+          // optionally added stages. A base for this would be an abstract ResourceProcessor
+          if (loincHarmonizer.isPresent()) {
+            for (var entry : processing.getEntry()) {
               var resource = entry.getResource();
 
-              if (resource instanceof Observation) {
+              if (resource instanceof Observation observation) {
                 try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-                  var obs = loincHarmonizer.process((Observation) resource);
+                  var obs = loincHarmonizer.get().process(observation);
                   entry.setResource(obs);
                 }
               }
             }
           }
 
-          saveToStores(pseudonymized);
-
-          return pseudonymized;
+          saveToStores(processing);
+          return processing;
         });
+  }
+
+  private void saveToStores(Bundle bundle) {
+
+    if (fhirStore.isPresent()) {
+      this.fhirStore.get().save(bundle);
+    }
+
+    if (psqlStore.isPresent()) {
+      this.psqlStore.get().save(bundle);
+    }
   }
 }

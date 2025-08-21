@@ -70,8 +70,7 @@ spring:
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          producer:
-            required-groups: []  # Prevents auto-provisioning of topics
+          destination: ${SERVICES_KAFKA_PRODUCEFROMAPI_OUTPUT_TOPIC:fhir.gateway.output}
   sql:
     init:
       schema-locations: classpath:/schema.sql
@@ -98,7 +97,8 @@ services:
     enabled: true
   kafka:
     enabled: false
-    consumeOnly: false
+    consume-only:
+      enabled: false
     generate-output-topic:
       match-expression: ""
       replace-with: ""
@@ -107,6 +107,9 @@ services:
       key: ""
       # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
       algorithm: "HMAC_SHA_256"
+    produce-from-api:
+      enabled: false
+      output-topic: fhir.gateway.output
 
 fhir:
   systems:

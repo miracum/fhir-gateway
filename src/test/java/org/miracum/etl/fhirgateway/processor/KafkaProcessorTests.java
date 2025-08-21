@@ -18,7 +18,7 @@ public class KafkaProcessorTests {
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {"services.kafka.enabled=true", "services.kafka.consumeOnly=false"})
+      properties = {"services.kafka.enabled=true", "services.kafka.consume-only.enabled=false"})
   public class KafkaConsumerProducerTests {
 
     @Autowired private BaseKafkaProcessor processor;
@@ -33,7 +33,7 @@ public class KafkaProcessorTests {
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {"services.kafka.enabled=true", "services.kafka.consumeOnly=true"})
+      properties = {"services.kafka.enabled=true", "services.kafka.consume-only.enabled=true"})
   public class KafkaConsumerTests {
 
     @Autowired private BaseKafkaProcessor consumer;
