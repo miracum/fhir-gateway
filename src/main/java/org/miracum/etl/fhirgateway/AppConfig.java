@@ -173,7 +173,7 @@ public class AppConfig {
 
   @Bean
   @Qualifier("kafkaRetryTemplate")
-  @ConditionalOnProperty("services.kafka.produceFromApi.enabled")
+  @ConditionalOnProperty("services.kafka.produce-from-api.enabled")
   public RetryTemplate kafkaRetryTemplate() {
     var retryTemplate = new RetryTemplate();
 

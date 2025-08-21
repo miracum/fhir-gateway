@@ -27,7 +27,7 @@ services:
     generate-output-topic:
       match-expression: "fhir\\."
       replace-with: "fhir.pseudonymized."
-    produceFromApi:
+    produce-from-api:
       enabled: true
 
 spring:

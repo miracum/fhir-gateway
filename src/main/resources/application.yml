@@ -99,9 +99,6 @@ services:
     enabled: false
     consume-only:
       enabled: false
-    produce-from-api:
-      enabled: false
-      output-topic: fhir.gateway.output
     generate-output-topic:
       match-expression: ""
       replace-with: ""
@@ -110,6 +107,9 @@ services:
       key: ""
       # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
       algorithm: "HMAC_SHA_256"
+    produce-from-api:
+      enabled: false
+      output-topic: fhir.gateway.output
 
 fhir:
   systems:

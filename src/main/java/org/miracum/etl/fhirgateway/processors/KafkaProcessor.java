@@ -18,7 +18,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnExpression("${services.kafka.enabled} and !${services.kafka.consumeOnly}")
+@ConditionalOnExpression("${services.kafka.enabled} and !${services.kafka.consume-only.enabled}")
 public class KafkaProcessor extends BaseKafkaProcessor {
 
   private final String generateTopicMatchExpression;

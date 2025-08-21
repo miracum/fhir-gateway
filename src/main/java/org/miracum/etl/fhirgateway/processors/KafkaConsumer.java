@@ -9,7 +9,7 @@ import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression("${services.kafka.enabled} and ${services.kafka.consumeOnly}")
+@ConditionalOnExpression("${services.kafka.enabled} and ${services.kafka.consume-only.enabled}")
 public class KafkaConsumer extends BaseKafkaProcessor {
 
   @Autowired
