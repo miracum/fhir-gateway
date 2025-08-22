@@ -13,7 +13,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression("${services.kafka.enabled} and ${services.kafka.produce-from-api.enabled}")
+@ConditionalOnExpression("${services.kafka.produce-from-api.enabled}")
 public class KafkaFhirResourceRepository implements FhirResourceRepository {
 
   private static final Logger log = LoggerFactory.getLogger(KafkaFhirResourceRepository.class);

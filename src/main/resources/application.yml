@@ -70,7 +70,7 @@ spring:
           destination: ${INPUT_TOPIC:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          destination: ${SERVICES_KAFKA_PRODUCEFROMAPI_OUTPUT_TOPIC:fhir.gateway.output}
+          destination: ${SERVICES_KAFKA_PRODUCE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
   sql:
     init:
       schema-locations: classpath:/schema.sql
