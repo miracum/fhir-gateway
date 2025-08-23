@@ -24,7 +24,7 @@ public class KafkaFhirResourceRepository implements FhirResourceRepository {
 
   public KafkaFhirResourceRepository(
       @Qualifier("kafkaRetryTemplate") RetryTemplate retryTemplate,
-      @Value("${services.kafka.produceFromApi.output-topic}") String topic,
+      @Value("${services.kafka.produce-from-api.output-topic}") String topic,
       KafkaTemplate<String, Bundle> kafkaTemplate) {
     this.retryTemplate = retryTemplate;
     this.topic = topic;
