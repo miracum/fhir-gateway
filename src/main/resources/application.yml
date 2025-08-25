@@ -67,7 +67,7 @@ spring:
           consumer:
             concurrency: ${CONSUMER_CONCURRENCY:1}
             useNativeDecoding: true
-          destination: ${INPUT_TOPIC:fhir.all}
+          destination: ${INPUT_TOPICS:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
           destination: ${SERVICES_KAFKA_PRODUCE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
