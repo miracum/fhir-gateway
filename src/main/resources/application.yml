@@ -40,7 +40,7 @@ spring:
       key-store-location: file://${SSL_KEY_STORE_FILE:/opt/kafka-certs/user.p12}
       key-store-password: ${SSL_KEY_STORE_PASSWORD}
     producer:
-      compression-type: gzip
+      compression-type: ${COMPRESSION_TYPE:gzip}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
   cloud:
@@ -70,7 +70,7 @@ spring:
           destination: ${INPUT_TOPICS:fhir.all}
           group: ${GROUP_ID:fhir-gateway}
         process-out-0:
-          destination: ${SERVICES_KAFKA_PRODUCE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
+          destination: ${SERVICES_KAFKA_STORE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
   sql:
     init:
       schema-locations: classpath:/schema.sql
@@ -80,10 +80,10 @@ services:
   loinc:
     conversions:
       url: ""
-      enabled: true
+      enabled: false
       failOnError: false
   pseudonymizer:
-    enabled: true
+    enabled: false
     url: ""
   fhirServer:
     enabled: false
@@ -94,20 +94,21 @@ services:
         username: ""
         password: ""
   psql:
-    enabled: true
+    enabled: false
   kafka:
     enabled: false
-    consume-only:
+    processor:
       enabled: false
-    generate-output-topic:
-      match-expression: ""
-      replace-with: ""
-    crypto-hash-message-keys:
-      enabled: false
-      key: ""
-      # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
-      algorithm: "HMAC_SHA_256"
-    produce-from-api:
+      consume-only: false
+      generate-output-topic:
+        match-expression: ""
+        replace-with: ""
+      crypto-hash-message-keys:
+        enabled: false
+        key: ""
+        # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
+        algorithm: "HMAC_SHA_256"
+    store-from-api:
       enabled: false
       output-topic: fhir.gateway.output
 

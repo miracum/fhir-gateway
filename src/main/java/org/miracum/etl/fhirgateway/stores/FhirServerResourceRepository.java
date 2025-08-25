@@ -10,7 +10,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
@@ -18,7 +18,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty("services.fhirServer.enabled")
+@ConditionalOnExpression("${services.fhirServer.enabled}")
 public class FhirServerResourceRepository implements FhirResourceRepository {
 
   private static final Logger log = LoggerFactory.getLogger(FhirServerResourceRepository.class);
