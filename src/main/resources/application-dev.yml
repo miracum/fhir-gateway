@@ -10,7 +10,7 @@ services:
       enabled: false
       failOnError: false
   pseudonymizer:
-    enabled: true
+    enabled: false
     url: "http://localhost:5000/fhir"
   fhirServer:
     enabled: false
@@ -21,14 +21,16 @@ services:
         username: ""
         password: ""
   psql:
-    enabled: true
+    enabled: false
   kafka:
-    enabled: true
-    generate-output-topic:
-      match-expression: "fhir\\."
-      replace-with: "fhir.pseudonymized."
-    produce-from-api:
-      enabled: true
+    enabled: false
+    processor:
+      consume-only: false
+      generate-output-topic:
+        match-expression: "fhir\\."
+        replace-with: "fhir.pseudonymized."
+    store-from-api:
+      enabled: false
 
 spring:
   datasource:

@@ -17,13 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty("services.psql.enabled")
+@ConditionalOnExpression("${services.psql.enabled}")
 public class PostgresFhirResourceRepository implements FhirResourceRepository {
   private static final Timer INSERT_DURATION_TIMER =
       Timer.builder("fhirgateway.postgres.operation.duration")

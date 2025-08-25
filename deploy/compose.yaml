@@ -23,7 +23,7 @@ services:
       SERVICES_PSQL_ENABLED: ${SERVICES_PSQL_ENABLED:-true}
       SERVICES_KAFKA_ENABLED: ${SERVICES_KAFKA_ENABLED:-false}
     ports:
-      - 127.0.0.1:8080:8080
+      - "127.0.0.1:8080:8080"
     depends_on:
       wait-for-db:
         condition: service_completed_successfully

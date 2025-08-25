@@ -12,12 +12,12 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnProperty("services.pseudonymizer.enabled")
+@ConditionalOnExpression("${services.pseudonymizer.enabled}")
 public class FhirPseudonymizer {
   private static final Logger LOGGER = LoggerFactory.getLogger(FhirPseudonymizer.class);
 
