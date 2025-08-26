@@ -46,6 +46,7 @@ dependencies {
     runtimeOnly 'com.h2database:h2:2.3.232'
     runtimeOnly 'org.postgresql:postgresql:42.7.7'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     errorprone('com.google.errorprone:error_prone_core:2.41.0')
