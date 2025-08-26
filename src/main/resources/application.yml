@@ -30,7 +30,7 @@ spring:
   application:
     name: "fhir-gateway"
   kafka:
-    bootstrapServers: ${BOOTSTRAP_SERVERS:localhost:9094}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
     security.protocol: ${SECURITY_PROTOCOL:PLAINTEXT}
     ssl:
       trust-store-type: PKCS12
@@ -40,37 +40,40 @@ spring:
       key-store-location: file://${SSL_KEY_STORE_FILE:/opt/kafka-certs/user.p12}
       key-store-password: ${SSL_KEY_STORE_PASSWORD}
     producer:
-      compression-type: gzip
+      compression-type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
   cloud:
     function.definition: process
     stream:
       kafka:
-        binder: # https://docs.spring.io/spring-cloud-stream-binder-kafka/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#_kafka_binder_properties
-          configuration:
-            max.poll.interval.ms: ${MAX_POLL_INTERVAL_MS:300000}
-            max.poll.records: ${MAX_POLL_RECORDS:500}
         default:
           consumer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
             enableDlq: true
             configuration:
               key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
               value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+              fetch.min.bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-min-bytes
+              fetch.max.wait.ms: ${KAFKA_CONSUMER_FETCH_MAX_WAIT_MS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-max-wait-ms
+              max.poll.interval.ms: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS:300000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-interval-ms
+              max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-records
+              request.timeout.ms: ${KAFKA_CONSUMER_REQUEST_TIMEOUT_MS:30000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#request-timeout-ms
           producer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-producer-properties
-            compression.type: ${COMPRESSION_TYPE:gzip}
             configuration:
-              max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576}
+              batch.size: ${KAFKA_PRODUCER_BATCH_SIZE:16384} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#batch-size
+              compression.type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#compression-type
+              linger.ms: ${KAFKA_PRODUCER_LINGER_MS:5} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#linger-ms
+              max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#max-request-size
             useNativeEncoding: true
       bindings: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties
         process-in-0:
           consumer:
-            concurrency: ${CONSUMER_CONCURRENCY:1}
+            concurrency: ${KAFKA_CONSUMER_CONCURRENCY:1}
             useNativeDecoding: true
-          destination: ${INPUT_TOPIC:fhir.all}
-          group: ${GROUP_ID:fhir-gateway}
+          destination: ${KAFKA_INPUT_TOPICS:fhir.all}
+          group: ${KAFKA_CONSUMER_GROUP_ID:fhir-gateway}
         process-out-0:
-          destination: ${SERVICES_KAFKA_PRODUCE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
+          destination: ${SERVICES_KAFKA_STORE_FROM_API_OUTPUT_TOPIC:fhir.gateway.output}
   sql:
     init:
       schema-locations: classpath:/schema.sql
@@ -80,10 +83,10 @@ services:
   loinc:
     conversions:
       url: ""
-      enabled: true
+      enabled: false
       failOnError: false
   pseudonymizer:
-    enabled: true
+    enabled: false
     url: ""
   fhirServer:
     enabled: false
@@ -94,20 +97,21 @@ services:
         username: ""
         password: ""
   psql:
-    enabled: true
+    enabled: false
   kafka:
     enabled: false
-    consume-only:
+    processor:
       enabled: false
-    generate-output-topic:
-      match-expression: ""
-      replace-with: ""
-    crypto-hash-message-keys:
-      enabled: false
-      key: ""
-      # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
-      algorithm: "HMAC_SHA_256"
-    produce-from-api:
+      consume-only: false
+      generate-output-topic:
+        match-expression: ""
+        replace-with: ""
+      crypto-hash-message-keys:
+        enabled: false
+        key: ""
+        # see <https://commons.apache.org/proper/commons-codec/apidocs/org/apache/commons/codec/digest/HmacAlgorithms.html>
+        algorithm: "HMAC_SHA_256"
+    store-from-api:
       enabled: false
       output-topic: fhir.gateway.output
 

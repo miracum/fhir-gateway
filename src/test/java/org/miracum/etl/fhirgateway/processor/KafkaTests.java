@@ -9,17 +9,24 @@ import org.miracum.etl.fhirgateway.processors.KafkaConsumer;
 import org.miracum.etl.fhirgateway.processors.KafkaProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-public class KafkaProcessorTests {
+public class KafkaTests {
 
   @Nested
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {"services.kafka.enabled=true", "services.kafka.consume-only.enabled=false"})
-  public class KafkaConsumerProducerTests {
+      properties = {
+        "services.kafka.enabled=true",
+        "services.kafka.processor.enabled=true",
+        "services.kafka.processor.consume-only=false",
+        "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"
+      })
+  @EmbeddedKafka(brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"})
+  public class KafkaProcessorTests {
 
     @Autowired private BaseKafkaProcessor processor;
 
@@ -33,14 +40,36 @@ public class KafkaProcessorTests {
   @SpringBootTest
   @ActiveProfiles("test")
   @TestPropertySource(
-      properties = {"services.kafka.enabled=true", "services.kafka.consume-only.enabled=true"})
-  public class KafkaConsumerTests {
+      properties = {
+        "services.kafka.enabled=true",
+        "services.kafka.processor.enabled=true",
+        "services.kafka.processor.consume-only=true",
+        "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"
+      })
+  @EmbeddedKafka(brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"})
+  public class KafkaProcessorConsumeOnlyTests {
 
     @Autowired private BaseKafkaProcessor consumer;
 
     @Test
     public void consumerShouldBeEnabled() {
       assertThat(consumer).isInstanceOf(KafkaConsumer.class);
+    }
+  }
+
+  @Nested
+  @SpringBootTest
+  @ActiveProfiles("test")
+  @TestPropertySource(
+      properties = {"services.kafka.enabled=true", "services.kafka.processor.enabled=false"})
+  public class KafkaProcessorDisabledTests {
+
+    @Autowired(required = false)
+    private BaseKafkaProcessor processor;
+
+    @Test
+    public void processorIsDisabled() {
+      assertThat(processor).isNull();
     }
   }
 

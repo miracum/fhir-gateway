@@ -9,11 +9,9 @@ import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 
-@ConditionalOnProperty(value = "services.kafka.enabled", matchIfMissing = true)
 public abstract class BaseKafkaProcessor {
 
   protected final Logger LOG = LoggerFactory.getLogger(this.getClass());
