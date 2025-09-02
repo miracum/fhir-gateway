@@ -14,7 +14,7 @@ WORKDIR /test
 COPY --from=build /home/gradle/project/build/reports/ .
 ENTRYPOINT [ "true" ]
 
-FROM gcr.io/distroless/java21-debian12:nonroot@sha256:d43d0ce3ea52041b8f0fbf5e5fe3519ec331c8271be37d815a10b8a47c07721d
+FROM gcr.io/distroless/java21-debian12:nonroot@sha256:fb0d294a2ba6edffc3776a87dd2dce9771801a3fb0aa7319d51300239dd51aeb
 WORKDIR /opt/fhir-gateway
 
 COPY --from=build /home/gradle/project/dependencies/ ./
