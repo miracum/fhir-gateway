@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.5'
+    id 'org.springframework.boot' version '3.5.6'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
@@ -31,8 +31,8 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
-    implementation 'io.micrometer:micrometer-core:1.15.3'
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.3'
+    implementation 'io.micrometer:micrometer-core:1.15.4'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.4'
     implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
     implementation 'org.miracum:kafka-fhir-serializer:2.0.6'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -43,14 +43,14 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.h2database:h2:2.3.232'
-    runtimeOnly 'org.postgresql:postgresql:42.7.7'
+    runtimeOnly 'com.h2database:h2:2.4.240'
+    runtimeOnly 'org.postgresql:postgresql:42.7.8'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone('com.google.errorprone:error_prone_core:2.41.0')
-    errorprone('com.uber.nullaway:nullaway:0.12.9')
+    errorprone('com.google.errorprone:error_prone_core:2.42.0')
+    errorprone('com.uber.nullaway:nullaway:0.12.10')
 }
 
 dependencyManagement {
