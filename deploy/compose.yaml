@@ -68,7 +68,7 @@ services:
       POSTGRESQL_DATABASE: fhir_gateway
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.16.0@sha256:ad89b6d2188d1c5af4c7a1e668637d1d0a6fb102a4964fddfe41b44842b2cca7
+    image: ghcr.io/miracum/loinc-conversion:v1.16.1@sha256:5a1de7fc3737743c57d285665d1921a2f24c7643e79f56b3af9b0fcc43bc94a1
     ipc: none
     cap_drop:
       - ALL
