@@ -54,7 +54,7 @@ jobs:
           docker info -f '{{ .DriverStatus }}'
 
       - name: "Download test image"
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ${{ needs.build.outputs.image-slug }}-test
           path: /tmp
@@ -112,7 +112,7 @@ jobs:
           persist-credentials: false
 
       - name: "Download build image"
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         if: ${{ github.event_name == 'pull_request' }}
         with:
           name: ${{ needs.build.outputs.image-slug }}
