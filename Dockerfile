@@ -1,11 +1,12 @@
-FROM docker.io/library/gradle:9.1.0-jdk21@sha256:db12d4789367d4676ef3d8aa672685e0e451705776b53f7d81c953fba3b1d55b AS build
+FROM docker.io/library/gradle:9.2.0-jdk25@sha256:060198c6af23cc0263666ebbefd63b6073aad51a65b87ee94e21ac11a0ace55c AS build
+SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 WORKDIR /home/gradle/project
 
 COPY --chown=gradle:gradle . .
 
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches <<EOF
-gradle clean build --info --no-daemon
-gradle jacocoTestReport --no-daemon
+gradle clean build --info
+gradle jacocoTestReport
 java -Djarmode=layertools -jar build/libs/fhirgateway-*.jar extract
 EOF
 
@@ -14,14 +15,14 @@ WORKDIR /test
 COPY --from=build /home/gradle/project/build/reports/ .
 ENTRYPOINT [ "true" ]
 
-FROM gcr.io/distroless/java21-debian12:nonroot@sha256:dfea876744f635b5fea3ea53099410cfc5d17aeea7b62887310512d78094f6f3
+FROM gcr.io/distroless/java25-debian13:nonroot@sha256:1bea63434771d1a97f5bb8c37e5dfa3b06d7cfa188a1d271825927a19a02efdd
 WORKDIR /opt/fhir-gateway
+USER 65532:65532
+ENV SPRING_PROFILES_ACTIVE="prod"
 
 COPY --from=build /home/gradle/project/dependencies/ ./
 COPY --from=build /home/gradle/project/spring-boot-loader/ ./
 COPY --from=build /home/gradle/project/snapshot-dependencies/ ./
 COPY --from=build /home/gradle/project/application/ ./
 
-USER 65532:65532
-ENV SPRING_PROFILES_ACTIVE="prod"
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
