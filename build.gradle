@@ -5,16 +5,15 @@ plugins {
     id 'jacoco'
     id 'com.diffplug.spotless' version '8.0.0'
     id 'net.ltgt.errorprone' version '4.3.0'
-    id 'org.sonarqube' version '6.3.1.5724'
 }
 
 group = 'org.miracum.etl'
 version = '4.0.3'
 
 java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 repositories {
@@ -49,8 +48,8 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone('com.google.errorprone:error_prone_core:2.43.0')
-    errorprone('com.uber.nullaway:nullaway:0.12.10')
+    errorprone 'com.google.errorprone:error_prone_core:2.44.0'
+    errorprone 'com.uber.nullaway:nullaway:0.12.12'
 }
 
 dependencyManagement {
@@ -60,19 +59,15 @@ dependencyManagement {
 }
 
 tasks.named('test') {
-  useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 jacocoTestReport {
-	reports {
-		csv.required = true
-		html.required = true
-		xml.required = true
-	}
-}
-
-jar {
-    enabled = false
+    reports {
+        csv.required = true
+        html.required = true
+        xml.required = true
+    }
 }
 
 spotless {
