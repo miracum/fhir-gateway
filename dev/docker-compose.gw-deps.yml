@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.16.1@sha256:5a1de7fc3737743c57d285665d1921a2f24c7643e79f56b3af9b0fcc43bc94a1
+    image: ghcr.io/miracum/loinc-conversion:v1.16.5@sha256:b8bed1be40e195987ab9b22fdd404375429c59e56615c1fc5ac015253f397458
     ipc: none
     cap_drop:
       - ALL
@@ -91,7 +91,7 @@ services:
       POSTGRES_DB: fhir
 
   vfps-init-patient:
-    image: docker.io/curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+    image: docker.io/curlimages/curl:8.17.0@sha256:935d9100e9ba842cdb060de42472c7ca90cfe9a7c96e4dacb55e79e560b3ff40
     ipc: none
     cap_drop:
       - ALL
@@ -115,7 +115,7 @@ services:
         condition: service_started
 
   vfps-init-fall:
-    image: docker.io/curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+    image: docker.io/curlimages/curl:8.17.0@sha256:935d9100e9ba842cdb060de42472c7ca90cfe9a7c96e4dacb55e79e560b3ff40
     ipc: none
     cap_drop:
       - ALL
