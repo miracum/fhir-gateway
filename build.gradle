@@ -70,6 +70,10 @@ jacocoTestReport {
     }
 }
 
+jar {
+    enabled = false
+}
+
 spotless {
     java {
         importOrder()
