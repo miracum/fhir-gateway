@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.16.5@sha256:b8bed1be40e195987ab9b22fdd404375429c59e56615c1fc5ac015253f397458
+    image: ghcr.io/miracum/loinc-conversion:v1.16.8@sha256:8ad188f30460a3cf9458d80b64ebd5643cc28970382c7e3fc4b37cd8bc1fd1c7
     ipc: none
     cap_drop:
       - ALL
@@ -29,7 +29,7 @@ services:
       - "no-new-privileges:true"
 
   vfps-db:
-    image: docker.io/library/postgres:18.0@sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c
+    image: docker.io/library/postgres:18.1@sha256:5ec39c188013123927f30a006987c6b0e20f3ef2b54b140dfa96dac6844d883f
     restart: unless-stopped
     ipc: private
     security_opt:
@@ -80,7 +80,7 @@ services:
     privileged: false
 
   fhir-db:
-    image: docker.io/library/postgres:18.0@sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c
+    image: docker.io/library/postgres:18.1@sha256:5ec39c188013123927f30a006987c6b0e20f3ef2b54b140dfa96dac6844d883f
     ipc: private
     security_opt:
       - "no-new-privileges:true"
