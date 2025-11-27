@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.7'
+    id 'org.springframework.boot' version '3.5.8'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
@@ -21,8 +21,8 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', '2025.0.0')
-    set('hapiVersion', '8.4.0')
+    set('springCloudVersion', '2025.1.0')
+    set('hapiVersion', '8.6.0')
 }
 
 dependencies {
@@ -33,7 +33,7 @@ dependencies {
     implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
     implementation 'io.micrometer:micrometer-core:1.16.0'
     implementation 'io.micrometer:micrometer-registry-prometheus:1.16.0'
-    implementation 'org.miracum:kafka-fhir-serializer:2.0.6'
+    implementation 'org.miracum:kafka-fhir-serializer:2.0.7'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -48,7 +48,7 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone 'com.google.errorprone:error_prone_core:2.44.0'
+    errorprone 'com.google.errorprone:error_prone_core:2.45.0'
     errorprone 'com.uber.nullaway:nullaway:0.12.12'
 }
 
