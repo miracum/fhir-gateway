@@ -15,7 +15,7 @@ WORKDIR /test
 COPY --from=build /home/gradle/project/build/reports/ .
 ENTRYPOINT [ "true" ]
 
-FROM gcr.io/distroless/java25-debian13:nonroot@sha256:fa4e0691d7d15665a8503c931372a6499383a97b57f0b080bc7fcd0013af3204
+FROM gcr.io/distroless/java25-debian13:nonroot@sha256:fa9bfc14924fa3b43d43944d93887155d19843b3aa45610b659496f928fe2a9c
 WORKDIR /opt/fhir-gateway
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
