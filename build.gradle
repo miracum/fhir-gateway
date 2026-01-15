@@ -4,7 +4,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'com.diffplug.spotless' version '8.1.0'
-    id 'net.ltgt.errorprone' version '4.3.0'
+    id 'net.ltgt.errorprone' version '4.4.0'
 }
 
 group = 'org.miracum.etl'
@@ -22,7 +22,7 @@ repositories {
 
 ext {
     set('springCloudVersion', '2025.1.0')
-    set('hapiVersion', '8.4.0')
+    set('hapiVersion', '8.6.1')
 }
 
 dependencies {
@@ -31,9 +31,9 @@ dependencies {
     implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiVersion}"
     implementation "ca.uhn.hapi.fhir:hapi-fhir-client-okhttp:${hapiVersion}"
     implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
-    implementation 'io.micrometer:micrometer-core:1.16.0'
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.16.0'
-    implementation 'org.miracum:kafka-fhir-serializer:2.0.6'
+    implementation 'io.micrometer:micrometer-core:1.16.2'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.16.2'
+    implementation 'org.miracum:kafka-fhir-serializer:2.0.7'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
@@ -48,8 +48,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    errorprone 'com.google.errorprone:error_prone_core:2.44.0'
-    errorprone 'com.uber.nullaway:nullaway:0.12.12'
+    errorprone 'com.google.errorprone:error_prone_core:2.46.0'
+    errorprone 'com.uber.nullaway:nullaway:0.12.15'
 }
 
 dependencyManagement {
