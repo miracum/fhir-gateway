@@ -1,6 +1,6 @@
 services:
   fhir-gateway:
-    image: ghcr.io/miracum/fhir-gateway:v4.0.8
+    image: ghcr.io/miracum/fhir-gateway:v4.0.9
     restart: on-failure
     cap_drop:
       - ALL
