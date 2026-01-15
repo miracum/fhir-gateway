@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '3.5.7'
+    id 'org.springframework.boot' version '4.0.1'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
@@ -21,7 +21,7 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', '2025.0.0')
+    set('springCloudVersion', '2025.1.0')
     set('hapiVersion', '8.4.0')
 }
 
@@ -36,16 +36,16 @@ dependencies {
     implementation 'org.miracum:kafka-fhir-serializer:2.0.6'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.cloud:spring-cloud-stream'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.retry:spring-retry'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2:2.4.240'
     runtimeOnly 'org.postgresql:postgresql:42.7.8'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     errorprone 'com.google.errorprone:error_prone_core:2.44.0'
