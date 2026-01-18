@@ -1,4 +1,4 @@
-FROM docker.io/library/gradle:9.2.1-jdk25@sha256:3dec978fd14b3dc1083dfbeedfab9dd9da3d23bbb1a5d1e8b618b88e1ea3d35d AS build
+FROM docker.io/library/gradle:9.2.1-jdk25@sha256:2212a01f25c1e5554be919dabfe1122821d814ac2cdf0c21b4a2e9bfdb08f3e9 AS build
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 WORKDIR /home/gradle/project
 
@@ -15,7 +15,7 @@ WORKDIR /test
 COPY --from=build /home/gradle/project/build/reports/ .
 ENTRYPOINT [ "true" ]
 
-FROM gcr.io/distroless/java25-debian13:nonroot@sha256:fa9bfc14924fa3b43d43944d93887155d19843b3aa45610b659496f928fe2a9c
+FROM gcr.io/distroless/java25-debian13:nonroot@sha256:70612f50341c5de9d3600493b18d074f2b0daad4f5b6003047fe9a5b4e3ece65
 WORKDIR /opt/fhir-gateway
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
