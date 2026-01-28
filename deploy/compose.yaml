@@ -64,9 +64,8 @@ services:
     privileged: false
     environment:
       # kics-scan ignore-line
-      POSTGRES_PASSWORD: hive
-      POSTGRES_USER: hive
-      POSTGRES_DB: metastore
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fhir
 
   loinc-converter:
     image: ghcr.io/miracum/loinc-conversion:v1.16.11@sha256:efcac05f0d04de566407b26cf58cc51e49ab410234e1d8e8220617df8cc16c0b
