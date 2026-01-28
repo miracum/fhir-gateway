@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '4.0.1'
+    id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
@@ -21,7 +21,7 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', '2025.1.0')
+    set('springCloudVersion', '2025.0.1')
     set('hapiVersion', '8.6.1')
 }
 
@@ -36,7 +36,7 @@ dependencies {
     implementation 'org.miracum:kafka-fhir-serializer:2.0.7'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-stream'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     implementation 'org.springframework.kafka:spring-kafka'
