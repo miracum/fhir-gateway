@@ -23,8 +23,9 @@ services:
   psql:
     enabled: false
   kafka:
-    enabled: false
+    enabled: true
     processor:
+      enabled: true
       consume-only: false
       generate-output-topic:
         match-expression: "fhir\\."
