@@ -33,7 +33,7 @@ services:
         condition: service_started
 
   wait-for-db:
-    image: docker.io/bitnami/postgresql:17.6.0@sha256:926356130b77d5742d8ce605b258d35db9b62f2f8fd1601f9dbaef0c8a710a8d
+    image: docker.io/library/postgres:18.1@sha256:bfe50b2b0ddd9b55eadedd066fe24c7c6fe06626185b73358c480ea37868024d
     ipc: none
     security_opt:
       - "no-new-privileges:true"
@@ -57,15 +57,15 @@ services:
         condition: service_started
 
   fhir-gateway-db:
-    image: docker.io/bitnami/postgresql:17.6.0@sha256:926356130b77d5742d8ce605b258d35db9b62f2f8fd1601f9dbaef0c8a710a8d
+    image: docker.io/library/postgres:18.1@sha256:bfe50b2b0ddd9b55eadedd066fe24c7c6fe06626185b73358c480ea37868024d
     ipc: private
     security_opt:
       - "no-new-privileges:true"
     privileged: false
     environment:
       # kics-scan ignore-line
-      POSTGRESQL_PASSWORD: postgres
-      POSTGRESQL_DATABASE: fhir_gateway
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fhir
 
   loinc-converter:
     image: ghcr.io/miracum/loinc-conversion:v1.16.11@sha256:efcac05f0d04de566407b26cf58cc51e49ab410234e1d8e8220617df8cc16c0b
