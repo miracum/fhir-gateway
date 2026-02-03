@@ -4,7 +4,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'com.diffplug.spotless' version '8.1.0'
-    id 'net.ltgt.errorprone' version '4.4.0'
+    id 'net.ltgt.errorprone' version '5.0.0'
 }
 
 group = 'org.miracum.etl'
