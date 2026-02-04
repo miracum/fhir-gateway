@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'org.miracum.etl'
-version = '4.0.14'
+version = '5.0.0'
 
 java {
     toolchain {
