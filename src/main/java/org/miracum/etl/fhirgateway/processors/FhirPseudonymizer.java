@@ -3,6 +3,7 @@ package org.miracum.etl.fhirgateway.processors;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.apache.GZipContentInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
@@ -36,8 +37,13 @@ public class FhirPseudonymizer {
   public FhirPseudonymizer(
       FhirContext fhirContext,
       @Value("${services.pseudonymizer.url}") String pseudonymizerUrl,
+      @Value("${services.pseudonymizer.request-compression.enabled}")
+          boolean requestCompressionEnabled,
       RetryTemplate retryTemplate) {
     this.client = fhirContext.newRestfulGenericClient(pseudonymizerUrl);
+    if (requestCompressionEnabled) {
+      this.client.registerInterceptor(new GZipContentInterceptor());
+    }
     this.pseudonymizerUrl = pseudonymizerUrl;
     this.retryTemplate = retryTemplate;
   }

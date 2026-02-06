@@ -88,6 +88,8 @@ services:
   pseudonymizer:
     enabled: false
     url: ""
+    request-compression:
+      enabled: false
   fhirServer:
     enabled: false
     url: ""
