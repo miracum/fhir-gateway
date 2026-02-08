@@ -1,6 +1,6 @@
 services:
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.23.0@sha256:d3476eb7e53ed0fbfc1d139ee172e2cd7cd84b96330512779b00d497ff7ce3fb
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.24.0@sha256:14e66967493d84b43c4569e3367f410d5ddd3614974538be2b0e8912372d7cb2
     ipc: none
     cap_drop:
       - ALL
@@ -19,7 +19,7 @@ services:
       - vfps
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.16.11@sha256:efcac05f0d04de566407b26cf58cc51e49ab410234e1d8e8220617df8cc16c0b
+    image: ghcr.io/miracum/loinc-conversion:v1.16.14@sha256:0ff54f5a4e5b3d683b0c7f6eeecd008310a6acd20fa4b68dd3c0a7eb301ddc3f
     ipc: none
     cap_drop:
       - ALL
