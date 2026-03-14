@@ -64,12 +64,10 @@ spring:
               compression.type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#compression-type
               linger.ms: ${KAFKA_PRODUCER_LINGER_MS:5} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#linger-ms
               max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#max-request-size
-            useNativeEncoding: true
       bindings: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties
         process-in-0:
           consumer:
             concurrency: ${KAFKA_CONSUMER_CONCURRENCY:1}
-            useNativeDecoding: true
           destination: ${KAFKA_INPUT_TOPICS:fhir.all}
           group: ${KAFKA_CONSUMER_GROUP_ID:fhir-gateway}
         process-out-0:
