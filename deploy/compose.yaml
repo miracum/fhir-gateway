@@ -1,6 +1,6 @@
 services:
   fhir-gateway:
-    image: ghcr.io/miracum/fhir-gateway:v5.1.0
+    image: ghcr.io/miracum/fhir-gateway:v5.1.2
     restart: on-failure
     cap_drop:
       - ALL
@@ -33,7 +33,7 @@ services:
         condition: service_started
 
   wait-for-db:
-    image: docker.io/library/postgres:18.1@sha256:3bb77a07b9ce8b8de0fe6d9b063adf20b9cca1068a1bcdc054cac71a69ce0ca6
+    image: docker.io/library/postgres:18.1@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
     ipc: none
     security_opt:
       - "no-new-privileges:true"
@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   fhir-gateway-db:
-    image: docker.io/library/postgres:18.1@sha256:3bb77a07b9ce8b8de0fe6d9b063adf20b9cca1068a1bcdc054cac71a69ce0ca6
+    image: docker.io/library/postgres:18.1@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
     ipc: private
     security_opt:
       - "no-new-privileges:true"
