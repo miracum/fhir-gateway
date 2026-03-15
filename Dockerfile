@@ -2,7 +2,7 @@ FROM docker.io/library/gradle:9.2.1-jdk25@sha256:2212a01f25c1e5554be919dabfe1122
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 WORKDIR /home/gradle/project
 
-COPY --chown=gradle:gradle . .
+COPY . .
 
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches <<EOF
 gradle clean build --info
