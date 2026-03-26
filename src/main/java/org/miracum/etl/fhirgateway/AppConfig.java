@@ -12,12 +12,21 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.BufferedSink;
+import okio.GzipSink;
+import okio.Okio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,7 +61,8 @@ public class AppConfig {
   @Bean
   public FhirContext fhirContext(
       @Value("${features.use-load-balancer-optimized-connection-pool}")
-          boolean useLoadBalancerConnectionPool) {
+          boolean useLoadBalancerConnectionPool,
+      @Value("${features.use-fhir-client-request-compression}") boolean useRequestCompression) {
     var fhirContext = FhirContext.forR4();
 
     var connectionPool = new ConnectionPool();
@@ -62,15 +72,15 @@ public class AppConfig {
               MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION_MILLISECONDS, TimeUnit.MILLISECONDS);
     }
 
-    var okclient =
+    var clientBuilder =
         new OkHttpClient.Builder()
             .connectionPool(connectionPool)
             .eventListener(
                 OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build())
-            .build();
+            .addInterceptor(new GzipRequestInterceptor());
 
     var okHttpFactory = new OkHttpRestfulClientFactory(fhirContext);
-    okHttpFactory.setHttpClient(okclient);
+    okHttpFactory.setHttpClient(clientBuilder.build());
 
     fhirContext.setRestfulClientFactory(okHttpFactory);
     return fhirContext;
@@ -202,5 +212,46 @@ public class AppConfig {
         });
 
     return retryTemplate;
+  }
+
+  // <https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/RequestBodyCompression.java>
+  static class GzipRequestInterceptor implements Interceptor {
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+      Request originalRequest = chain.request();
+      if (originalRequest.body() == null || originalRequest.header("Content-Encoding") != null) {
+        return chain.proceed(originalRequest);
+      }
+
+      Request compressedRequest =
+          originalRequest
+              .newBuilder()
+              .header("Content-Encoding", "gzip")
+              .method(originalRequest.method(), gzip(originalRequest.body()))
+              .build();
+      return chain.proceed(compressedRequest);
+    }
+
+    // <https://github.com/square/okhttp/commit/71a759f77e7dc31939954b5eeb70065f29ee59ad>
+    private RequestBody gzip(final RequestBody body) {
+      return new RequestBody() {
+        @Override
+        public MediaType contentType() {
+          return body.contentType();
+        }
+
+        @Override
+        public long contentLength() {
+          return -1; // We don't know the compressed length in advance!
+        }
+
+        @Override
+        public void writeTo(BufferedSink sink) throws IOException {
+          BufferedSink gzipSink = Okio.buffer(new GzipSink(sink));
+          body.writeTo(gzipSink);
+          gzipSink.close();
+        }
+      };
+    }
   }
 }
