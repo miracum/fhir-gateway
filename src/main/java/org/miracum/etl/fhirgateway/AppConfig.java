@@ -76,8 +76,11 @@ public class AppConfig {
         new OkHttpClient.Builder()
             .connectionPool(connectionPool)
             .eventListener(
-                OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build())
-            .addInterceptor(new GzipRequestInterceptor());
+                OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build());
+
+    if (useRequestCompression) {
+      clientBuilder.addInterceptor(new GzipRequestInterceptor());
+    }
 
     var okHttpFactory = new OkHttpRestfulClientFactory(fhirContext);
     okHttpFactory.setHttpClient(clientBuilder.build());
