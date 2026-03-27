@@ -10,7 +10,7 @@ services:
       enabled: false
       failOnError: false
   pseudonymizer:
-    enabled: false
+    enabled: true
     url: "http://localhost:5000/fhir"
   fhirServer:
     enabled: false
@@ -32,6 +32,9 @@ services:
         replace-with: "fhir.pseudonymized."
     store-from-api:
       enabled: false
+
+features:
+  use-fhir-client-request-compression: true
 
 spring:
   datasource:
