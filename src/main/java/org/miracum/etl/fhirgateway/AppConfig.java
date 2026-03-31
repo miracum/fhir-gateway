@@ -15,6 +15,9 @@ import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
@@ -256,5 +259,20 @@ public class AppConfig {
         }
       };
     }
+  }
+
+  @Bean
+  @Qualifier("pseudonymizerExecutor")
+  public Executor pseudonymizerExecutor(
+      @Value("${services.pseudonymizer.executor.core-threads:10}") int coreThreads,
+      @Value("${services.pseudonymizer.executor.max-threads:50}") int maxThreads,
+      @Value("${services.pseudonymizer.executor.queue-capacity:100}") int queueCapacity) {
+    return new ThreadPoolExecutor(
+        coreThreads,
+        maxThreads,
+        60, // keep-alive time
+        TimeUnit.SECONDS,
+        new SynchronousQueue<>(), // Reject policy: caller runs if queue full
+        new ThreadPoolExecutor.CallerRunsPolicy());
   }
 }

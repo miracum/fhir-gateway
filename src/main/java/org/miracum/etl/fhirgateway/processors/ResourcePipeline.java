@@ -4,6 +4,8 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirServerResourceRepository;
@@ -40,33 +42,53 @@ public class ResourcePipeline {
   public Bundle process(Bundle bundle) {
     MDC.put("bundleId", bundle.getId());
 
-    return PIPELINE_DURATION_TIMER.record(
-        () -> {
-          Bundle processing = bundle;
-          // pseudonymization should be the first task to ensure all other processors only
-          // ever work with de-identified data.
-          if (pseudonymizer.isPresent()) {
-            processing = pseudonymizer.get().process(processing);
-          }
+    try {
+      return processAsync(bundle).get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Pipeline processing interrupted", e);
+    } catch (ExecutionException e) {
+      throw new RuntimeException("Pipeline processing failed", e.getCause());
+    }
+  }
 
-          // this logic may be refactored and cleaned up by creating a genuine pipeline class with
-          // optionally added stages. A base for this would be an abstract ResourceProcessor
-          if (loincHarmonizer.isPresent()) {
-            for (var entry : processing.getEntry()) {
-              var resource = entry.getResource();
+  public CompletableFuture<Bundle> processAsync(Bundle bundle) {
+    MDC.put("bundleId", bundle.getId());
 
-              if (resource instanceof Observation observation) {
-                try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-                  var obs = loincHarmonizer.get().process(observation);
-                  entry.setResource(obs);
+    var startTime = System.nanoTime();
+
+    // Step 1: Pseudonymize (async)
+    CompletableFuture<Bundle> pseudonymizationStep =
+        pseudonymizer.isPresent()
+            ? pseudonymizer.get().processAsync(bundle)
+            : CompletableFuture.completedFuture(bundle);
+
+    // Step 2: LOINC harmonization and storage (after pseudonymization)
+    return pseudonymizationStep
+        .thenApplyAsync(
+            processing -> {
+              // Apply LOINC harmonization
+              if (loincHarmonizer.isPresent()) {
+                for (var entry : processing.getEntry()) {
+                  var resource = entry.getResource();
+
+                  if (resource instanceof Observation observation) {
+                    try (var _ = MDC.putCloseable("resourceId", resource.getId())) {
+                      var obs = loincHarmonizer.get().process(observation);
+                      entry.setResource(obs);
+                    }
+                  }
                 }
               }
-            }
-          }
-
-          saveToStores(processing);
-          return processing;
-        });
+              return processing;
+            })
+        .thenApplyAsync(
+            processing -> {
+              saveToStores(processing);
+              // Record the total pipeline duration
+              PIPELINE_DURATION_TIMER.record(Duration.ofNanos(System.nanoTime() - startTime));
+              return processing;
+            });
   }
 
   private void saveToStores(Bundle bundle) {

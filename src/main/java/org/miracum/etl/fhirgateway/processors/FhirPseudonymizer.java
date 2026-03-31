@@ -7,10 +7,13 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.retry.support.RetryTemplate;
@@ -32,14 +35,17 @@ public class FhirPseudonymizer {
   private final String pseudonymizerUrl;
   private final RetryTemplate retryTemplate;
   private final IGenericClient client;
+  private final Executor asyncExecutor;
 
   public FhirPseudonymizer(
       FhirContext fhirContext,
       @Value("${services.pseudonymizer.url}") String pseudonymizerUrl,
-      RetryTemplate retryTemplate) {
+      RetryTemplate retryTemplate,
+      @Qualifier("pseudonymizerExecutor") Executor asyncExecutor) {
     this.client = fhirContext.newRestfulGenericClient(pseudonymizerUrl);
     this.pseudonymizerUrl = pseudonymizerUrl;
     this.retryTemplate = retryTemplate;
+    this.asyncExecutor = asyncExecutor;
   }
 
   public Bundle process(Bundle bundle) {
@@ -60,5 +66,29 @@ public class FhirPseudonymizer {
                         .withParameters(param)
                         .returnResourceType(Bundle.class)
                         .execute()));
+  }
+
+  public CompletableFuture<Bundle> processAsync(Bundle bundle) {
+    LOGGER.debug(
+        "Invoking pseudonymization service (async) @ {}", kv("pseudonymizerUrl", pseudonymizerUrl));
+
+    return CompletableFuture.supplyAsync(
+        () -> {
+          var param = new Parameters();
+          param.addParameter().setName("resource").setResource(bundle);
+
+          return DE_IDENTIFICATION_DURATION_TIMER.record(
+              () ->
+                  retryTemplate.execute(
+                      ctx ->
+                          client
+                              .operation()
+                              .onServer()
+                              .named("de-identify")
+                              .withParameters(param)
+                              .returnResourceType(Bundle.class)
+                              .execute()));
+        },
+        asyncExecutor);
   }
 }

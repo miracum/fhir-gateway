@@ -88,6 +88,10 @@ services:
     url: ""
     request-compression:
       enabled: false
+    executor:
+      core-threads: ${PSEUDONYMIZER_EXECUTOR_CORE_THREADS:10}
+      max-threads: ${PSEUDONYMIZER_EXECUTOR_MAX_THREADS:50}
+      queue-capacity: ${PSEUDONYMIZER_EXECUTOR_QUEUE_CAPACITY:100}
   fhirServer:
     enabled: false
     url: ""
