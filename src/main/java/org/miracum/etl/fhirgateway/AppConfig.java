@@ -20,6 +20,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.LinkedBlockingQueue;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -272,7 +273,7 @@ public class AppConfig {
         maxThreads,
         60, // keep-alive time
         TimeUnit.SECONDS,
-        new SynchronousQueue<>(), // Reject policy: caller runs if queue full
+        new LinkedBlockingQueue<>(queueCapacity),
         new ThreadPoolExecutor.CallerRunsPolicy());
   }
 }
