@@ -37,6 +37,9 @@ services:
     store-from-api:
       enabled: false
 
+features:
+  use-fhir-client-request-compression: true
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:15432/fhir
