@@ -33,7 +33,7 @@ services:
         condition: service_started
 
   wait-for-db:
-    image: docker.io/library/postgres:18.1@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
+    image: docker.io/library/postgres:18.2@sha256:a688ae5c99f86c1424e046ace0de890608cc0ddb5ec8ef72a6ff8305fdc8f4d2
     ipc: none
     security_opt:
       - "no-new-privileges:true"
@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   fhir-gateway-db:
-    image: docker.io/library/postgres:18.1@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
+    image: docker.io/library/postgres:18.2@sha256:a688ae5c99f86c1424e046ace0de890608cc0ddb5ec8ef72a6ff8305fdc8f4d2
     ipc: private
     security_opt:
       - "no-new-privileges:true"
@@ -68,7 +68,7 @@ services:
       POSTGRES_DB: fhir
 
   loinc-converter:
-    image: ghcr.io/miracum/loinc-conversion:v1.16.11@sha256:efcac05f0d04de566407b26cf58cc51e49ab410234e1d8e8220617df8cc16c0b
+    image: ghcr.io/miracum/loinc-conversion:v1.16.25@sha256:7532d5fca72b1f4491a35300bac1a36a08896fc97bd7399aa893c427010d897f
     ipc: none
     cap_drop:
       - ALL
@@ -80,7 +80,7 @@ services:
       LOINC_VERSION: "2.77"
 
   fhir-pseudonymizer:
-    image: ghcr.io/miracum/fhir-pseudonymizer:v2.23.0@sha256:d3476eb7e53ed0fbfc1d139ee172e2cd7cd84b96330512779b00d497ff7ce3fb
+    image: ghcr.io/miracum/fhir-pseudonymizer:v2.25.0@sha256:e9ff406f538283e9be75a1595c3d797993278e6d8e126fd4f6e7105abb863acd
     ipc: none
     cap_drop:
       - ALL
