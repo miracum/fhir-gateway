@@ -30,6 +30,10 @@ services:
       generate-output-topic:
         match-expression: "fhir\\."
         replace-with: "fhir.pseudonymized."
+      crypto-hash-message-keys:
+        enabled: true
+        key: "12345"
+        algorithm: "HMAC_SHA_256"
     store-from-api:
       enabled: false
 

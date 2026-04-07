@@ -43,16 +43,22 @@ spring:
       compression-type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
+    consumer:
+      value-deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   cloud:
     function.definition: process
     stream:
+      default:
+        consumer:
+          use-native-decoding: true
+        producer:
+          use-native-encoding: true
       kafka:
         default:
           consumer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
             enableDlq: true
             configuration:
-              key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
-              value.deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
               fetch.min.bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-min-bytes
               fetch.max.wait.ms: ${KAFKA_CONSUMER_FETCH_MAX_WAIT_MS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-max-wait-ms
               max.poll.interval.ms: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS:300000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-interval-ms
