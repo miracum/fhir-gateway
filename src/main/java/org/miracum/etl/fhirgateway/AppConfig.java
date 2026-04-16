@@ -27,6 +27,7 @@ import okhttp3.Response;
 import okio.BufferedSink;
 import okio.GzipSink;
 import okio.Okio;
+import org.miracum.etl.fhirgateway.config.FhirClientTimeoutConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,10 +60,11 @@ public class AppConfig {
           "fhirgateway.postgres.batchupdate.errors.total", new AtomicInteger(0));
 
   @Bean
-  public FhirContext fhirContext(
+  FhirContext fhirContext(
       @Value("${features.use-load-balancer-optimized-connection-pool}")
           boolean useLoadBalancerConnectionPool,
-      @Value("${features.use-fhir-client-request-compression}") boolean useRequestCompression) {
+      @Value("${features.use-fhir-client-request-compression}") boolean useRequestCompression,
+      FhirClientTimeoutConfig timeoutConfig) {
     var fhirContext = FhirContext.forR4();
 
     var connectionPool = new ConnectionPool();
@@ -75,6 +77,9 @@ public class AppConfig {
     var clientBuilder =
         new OkHttpClient.Builder()
             .connectionPool(connectionPool)
+            .callTimeout(timeoutConfig.call())
+            .readTimeout(timeoutConfig.read())
+            .connectTimeout(timeoutConfig.connect())
             .eventListener(
                 OkHttpMetricsEventListener.builder(Metrics.globalRegistry, "fhir.client").build());
 
