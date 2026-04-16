@@ -96,7 +96,7 @@ services:
       enabled: false
     client-timeouts:
       call: 120s
-      read:  120s
+      read: 120s
       connect: 120s
   fhirServer:
     enabled: false
