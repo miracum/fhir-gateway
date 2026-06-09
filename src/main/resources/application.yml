@@ -64,6 +64,7 @@ spring:
               max.poll.interval.ms: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS:300000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-interval-ms
               max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-records
               request.timeout.ms: ${KAFKA_CONSUMER_REQUEST_TIMEOUT_MS:30000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#request-timeout-ms
+              group.protocol: consumer # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#group-protocol
           producer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-producer-properties
             configuration:
               batch.size: ${KAFKA_PRODUCER_BATCH_SIZE:16384} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#batch-size
