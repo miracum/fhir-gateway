@@ -26,7 +26,8 @@ class ResourcePipelineTest {
               try {
                 index = Integer.parseInt(bundleId);
               } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Bundle id must be numeric but was: " + bundleId, e);
+                throw new IllegalArgumentException(
+                    "Bundle id must be numeric but was: " + bundleId, e);
               }
               Thread.sleep((10 - index) * 5L);
               return bundle;
