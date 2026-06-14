@@ -2,6 +2,8 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -45,34 +47,42 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   }
 
   @Bean
-  Function<Message<Resource>, Message<Bundle>> process() {
-    return message -> {
-      if (message == null) {
-        LOG.warn("message is null. Ignoring.");
-        return null;
+  Function<List<Message<Resource>>, List<Message<Bundle>>> process() {
+    return messages -> {
+      if (messages == null || messages.isEmpty()) {
+        LOG.warn("messages is null or empty. Ignoring.");
+        return List.of();
       }
 
-      var processed = super.process(message);
+      var processedBundles = super.processBatch(messages);
 
-      var originalMessageKey =
-          message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
-      var outputMessageKey =
-          hmac.map(h -> h.hmacHex(originalMessageKey)).orElse(originalMessageKey);
+      var result = new ArrayList<Message<Bundle>>(messages.size());
+      for (var i = 0; i < messages.size(); i++) {
+        var message = messages.get(i);
+        var processed = processedBundles.get(i);
 
-      var messageBuilder =
-          MessageBuilder.withPayload(processed).setHeader(KafkaHeaders.KEY, outputMessageKey);
+        var originalMessageKey =
+            message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
+        var outputMessageKey =
+            hmac.map(h -> h.hmacHex(originalMessageKey)).orElse(originalMessageKey);
 
-      var inputTopic =
-          Objects.requireNonNull(
-              message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC, String.class));
+        var messageBuilder =
+            MessageBuilder.withPayload(processed).setHeader(KafkaHeaders.KEY, outputMessageKey);
 
-      var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
-      // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 and
-      // https://docs.spring.io/spring-cloud-stream/reference/spring-cloud-stream/event-routing.html#routing-from-consumer
-      outputTopic.ifPresent(
-          s -> messageBuilder.setHeader("spring.cloud.stream.sendto.destination", s));
+        var inputTopic =
+            Objects.requireNonNull(
+                message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC, String.class));
 
-      return messageBuilder.build();
+        var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
+        // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 and
+        // https://docs.spring.io/spring-cloud-stream/reference/spring-cloud-stream/event-routing.html#routing-from-consumer
+        outputTopic.ifPresent(
+            s -> messageBuilder.setHeader("spring.cloud.stream.sendto.destination", s));
+
+        result.add(messageBuilder.build());
+      }
+
+      return result;
     };
   }
 

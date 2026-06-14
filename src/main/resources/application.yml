@@ -75,6 +75,7 @@ spring:
         process-in-0:
           consumer:
             concurrency: ${KAFKA_CONSUMER_CONCURRENCY:1}
+            batch-mode: true
           destination: ${KAFKA_INPUT_TOPICS:fhir.all}
           group: ${KAFKA_CONSUMER_GROUP_ID:fhir-gateway}
         process-out-0:
