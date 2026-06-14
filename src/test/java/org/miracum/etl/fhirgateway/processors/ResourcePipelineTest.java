@@ -21,7 +21,13 @@ class ResourcePipelineTest {
               Bundle bundle = invocation.getArgument(0);
               // bundle "0" takes the longest, "9" the shortest, so completion order is the
               // reverse of input order.
-              var index = Integer.parseInt(bundle.getId());
+              var bundleId = bundle.getId();
+              final int index;
+              try {
+                index = Integer.parseInt(bundleId);
+              } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Bundle id must be numeric but was: " + bundleId, e);
+              }
               Thread.sleep((10 - index) * 5L);
               return bundle;
             });
