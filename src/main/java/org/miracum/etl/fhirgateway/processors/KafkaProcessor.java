@@ -53,6 +53,9 @@ public class KafkaProcessor extends BaseKafkaProcessor {
       }
 
       var processed = super.process(message);
+      if (processed == null) {
+        return null;
+      }
 
       var originalMessageKey =
           message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
