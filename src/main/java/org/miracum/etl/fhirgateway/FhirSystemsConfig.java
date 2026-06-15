@@ -1,6 +1,6 @@
 package org.miracum.etl.fhirgateway;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
