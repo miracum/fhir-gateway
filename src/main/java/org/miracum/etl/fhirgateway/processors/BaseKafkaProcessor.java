@@ -2,6 +2,8 @@ package org.miracum.etl.fhirgateway.processors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import jakarta.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.Bundle;
@@ -23,20 +25,34 @@ public abstract class BaseKafkaProcessor {
     this.pipeline = pipeline;
   }
 
-  public Bundle process(Message<Resource> message) {
-    return pipeline.process(toBundle(message));
-  }
+  public List<Bundle> processBatch(Message<List<Resource>> messages) {
+    var resources = messages.getPayload();
 
-  public List<Bundle> processBatch(List<Message<Resource>> messages) {
-    var bundles = messages.stream().map(this::toBundle).toList();
+    var bundles = new ArrayList<Bundle>(resources.size());
+    for (var i = 0; i < resources.size(); i++) {
+      bundles.add(
+          toBundle(
+              resources.get(i),
+              getBatchHeader(messages, KafkaHeaders.RECEIVED_TOPIC, i),
+              getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i)));
+    }
+
     return pipeline.processBatch(bundles);
   }
 
-  private Bundle toBundle(Message<Resource> message) {
-    var incomingTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC);
-    var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, null);
-    var resource = message.getPayload();
+  /**
+   * With native decoding and batch mode enabled, per-record Kafka headers are exposed as lists on
+   * the batch message, one entry per record, in the same order as the payload.
+   */
+  @SuppressWarnings("unchecked")
+  @Nullable
+  protected static Object getBatchHeader(
+      Message<List<Resource>> message, String headerName, int index) {
+    var header = (List<Object>) message.getHeaders().get(headerName);
+    return header == null ? null : header.get(index);
+  }
 
+  private Bundle toBundle(Resource resource, @Nullable Object incomingTopic, @Nullable Object key) {
     LOG.debug(
         "Processing {} from {} with {}",
         kv("resourceId", resource.getId()),

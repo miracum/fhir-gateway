@@ -18,7 +18,7 @@ public class KafkaConsumer extends BaseKafkaProcessor {
   }
 
   @Bean
-  Consumer<List<Message<Resource>>> process() {
+  Consumer<Message<List<Resource>>> process() {
     return super::processBatch;
   }
 }

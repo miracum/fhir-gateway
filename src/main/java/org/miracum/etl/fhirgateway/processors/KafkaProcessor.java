@@ -47,22 +47,22 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   }
 
   @Bean
-  Function<List<Message<Resource>>, List<Message<Bundle>>> process() {
+  Function<Message<List<Resource>>, List<Message<Bundle>>> process() {
     return messages -> {
-      if (messages == null || messages.isEmpty()) {
-        LOG.warn("messages is null or empty. Ignoring.");
+      var resources = messages.getPayload();
+      if (resources.isEmpty()) {
+        LOG.warn("messages is empty. Ignoring.");
         return List.of();
       }
 
       var processedBundles = super.processBatch(messages);
 
-      var result = new ArrayList<Message<Bundle>>(messages.size());
-      for (var i = 0; i < messages.size(); i++) {
-        var message = messages.get(i);
+      var result = new ArrayList<Message<Bundle>>(resources.size());
+      for (var i = 0; i < resources.size(); i++) {
         var processed = processedBundles.get(i);
 
         var originalMessageKey =
-            message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, "").toString();
+            Objects.toString(getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i), "");
         var outputMessageKey =
             hmac.map(h -> h.hmacHex(originalMessageKey)).orElse(originalMessageKey);
 
@@ -71,7 +71,7 @@ public class KafkaProcessor extends BaseKafkaProcessor {
 
         var inputTopic =
             Objects.requireNonNull(
-                message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC, String.class));
+                (String) getBatchHeader(messages, KafkaHeaders.RECEIVED_TOPIC, i));
 
         var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
         // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 and
