@@ -27,23 +27,14 @@ public class KafkaProcessor extends BaseKafkaProcessor {
   private final String generateTopicMatchExpression;
   private final String generateTopicReplacement;
   private final Pattern topicPattern;
-  private final Optional<HmacUtils> hmac;
+  private final KafkaProcessorConfig.CryptoHashMessageKeys cryptoHash;
 
   public KafkaProcessor(ResourcePipeline pipeline, KafkaProcessorConfig config) {
     super(pipeline);
     this.generateTopicMatchExpression = config.generateOutputTopic().matchExpression();
     this.generateTopicReplacement = config.generateOutputTopic().replaceWith();
     this.topicPattern = Pattern.compile(generateTopicMatchExpression);
-
-    if (config.cryptoHashMessageKeys().enabled()) {
-      hmac =
-          Optional.of(
-              new HmacUtils(
-                  config.cryptoHashMessageKeys().algorithm(),
-                  config.cryptoHashMessageKeys().key()));
-    } else {
-      hmac = Optional.empty();
-    }
+    this.cryptoHash = config.cryptoHashMessageKeys();
   }
 
   @Bean
@@ -63,8 +54,14 @@ public class KafkaProcessor extends BaseKafkaProcessor {
 
         var originalMessageKey =
             Objects.toString(getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i), "");
-        var outputMessageKey =
-            hmac.map(h -> h.hmacHex(originalMessageKey)).orElse(originalMessageKey);
+        var outputMessageKey = originalMessageKey;
+
+        if (cryptoHash.enabled()) {
+          // potentially consider clone()
+          // <https://waseemh.github.io/thread-safe-mac-calculation>
+          outputMessageKey =
+              new HmacUtils(cryptoHash.algorithm(), cryptoHash.key()).hmacHex(originalMessageKey);
+        }
 
         var messageBuilder =
             MessageBuilder.withPayload(processed).setHeader(KafkaHeaders.KEY, outputMessageKey);
