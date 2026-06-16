@@ -7,9 +7,11 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Resource;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaNull;
 import org.springframework.messaging.Message;
 
 public abstract class BaseKafkaProcessor {
@@ -22,10 +24,21 @@ public abstract class BaseKafkaProcessor {
     this.pipeline = pipeline;
   }
 
-  public Bundle process(Message<Resource> message) {
+  @Nullable
+  public Bundle process(Message<?> message) {
     var incomingTopic = message.getHeaders().get(KafkaHeaders.RECEIVED_TOPIC);
     var key = message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_KEY, null);
-    var resource = message.getPayload();
+    var payload = message.getPayload();
+
+    if (payload instanceof KafkaNull) {
+      LOG.debug(
+          "Ignoring message with a null payload from {} with key {}",
+          kv("topic", incomingTopic),
+          kv("key", key));
+      return null;
+    }
+
+    var resource = (Resource) payload;
 
     LOG.debug(
         "Processing {} from {} with {}",
