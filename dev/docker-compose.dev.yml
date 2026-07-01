@@ -15,7 +15,7 @@ services:
       - kafka
 
   kafka:
-    image: docker.io/apache/kafka:4.2.0@sha256:9516fb7634bad307d17c33b589fde9023003b0cb761374f500002b980a3149b9
+    image: docker.io/apache/kafka:4.3.0@sha256:0be4c9eb3565733612d2836d65636fd611a219ebcf5b4162e5ac259ea0ecb907
     restart: unless-stopped
     cap_drop:
       - ALL
@@ -44,7 +44,7 @@ services:
       - 127.0.0.1:9094:9094
 
   akhq:
-    image: tchiotludo/akhq:0.27.0@sha256:c76377964bd51b0db2fd323c722d13e3991624e1410afcb23a58df6a1c7b80bf
+    image: tchiotludo/akhq:0.27.1@sha256:66a43e84a3355f0a13f3b165a48f515c72a5344ea7ea0575a3e4efe2d3ac9a91
     restart: unless-stopped
     cap_drop:
       - ALL

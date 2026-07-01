@@ -1,4 +1,4 @@
-FROM docker.io/library/gradle:9.4.0-jdk25@sha256:6df8be4f28ce6fb9fc10ea49451490697751b3738100708b6fe19409d2c8b339 AS build
+FROM docker.io/library/gradle:9.5.0-jdk25@sha256:03305b464e024b29cfaad1c4a41fed61d06d15453176d2180f65bd4358b789a6 AS build
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 WORKDIR /home/gradle/project
 
