@@ -58,6 +58,13 @@ spring:
         default:
           consumer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-consumer-properties
             enableDlq: true
+            # required because use-native-decoding is enabled, so the DLQ producer can't just
+            # forward the raw (byte[]) record - it has to (re-)serialize the natively-decoded
+            # key/value.
+            dlqProducerProperties:
+              configuration:
+                key.serializer: org.apache.kafka.common.serialization.StringSerializer
+                value.serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
             configuration:
               fetch.min.bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-min-bytes
               fetch.max.wait.ms: ${KAFKA_CONSUMER_FETCH_MAX_WAIT_MS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#fetch-max-wait-ms
@@ -75,6 +82,7 @@ spring:
         process-in-0:
           consumer:
             concurrency: ${KAFKA_CONSUMER_CONCURRENCY:1}
+            batch-mode: true
           destination: ${KAFKA_INPUT_TOPICS:fhir.all}
           group: ${KAFKA_CONSUMER_GROUP_ID:fhir-gateway}
         process-out-0:
