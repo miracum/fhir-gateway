@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build:
-    uses: miracum/.github/.github/workflows/standard-build.yaml@1478f7e298f11e96e4585dee4afdce8fabc2e162 # v1.20.5
+    uses: miracum/.github/.github/workflows/standard-build.yaml@602a4dd955cee8ab1e7e9c70761b5b4c9d678a95 # v1.21.4
     permissions:
       contents: write
       id-token: write
@@ -78,7 +78,7 @@ jobs:
 
       - name: "Add coverage to PR"
         id: jacoco
-        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
+        uses: madrapps/jacoco-report@e51ce1f46f7f8b5331593f935e59cbaf44b84920 # v1.8.0
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         with:
@@ -110,7 +110,7 @@ jobs:
           docker info -f '{{ .DriverStatus }}'
 
       - name: "Checkout code"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
@@ -145,7 +145,7 @@ jobs:
           docker compose -p e2e -f dev/docker-compose.yml -f dev/docker-compose.gw-deps.yml -f tests/e2e/docker-compose.yml down --volumes --remove-orphans
 
   lint:
-    uses: miracum/.github/.github/workflows/standard-lint.yaml@1478f7e298f11e96e4585dee4afdce8fabc2e162 # v1.20.5
+    uses: miracum/.github/.github/workflows/standard-lint.yaml@602a4dd955cee8ab1e7e9c70761b5b4c9d678a95 # v1.21.4
     permissions:
       contents: read
       pull-requests: write
@@ -160,7 +160,7 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    uses: miracum/.github/.github/workflows/standard-release.yaml@1478f7e298f11e96e4585dee4afdce8fabc2e162 # v1.20.5
+    uses: miracum/.github/.github/workflows/standard-release.yaml@602a4dd955cee8ab1e7e9c70761b5b4c9d678a95 # v1.21.4
     needs:
       - build
       - test
