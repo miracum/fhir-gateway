@@ -24,6 +24,7 @@ jobs:
       pull-requests: write
       actions: read
       security-events: write
+      attestations: write
     with:
       enable-build-test-layer: true
       enable-upload-test-image: true
