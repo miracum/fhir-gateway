@@ -40,9 +40,14 @@ spring:
       key-store-location: file://${SSL_KEY_STORE_FILE:/opt/kafka-certs/user.p12}
       key-store-password: ${SSL_KEY_STORE_PASSWORD}
     producer:
-      compression-type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip}
+      compression-type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:zstd}
+      batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:262144} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#batch-size
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.miracum.kafka.serializers.KafkaFhirSerializer
+      properties:
+        compression.zstd.level: ${KAFKA_PRODUCER_COMPRESSION_ZSTD_LEVEL:6} # https://kafka.apache.org/documentation/#producerconfigs_compression.zstd.level
+        linger.ms: ${KAFKA_PRODUCER_LINGER_MS:50} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#linger-ms
+        max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#max-request-size
     consumer:
       value-deserializer: org.miracum.kafka.serializers.KafkaFhirDeserializer
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -65,12 +70,6 @@ spring:
               max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-records
               request.timeout.ms: ${KAFKA_CONSUMER_REQUEST_TIMEOUT_MS:30000} # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#request-timeout-ms
               group.protocol: consumer # https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#group-protocol
-          producer: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream-binder-kafka.html#kafka-producer-properties
-            configuration:
-              batch.size: ${KAFKA_PRODUCER_BATCH_SIZE:16384} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#batch-size
-              compression.type: ${KAFKA_PRODUCER_COMPRESSION_TYPE:gzip} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#compression-type
-              linger.ms: ${KAFKA_PRODUCER_LINGER_MS:5} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#linger-ms
-              max.request.size: ${KAFKA_PRODUCER_MAX_REQUEST_SIZE:1048576} # https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#max-request-size
       bindings: # https://docs.spring.io/spring-cloud-stream/docs/current/reference/html/spring-cloud-stream.html#binding-properties
         process-in-0:
           consumer:
