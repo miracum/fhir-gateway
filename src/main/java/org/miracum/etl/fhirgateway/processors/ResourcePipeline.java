@@ -100,23 +100,23 @@ public class ResourcePipeline {
   }
 
   private Bundle runRemainingStages(Bundle bundle) {
-    MDC.put("bundleId", bundle.getId());
+    try (var _ = MDC.putCloseable("bundleId", bundle.getId())) {
+      if (loincHarmonizer.isPresent()) {
+        for (var entry : bundle.getEntry()) {
+          var resource = entry.getResource();
 
-    if (loincHarmonizer.isPresent()) {
-      for (var entry : bundle.getEntry()) {
-        var resource = entry.getResource();
-
-        if (resource instanceof Observation observation) {
-          try (var _ = MDC.putCloseable("resourceId", resource.getId())) {
-            var obs = loincHarmonizer.get().process(observation);
-            entry.setResource(obs);
+          if (resource instanceof Observation observation) {
+            try (var _ = MDC.putCloseable("resourceId", resource.getId())) {
+              var obs = loincHarmonizer.get().process(observation);
+              entry.setResource(obs);
+            }
           }
         }
       }
-    }
 
-    saveToStores(bundle);
-    return bundle;
+      saveToStores(bundle);
+      return bundle;
+    }
   }
 
   private void saveToStores(Bundle bundle) {

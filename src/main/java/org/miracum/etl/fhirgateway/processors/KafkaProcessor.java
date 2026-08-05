@@ -48,17 +48,16 @@ public class KafkaProcessor extends BaseKafkaProcessor {
 
       var processedRecords = super.processBatchWithHeaders(messages);
 
+      // one Mac per batch instead of per record - still safe if process() is invoked
+      // concurrently since this is a local, not shared across invocations.
+      var keyHasher =
+          cryptoHash.enabled() ? new HmacUtils(cryptoHash.algorithm(), cryptoHash.key()) : null;
+
       var result = new ArrayList<Message<Bundle>>(processedRecords.size());
       for (var record : processedRecords) {
         var originalMessageKey = Objects.toString(record.key(), "");
-        var outputMessageKey = originalMessageKey;
-
-        if (cryptoHash.enabled()) {
-          // potentially consider clone()
-          // <https://waseemh.github.io/thread-safe-mac-calculation>
-          outputMessageKey =
-              new HmacUtils(cryptoHash.algorithm(), cryptoHash.key()).hmacHex(originalMessageKey);
-        }
+        var outputMessageKey =
+            keyHasher == null ? originalMessageKey : keyHasher.hmacHex(originalMessageKey);
 
         var messageBuilder =
             MessageBuilder.withPayload(record.bundle())

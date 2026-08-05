@@ -67,7 +67,7 @@ public class LoincHarmonizer {
   private Observation harmonizeObservation(final Observation originalObservation) {
     var loincCode =
         originalObservation.getCode().getCoding().stream()
-            .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
+            .filter(obs -> obs.getSystem().equals(fhirSystems.loinc()))
             .findFirst();
 
     var harmonized = originalObservation.copy();
@@ -88,7 +88,7 @@ public class LoincHarmonizer {
         harmonized.setValue(result.get().getFirst());
         Pair<Quantity, LoincConversion> finalResult = result.get();
         harmonized.getCode().getCoding().stream()
-            .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
+            .filter(obs -> obs.getSystem().equals(fhirSystems.loinc()))
             .findFirst()
             .ifPresent(
                 loinc -> {
