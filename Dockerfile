@@ -7,7 +7,7 @@ COPY . .
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches <<EOF
 gradle clean build --info
 gradle jacocoTestReport
-java -Djarmode=layertools -jar build/libs/fhirgateway-*.jar extract
+java -Djarmode=tools -jar build/libs/fhirgateway-*.jar extract --layers --launcher --destination extracted
 EOF
 
 FROM scratch AS test
@@ -20,9 +20,9 @@ WORKDIR /opt/fhir-gateway
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
 
-COPY --from=build /home/gradle/project/dependencies/ ./
-COPY --from=build /home/gradle/project/spring-boot-loader/ ./
-COPY --from=build /home/gradle/project/snapshot-dependencies/ ./
-COPY --from=build /home/gradle/project/application/ ./
+COPY --from=build /home/gradle/project/extracted/dependencies/ ./
+COPY --from=build /home/gradle/project/extracted/spring-boot-loader/ ./
+COPY --from=build /home/gradle/project/extracted/snapshot-dependencies/ ./
+COPY --from=build /home/gradle/project/extracted/application/ ./
 
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
