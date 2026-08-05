@@ -1,4 +1,4 @@
-FROM docker.io/library/gradle:9.4.0-jdk25@sha256:6df8be4f28ce6fb9fc10ea49451490697751b3738100708b6fe19409d2c8b339 AS build
+FROM docker.io/library/gradle:9.6.0-jdk25@sha256:e3905233ae349e72016daf8a0e19f085a1dd89ded8ec88b3d8335d3fd0b350f4 AS build
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 WORKDIR /home/gradle/project
 
@@ -7,7 +7,7 @@ COPY . .
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches <<EOF
 gradle clean build --info
 gradle jacocoTestReport
-java -Djarmode=layertools -jar build/libs/fhirgateway-*.jar extract
+java -Djarmode=tools -jar build/libs/fhirgateway-*.jar extract --layers --launcher --destination extracted
 EOF
 
 FROM scratch AS test
@@ -20,9 +20,9 @@ WORKDIR /opt/fhir-gateway
 USER 65532:65532
 ENV SPRING_PROFILES_ACTIVE="prod"
 
-COPY --from=build /home/gradle/project/dependencies/ ./
-COPY --from=build /home/gradle/project/spring-boot-loader/ ./
-COPY --from=build /home/gradle/project/snapshot-dependencies/ ./
-COPY --from=build /home/gradle/project/application/ ./
+COPY --from=build /home/gradle/project/extracted/dependencies/ ./
+COPY --from=build /home/gradle/project/extracted/spring-boot-loader/ ./
+COPY --from=build /home/gradle/project/extracted/snapshot-dependencies/ ./
+COPY --from=build /home/gradle/project/extracted/application/ ./
 
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
