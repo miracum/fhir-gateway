@@ -46,14 +46,11 @@ public class KafkaProcessor extends BaseKafkaProcessor {
         return List.of();
       }
 
-      var processedBundles = super.processBatch(messages);
+      var processedRecords = super.processBatchWithHeaders(messages);
 
-      var result = new ArrayList<Message<Bundle>>(resources.size());
-      for (var i = 0; i < resources.size(); i++) {
-        var processed = processedBundles.get(i);
-
-        var originalMessageKey =
-            Objects.toString(getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i), "");
+      var result = new ArrayList<Message<Bundle>>(processedRecords.size());
+      for (var record : processedRecords) {
+        var originalMessageKey = Objects.toString(record.key(), "");
         var outputMessageKey = originalMessageKey;
 
         if (cryptoHash.enabled()) {
@@ -64,11 +61,10 @@ public class KafkaProcessor extends BaseKafkaProcessor {
         }
 
         var messageBuilder =
-            MessageBuilder.withPayload(processed).setHeader(KafkaHeaders.KEY, outputMessageKey);
+            MessageBuilder.withPayload(record.bundle())
+                .setHeader(KafkaHeaders.KEY, outputMessageKey);
 
-        var inputTopic =
-            Objects.requireNonNull(
-                (String) getBatchHeader(messages, KafkaHeaders.RECEIVED_TOPIC, i));
+        var inputTopic = Objects.requireNonNull((String) record.topic());
 
         var outputTopic = computeOutputTopicFromInputTopic(inputTopic);
         // see https://github.com/spring-cloud/spring-cloud-stream/issues/1909 and

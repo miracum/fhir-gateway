@@ -13,6 +13,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaNull;
 import org.springframework.messaging.Message;
 
 public abstract class BaseKafkaProcessor {
@@ -25,19 +26,52 @@ public abstract class BaseKafkaProcessor {
     this.pipeline = pipeline;
   }
 
-  public List<Bundle> processBatch(Message<List<Resource>> messages) {
-    var resources = messages.getPayload();
+  /** A processed bundle paired with the topic/key of the Kafka record it came from. */
+  protected record ProcessedRecord(Bundle bundle, @Nullable Object topic, @Nullable Object key) {}
 
-    var bundles = new ArrayList<Bundle>(resources.size());
-    for (var i = 0; i < resources.size(); i++) {
-      bundles.add(
-          toBundle(
-              resources.get(i),
-              getBatchHeader(messages, KafkaHeaders.RECEIVED_TOPIC, i),
-              getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i)));
+  public List<Bundle> processBatch(Message<List<Resource>> messages) {
+    return processBatchWithHeaders(messages).stream().map(ProcessedRecord::bundle).toList();
+  }
+
+  /**
+   * Like {@link #processBatch(Message)}, but keeps each result paired with the topic/key of the
+   * record it was built from - needed by callers (e.g. {@link KafkaProcessor}) that re-publish
+   * per-record, since tombstones are dropped here and would otherwise desync a purely positional
+   * lookup into the original batch.
+   */
+  protected List<ProcessedRecord> processBatchWithHeaders(Message<List<Resource>> messages) {
+    // deliberately not List<Resource>: a tombstone (null-value) Kafka record surfaces here as a
+    // KafkaNull instance, not a Resource, and List<Resource>.get(i) would throw a
+    // ClassCastException before we ever get a chance to check for it.
+    List<?> payloads = messages.getPayload();
+
+    var pending = new ArrayList<ProcessedRecord>(payloads.size());
+    for (var i = 0; i < payloads.size(); i++) {
+      var payload = payloads.get(i);
+      var topic = getBatchHeader(messages, KafkaHeaders.RECEIVED_TOPIC, i);
+      var key = getBatchHeader(messages, KafkaHeaders.RECEIVED_KEY, i);
+
+      if (payload instanceof KafkaNull) {
+        LOG.debug(
+            "Ignoring message with a null payload from {} with key {}",
+            kv("topic", topic),
+            kv("key", key));
+        continue;
+      }
+
+      pending.add(new ProcessedRecord(toBundle((Resource) payload, topic, key), topic, key));
     }
 
-    return pipeline.processBatch(bundles);
+    var bundles = pending.stream().map(ProcessedRecord::bundle).toList();
+    var processedBundles = pipeline.processBatch(bundles);
+
+    var result = new ArrayList<ProcessedRecord>(processedBundles.size());
+    for (var i = 0; i < processedBundles.size(); i++) {
+      result.add(
+          new ProcessedRecord(
+              processedBundles.get(i), pending.get(i).topic(), pending.get(i).key()));
+    }
+    return result;
   }
 
   /**
