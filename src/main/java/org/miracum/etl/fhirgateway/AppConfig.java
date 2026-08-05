@@ -52,8 +52,7 @@ import org.springframework.web.client.RestTemplate;
 public class AppConfig {
   private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
 
-  private static final int MAX_IDLE_CONNECTIONS = 2;
-  private static final int KEEP_ALIVE_DURATION_MILLISECONDS = 100;
+  private static final int KEEP_ALIVE_DURATION_SECONDS = 30;
 
   private static final AtomicInteger batchUpdateFailed =
       Metrics.globalRegistry.gauge(
@@ -64,6 +63,10 @@ public class AppConfig {
       @Value("${features.use-load-balancer-optimized-connection-pool}")
           boolean useLoadBalancerConnectionPool,
       @Value("${features.use-fhir-client-request-compression}") boolean useRequestCompression,
+      // the pseudonymizer is the dominant concurrent consumer of this pool (bundles within a
+      // Kafka batch are pseudonymized in parallel), so size idle connections to match how many
+      // of those calls can be in flight at once, keeping them warm for reuse across batches
+      @Value("${services.pseudonymizer.concurrency}") int pseudonymizerConcurrency,
       FhirClientTimeoutConfig timeoutConfig) {
     var fhirContext = FhirContext.forR4();
 
@@ -71,7 +74,7 @@ public class AppConfig {
     if (useLoadBalancerConnectionPool) {
       connectionPool =
           new ConnectionPool(
-              MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION_MILLISECONDS, TimeUnit.MILLISECONDS);
+              pseudonymizerConcurrency, KEEP_ALIVE_DURATION_SECONDS, TimeUnit.SECONDS);
     }
 
     var clientBuilder =

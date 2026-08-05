@@ -100,6 +100,11 @@ services:
   pseudonymizer:
     enabled: false
     url: ""
+    # max number of de-identify calls in flight at once, across all concurrently-processed
+    # batches. Bounds request bursts to what the pseudonymizer backend and the shared HTTP
+    # connection pool (see features.use-load-balancer-optimized-connection-pool) can sustain,
+    # independent of how large a single Kafka batch happens to be.
+    concurrency: ${SERVICES_PSEUDONYMIZER_CONCURRENCY:50}
     request-compression:
       enabled: false
     client-timeouts:

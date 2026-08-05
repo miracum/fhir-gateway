@@ -2,12 +2,14 @@ package org.miracum.etl.fhirgateway.processors;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
@@ -30,6 +32,11 @@ public class ResourcePipeline {
   private final Optional<PostgresFhirResourceRepository> psqlStore;
   private final Optional<FhirPseudonymizer> pseudonymizer;
   private final Optional<LoincHarmonizer> loincHarmonizer;
+
+  // shared across batches instead of spun up per processBatch() call - virtual threads are
+  // cheap to create, but there's no reason to pay for a new executor + shutdown every batch.
+  private final ExecutorService pseudonymizationExecutor =
+      Executors.newVirtualThreadPerTaskExecutor();
 
   public ResourcePipeline(
       Optional<FhirServerResourceRepository> fhirStore,
@@ -70,10 +77,10 @@ public class ResourcePipeline {
 
     var tasks = bundles.stream().<Callable<Bundle>>map(b -> () -> pseudonymizeSingle(b)).toList();
 
-    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    try {
       // invokeAll returns futures in the same order as `tasks`, regardless of completion
       // order, so `result` stays aligned with the input `bundles` list.
-      var futures = executor.invokeAll(tasks);
+      var futures = pseudonymizationExecutor.invokeAll(tasks);
       var result = new ArrayList<Bundle>(futures.size());
       for (var future : futures) {
         result.add(future.get());
@@ -85,6 +92,11 @@ public class ResourcePipeline {
     } catch (ExecutionException e) {
       throw new IllegalStateException("Failed to pseudonymize bundle", e.getCause());
     }
+  }
+
+  @PreDestroy
+  void shutdown() {
+    pseudonymizationExecutor.close();
   }
 
   private Bundle runRemainingStages(Bundle bundle) {
