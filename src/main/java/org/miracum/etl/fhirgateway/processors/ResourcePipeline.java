@@ -2,8 +2,15 @@ package org.miracum.etl.fhirgateway.processors;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Observation;
 import org.miracum.etl.fhirgateway.stores.FhirServerResourceRepository;
@@ -17,7 +24,7 @@ public class ResourcePipeline {
       Timer.builder("fhirgateway.pipeline.duration")
           .description("Total resource pipeline processing duration.")
           .minimumExpectedValue(Duration.ofMillis(50))
-          .maximumExpectedValue(Duration.ofSeconds(5))
+          .maximumExpectedValue(Duration.ofSeconds(10))
           .publishPercentileHistogram()
           .register(Metrics.globalRegistry);
 
@@ -25,6 +32,11 @@ public class ResourcePipeline {
   private final Optional<PostgresFhirResourceRepository> psqlStore;
   private final Optional<FhirPseudonymizer> pseudonymizer;
   private final Optional<LoincHarmonizer> loincHarmonizer;
+
+  // shared across batches instead of spun up per processBatch() call - virtual threads are
+  // cheap to create, but there's no reason to pay for a new executor + shutdown every batch.
+  private final ExecutorService pseudonymizationExecutor =
+      Executors.newVirtualThreadPerTaskExecutor();
 
   public ResourcePipeline(
       Optional<FhirServerResourceRepository> fhirStore,
@@ -38,35 +50,73 @@ public class ResourcePipeline {
   }
 
   public Bundle process(Bundle bundle) {
-    MDC.put("bundleId", bundle.getId());
+    return processBatch(List.of(bundle)).get(0);
+  }
+
+  public List<Bundle> processBatch(List<Bundle> bundles) {
+    if (bundles.isEmpty()) {
+      return List.of();
+    }
 
     return PIPELINE_DURATION_TIMER.record(
-        () -> {
-          Bundle processing = bundle;
-          // pseudonymization should be the first task to ensure all other processors only
-          // ever work with de-identified data.
-          if (pseudonymizer.isPresent()) {
-            processing = pseudonymizer.get().process(processing);
-          }
+        () -> pseudonymizeConcurrently(bundles).stream().map(this::runRemainingStages).toList());
+  }
 
-          // this logic may be refactored and cleaned up by creating a genuine pipeline class with
-          // optionally added stages. A base for this would be an abstract ResourceProcessor
-          if (loincHarmonizer.isPresent()) {
-            for (var entry : processing.getEntry()) {
-              var resource = entry.getResource();
+  private Bundle pseudonymizeSingle(Bundle bundle) {
+    if (pseudonymizer.isEmpty()) {
+      return bundle;
+    }
 
-              if (resource instanceof Observation observation) {
-                try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-                  var obs = loincHarmonizer.get().process(observation);
-                  entry.setResource(obs);
-                }
-              }
+    return pseudonymizer.get().process(bundle);
+  }
+
+  private List<Bundle> pseudonymizeConcurrently(List<Bundle> bundles) {
+    if (pseudonymizer.isEmpty() || bundles.size() == 1) {
+      return bundles.stream().map(this::pseudonymizeSingle).toList();
+    }
+
+    var tasks = bundles.stream().<Callable<Bundle>>map(b -> () -> pseudonymizeSingle(b)).toList();
+
+    try {
+      // invokeAll returns futures in the same order as `tasks`, regardless of completion
+      // order, so `result` stays aligned with the input `bundles` list.
+      var futures = pseudonymizationExecutor.invokeAll(tasks);
+      var result = new ArrayList<Bundle>(futures.size());
+      for (var future : futures) {
+        result.add(future.get());
+      }
+      return result;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("Interrupted while pseudonymizing bundle batch", e);
+    } catch (ExecutionException e) {
+      throw new IllegalStateException("Failed to pseudonymize bundle", e.getCause());
+    }
+  }
+
+  @PreDestroy
+  void shutdown() {
+    pseudonymizationExecutor.close();
+  }
+
+  private Bundle runRemainingStages(Bundle bundle) {
+    try (var _ = MDC.putCloseable("bundleId", bundle.getId())) {
+      if (loincHarmonizer.isPresent()) {
+        for (var entry : bundle.getEntry()) {
+          var resource = entry.getResource();
+
+          if (resource instanceof Observation observation) {
+            try (var _ = MDC.putCloseable("resourceId", resource.getId())) {
+              var obs = loincHarmonizer.get().process(observation);
+              entry.setResource(obs);
             }
           }
+        }
+      }
 
-          saveToStores(processing);
-          return processing;
-        });
+      saveToStores(bundle);
+      return bundle;
+    }
   }
 
   private void saveToStores(Bundle bundle) {
