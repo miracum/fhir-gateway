@@ -44,7 +44,7 @@ services:
       - 127.0.0.1:9094:9094
 
   akhq:
-    image: tchiotludo/akhq:0.27.1@sha256:66a43e84a3355f0a13f3b165a48f515c72a5344ea7ea0575a3e4efe2d3ac9a91
+    image: tchiotludo/akhq:0.28.0@sha256:c2824dc2ae442b7ec215581f7e60a9f4106ea9004057fa3a1f88a29464cd4e63
     restart: unless-stopped
     cap_drop:
       - ALL
