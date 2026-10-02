@@ -8,6 +8,7 @@ import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.Bundle.HTTPVerb;
 import org.hl7.fhir.r4.model.Resource;
 import org.jspecify.annotations.Nullable;
+import org.miracum.etl.fhirgateway.AppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -62,6 +63,13 @@ public abstract class BaseKafkaProcessor {
           .setUrl(resource.getId());
     }
 
-    return pipeline.process(bundle);
+    try {
+      return pipeline.process(bundle);
+    } catch (RuntimeException exc) {
+      if (AppConfig.isTransientFailure(exc)) {
+        throw new TransientProcessingException(exc);
+      }
+      throw exc;
+    }
   }
 }

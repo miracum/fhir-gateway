@@ -1,11 +1,14 @@
 package org.miracum.etl.fhirgateway.processors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import ca.uhn.fhir.rest.server.exceptions.UnclassifiedServerFailureException;
+import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.Test;
@@ -68,5 +71,35 @@ class BaseKafkaProcessorTest {
     var bundle = bundleCaptor.getValue();
     assertThat(bundle.getEntry()).hasSize(1);
     assertThat(bundle.getEntryFirstRep().getResource()).isSameAs(patient);
+  }
+
+  @Test
+  void process_withTransientPipelineFailure_isWrappedToBeRetried() {
+    var processor = createProcessor();
+    var failure = new UnclassifiedServerFailureException(503, "unavailable");
+    when(pipeline.process(any(Bundle.class))).thenThrow(failure);
+
+    assertThatThrownBy(() -> processor.process(createPatientMessage()))
+        .isInstanceOf(TransientProcessingException.class)
+        .hasCause(failure);
+  }
+
+  @Test
+  void process_withPermanentPipelineFailure_isRethrownAsIs() {
+    var processor = createProcessor();
+    var failure = new UnprocessableEntityException("value rejected");
+    when(pipeline.process(any(Bundle.class))).thenThrow(failure);
+
+    assertThatThrownBy(() -> processor.process(createPatientMessage())).isSameAs(failure);
+  }
+
+  private static Message<?> createPatientMessage() {
+    var patient = new Patient();
+    patient.setId("Patient/123");
+
+    return MessageBuilder.withPayload(patient)
+        .setHeader(KafkaHeaders.RECEIVED_TOPIC, "fhir.all")
+        .setHeader(KafkaHeaders.RECEIVED_KEY, "Patient/123")
+        .build();
   }
 }

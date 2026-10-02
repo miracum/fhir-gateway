@@ -40,6 +40,9 @@ import org.springframework.classify.BinaryExceptionClassifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
@@ -59,6 +62,18 @@ public class AppConfig {
   private static final int KEEP_ALIVE_DURATION_MILLISECONDS = 100;
 
   private static final Set<Integer> TRANSIENT_HTTP_STATUS_CODES = Set.of(502, 503, 504);
+
+  /**
+   * Retries block the calling thread - for records consumed from Kafka, the consumer thread - so
+   * they are bounded (to at most ~150s of back off) to stay within the consumer's
+   * max.poll.interval.ms. Longer outages are ridden out by the Kafka listener container instead,
+   * see {@link org.miracum.etl.fhirgateway.processors.KafkaErrorHandlerConfig}.
+   */
+  private static final int MAX_ATTEMPTS = 5;
+
+  private static final BinaryExceptionClassifier REST_RETRY_CLASSIFIER = restRetryClassifier();
+  private static final BinaryExceptionClassifier DATABASE_RETRY_CLASSIFIER =
+      databaseRetryClassifier();
 
   private static final AtomicInteger batchUpdateFailed =
       Metrics.globalRegistry.gauge(
@@ -123,18 +138,10 @@ public class AppConfig {
   @Bean
   @Primary
   @Qualifier("restRetryTemplate")
-  public RetryTemplate retryTemplate(@Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
+  public RetryTemplate retryTemplate() {
     var retryTemplate = new RetryTemplate();
-
-    var backOffPolicy = new ExponentialRandomBackOffPolicy();
-    backOffPolicy.setInitialInterval(5_000); // 5 seconds
-    backOffPolicy.setMaxInterval(300_000); // 5 minutes
-
-    retryTemplate.setBackOffPolicy(backOffPolicy);
-
-    var maxAttempts = isKafkaEnabled ? Integer.MAX_VALUE : 5;
-
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, restRetryClassifier()));
+    retryTemplate.setBackOffPolicy(createBackOffPolicy());
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(MAX_ATTEMPTS, REST_RETRY_CLASSIFIER));
 
     retryTemplate.registerListener(
         new RetryListener() {
@@ -145,7 +152,7 @@ public class AppConfig {
                 "HTTP Error occurred: {}. Retrying {} out of {}",
                 throwable.getMessage(),
                 kv("attempt", context.getRetryCount()),
-                kv("maxAttempts", maxAttempts));
+                kv("maxAttempts", MAX_ATTEMPTS));
           }
         });
 
@@ -182,20 +189,37 @@ public class AppConfig {
     };
   }
 
+  /**
+   * Which failures of a database operation are worth retrying. Anything else - e.g. a constraint
+   * violation - fails the same way on every attempt, so propagates right away instead.
+   */
+  static BinaryExceptionClassifier databaseRetryClassifier() {
+    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+    retryableExceptions.put(TransientDataAccessException.class, true);
+    retryableExceptions.put(RecoverableDataAccessException.class, true);
+    // includes failing to get a connection at all, e.g. because the database is down
+    retryableExceptions.put(DataAccessResourceFailureException.class, true);
+
+    return new BinaryExceptionClassifier(retryableExceptions, false);
+  }
+
+  /**
+   * Whether a failure is expected to go away on its own, e.g. because a downstream service is
+   * temporarily unavailable, as opposed to one that fails the same way no matter how often it is
+   * retried.
+   */
+  public static boolean isTransientFailure(Throwable throwable) {
+    return REST_RETRY_CLASSIFIER.classify(throwable)
+        || DATABASE_RETRY_CLASSIFIER.classify(throwable);
+  }
+
   @Bean
   @Qualifier("databaseRetryTemplate")
   @ConditionalOnExpression("${services.psql.enabled}")
-  public RetryTemplate databaseRetryTemplate(
-      @Value("${services.kafka.enabled}") boolean isKafkaEnabled) {
+  public RetryTemplate databaseRetryTemplate() {
     var retryTemplate = new RetryTemplate();
-
-    var backOffPolicy = new ExponentialRandomBackOffPolicy();
-    backOffPolicy.setInitialInterval(5_000); // 5 seconds
-    backOffPolicy.setMaxInterval(300_000); // 5 minutes
-
-    var maxAttempts = isKafkaEnabled ? Integer.MAX_VALUE : 5;
-
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts));
+    retryTemplate.setBackOffPolicy(createBackOffPolicy());
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(MAX_ATTEMPTS, DATABASE_RETRY_CLASSIFIER));
 
     retryTemplate.registerListener(
         new RetryListener() {
@@ -206,7 +230,7 @@ public class AppConfig {
                 "Database Error occurred: {}. Retrying {} out of {}",
                 throwable.getMessage(),
                 kv("attempt", context.getRetryCount()),
-                kv("maxAttempts", maxAttempts));
+                kv("maxAttempts", MAX_ATTEMPTS));
 
             Objects.requireNonNull(batchUpdateFailed).incrementAndGet();
           }
@@ -215,37 +239,11 @@ public class AppConfig {
     return retryTemplate;
   }
 
-  @Bean
-  @Qualifier("kafkaRetryTemplate")
-  @ConditionalOnExpression("${services.kafka.store-from-api.enabled}")
-  public RetryTemplate kafkaRetryTemplate() {
-    var retryTemplate = new RetryTemplate();
-
+  private static ExponentialRandomBackOffPolicy createBackOffPolicy() {
     var backOffPolicy = new ExponentialRandomBackOffPolicy();
     backOffPolicy.setInitialInterval(5_000); // 5 seconds
     backOffPolicy.setMaxInterval(300_000); // 5 minutes
-
-    retryTemplate.setBackOffPolicy(backOffPolicy);
-
-    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
-
-    var maxAttempts = Integer.MAX_VALUE;
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, retryableExceptions));
-
-    retryTemplate.registerListener(
-        new RetryListener() {
-          @Override
-          public <T, E extends Throwable> void onError(
-              RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
-            LOG.warn(
-                "Error occurred when producing to Kafka: {}. Retrying {} out of {}",
-                throwable.getMessage(),
-                kv("attempt", context.getRetryCount()),
-                kv("maxAttempts", maxAttempts));
-          }
-        });
-
-    return retryTemplate;
+    return backOffPolicy;
   }
 
   // <https://github.com/square/okhttp/blob/master/samples/guide/src/main/java/okhttp3/recipes/RequestBodyCompression.java>
