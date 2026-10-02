@@ -129,7 +129,7 @@ fhir:
       connect: ${services.pseudonymizer.client-timeouts.connect:120s}
 
 app:
-  version: 6.1.8
+  version: 6.1.9
 
 features:
   use-load-balancer-optimized-connection-pool: false
