@@ -7,6 +7,7 @@ import ca.uhn.fhir.okhttp.client.OkHttpRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
@@ -15,6 +16,7 @@ import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.restclient.RestTemplateBuilder;
+import org.springframework.classify.BinaryExceptionClassifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -54,6 +57,8 @@ public class AppConfig {
 
   private static final int MAX_IDLE_CONNECTIONS = 2;
   private static final int KEEP_ALIVE_DURATION_MILLISECONDS = 100;
+
+  private static final Set<Integer> TRANSIENT_HTTP_STATUS_CODES = Set.of(502, 503, 504);
 
   private static final AtomicInteger batchUpdateFailed =
       Metrics.globalRegistry.gauge(
@@ -127,18 +132,9 @@ public class AppConfig {
 
     retryTemplate.setBackOffPolicy(backOffPolicy);
 
-    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
-    retryableExceptions.put(HttpClientErrorException.class, false);
-    retryableExceptions.put(HttpServerErrorException.class, true);
-    retryableExceptions.put(ResourceAccessException.class, true);
-    retryableExceptions.put(FhirClientConnectionException.class, true);
-    retryableExceptions.put(ResourceNotFoundException.class, false);
-    retryableExceptions.put(ResourceVersionConflictException.class, false);
-    retryableExceptions.put(InternalErrorException.class, true);
-
     var maxAttempts = isKafkaEnabled ? Integer.MAX_VALUE : 5;
 
-    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, retryableExceptions));
+    retryTemplate.setRetryPolicy(new SimpleRetryPolicy(maxAttempts, restRetryClassifier()));
 
     retryTemplate.registerListener(
         new RetryListener() {
@@ -154,6 +150,36 @@ public class AppConfig {
         });
 
     return retryTemplate;
+  }
+
+  /**
+   * Which failures of a REST call (to the FHIR server, the pseudonymizer, or the LOINC conversion
+   * service) are worth retrying. Anything not retried - e.g. a 422 from the pseudonymizer for a
+   * value its pseudonymization service rejects - propagates, so the message ends up in the dead
+   * letter topic instead of blocking its partition.
+   */
+  static BinaryExceptionClassifier restRetryClassifier() {
+    var retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+    retryableExceptions.put(HttpClientErrorException.class, false);
+    retryableExceptions.put(HttpServerErrorException.class, true);
+    retryableExceptions.put(ResourceAccessException.class, true);
+    retryableExceptions.put(FhirClientConnectionException.class, true);
+    retryableExceptions.put(ResourceNotFoundException.class, false);
+    retryableExceptions.put(ResourceVersionConflictException.class, false);
+    retryableExceptions.put(InternalErrorException.class, true);
+
+    return new BinaryExceptionClassifier(retryableExceptions, false) {
+      @Override
+      public Boolean classify(Throwable throwable) {
+        // HAPI has no dedicated exception for these, they surface as an
+        // UnclassifiedServerFailureException, so are told apart by their status code instead.
+        if (throwable instanceof BaseServerResponseException exc
+            && TRANSIENT_HTTP_STATUS_CODES.contains(exc.getStatusCode())) {
+          return true;
+        }
+        return super.classify(throwable);
+      }
+    };
   }
 
   @Bean
