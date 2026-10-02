@@ -3,10 +3,10 @@ package org.miracum.etl.fhirgateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 
-@SpringBootApplication
-@EnableTransactionManagement
+// the DataSource is only created if storing resources in PostgreSQL is enabled, see PostgresConfig
+@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 @ConfigurationPropertiesScan
 public class FhirGatewayApplication {
 

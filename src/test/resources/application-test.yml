@@ -1,11 +1,3 @@
-spring:
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
-    username: sa
-    password: sa
-  # disabled initialization for now as H2 won't work with the JSONB data type
-  sql.init.mode: never
 services:
   pseudonymizer:
     enabled: false

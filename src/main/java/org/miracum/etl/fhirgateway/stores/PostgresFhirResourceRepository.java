@@ -3,7 +3,6 @@ package org.miracum.etl.fhirgateway.stores;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
@@ -44,7 +43,22 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
 
   private static final Logger log = LoggerFactory.getLogger(PostgresFhirResourceRepository.class);
 
-  private final IParser fhirParser;
+  private static final String UPSERT_SQL =
+      """
+      INSERT INTO resources (fhir_id, type, data)
+      VALUES (?, ?, ?::json)
+      ON CONFLICT (fhir_id, type)
+      DO UPDATE SET data = EXCLUDED.data, last_updated_at = NOW(), is_deleted = false
+      """;
+
+  private static final String MARK_DELETED_SQL =
+      """
+      UPDATE resources
+      SET last_updated_at = NOW(), is_deleted = true
+      WHERE type = ? AND fhir_id = ?
+      """;
+
+  private final FhirContext fhirContext;
   private final JdbcTemplate dataSinkTemplate;
   private final RetryTemplate retryTemplate;
 
@@ -53,7 +67,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
       FhirContext fhirContext,
       JdbcTemplate dataSinkTemplate,
       @Qualifier("databaseRetryTemplate") RetryTemplate retryTemplate) {
-    this.fhirParser = fhirContext.newJsonParser();
+    this.fhirContext = fhirContext;
     this.dataSinkTemplate = dataSinkTemplate;
     this.retryTemplate = retryTemplate;
   }
@@ -70,6 +84,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
   }
 
   private int insertResources(Bundle bundle) {
+    var parser = fhirContext.newJsonParser();
     var insertValues =
         bundle.getEntry().stream()
             // all but delete operations should result in persisting the included resource
@@ -82,7 +97,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
                     new Object[] {
                       resource.getIdElement().getIdPart(),
                       resource.fhirType(),
-                      fhirParser.encodeResourceToString(resource)
+                      parser.encodeResourceToString(resource)
                     })
             .collect(Collectors.toCollection(ArrayList::new));
 
@@ -90,13 +105,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
       INSERT_DURATION_TIMER.record(
           () ->
               retryTemplate.execute(
-                  (context) ->
-                      dataSinkTemplate.batchUpdate(
-                          "INSERT INTO resources (fhir_id, type, data)"
-                              + "VALUES (?, ?, ?::json)"
-                              + "ON CONFLICT (fhir_id, type)"
-                              + "DO UPDATE set data = EXCLUDED.data, last_updated_at = NOW(), is_deleted = false",
-                          insertValues)));
+                  (context) -> dataSinkTemplate.batchUpdate(UPSERT_SQL, insertValues)));
     }
 
     return insertValues.size();
@@ -114,12 +123,7 @@ public class PostgresFhirResourceRepository implements FhirResourceRepository {
       DELETE_DURATION_TIMER.record(
           () ->
               retryTemplate.execute(
-                  (context) ->
-                      dataSinkTemplate.batchUpdate(
-                          "UPDATE resources "
-                              + "SET last_updated_at = NOW(), is_deleted = true "
-                              + "WHERE type = ? AND fhir_id = ?",
-                          deleteValues)));
+                  (context) -> dataSinkTemplate.batchUpdate(MARK_DELETED_SQL, deleteValues)));
     }
 
     return deleteValues.size();

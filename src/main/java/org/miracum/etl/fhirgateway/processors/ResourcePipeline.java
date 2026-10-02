@@ -38,35 +38,35 @@ public class ResourcePipeline {
   }
 
   public Bundle process(Bundle bundle) {
-    MDC.put("bundleId", bundle.getId());
+    try (var ignoredBundleId = MDC.putCloseable("bundleId", bundle.getId())) {
+      return PIPELINE_DURATION_TIMER.record(
+          () -> {
+            Bundle processing = bundle;
+            // pseudonymization should be the first task to ensure all other processors only
+            // ever work with de-identified data.
+            if (pseudonymizer.isPresent()) {
+              processing = pseudonymizer.get().process(processing);
+            }
 
-    return PIPELINE_DURATION_TIMER.record(
-        () -> {
-          Bundle processing = bundle;
-          // pseudonymization should be the first task to ensure all other processors only
-          // ever work with de-identified data.
-          if (pseudonymizer.isPresent()) {
-            processing = pseudonymizer.get().process(processing);
-          }
+            // this logic may be refactored and cleaned up by creating a genuine pipeline class with
+            // optionally added stages. A base for this would be an abstract ResourceProcessor
+            if (loincHarmonizer.isPresent()) {
+              for (var entry : processing.getEntry()) {
+                var resource = entry.getResource();
 
-          // this logic may be refactored and cleaned up by creating a genuine pipeline class with
-          // optionally added stages. A base for this would be an abstract ResourceProcessor
-          if (loincHarmonizer.isPresent()) {
-            for (var entry : processing.getEntry()) {
-              var resource = entry.getResource();
-
-              if (resource instanceof Observation observation) {
-                try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
-                  var obs = loincHarmonizer.get().process(observation);
-                  entry.setResource(obs);
+                if (resource instanceof Observation observation) {
+                  try (var ignored = MDC.putCloseable("resourceId", resource.getId())) {
+                    var obs = loincHarmonizer.get().process(observation);
+                    entry.setResource(obs);
+                  }
                 }
               }
             }
-          }
 
-          saveToStores(processing);
-          return processing;
-        });
+            saveToStores(processing);
+            return processing;
+          });
+    }
   }
 
   private void saveToStores(Bundle bundle) {

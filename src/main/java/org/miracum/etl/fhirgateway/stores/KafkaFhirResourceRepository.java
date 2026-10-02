@@ -2,6 +2,7 @@ package org.miracum.etl.fhirgateway.stores;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.slf4j.Logger;
@@ -31,9 +32,14 @@ public class KafkaFhirResourceRepository implements FhirResourceRepository {
 
   @Override
   public void save(Bundle bundle) {
-    var key = bundle.getEntry().stream().map(Bundle.BundleEntryComponent::getFullUrl).findFirst();
+    // entries without a resource, e.g. DELETEs, have no fullUrl, so fall back to the request url
+    var key =
+        bundle.getEntry().stream()
+            .map(entry -> entry.hasFullUrl() ? entry.getFullUrl() : entry.getRequest().getUrl())
+            .filter(Objects::nonNull)
+            .findFirst();
     if (key.isPresent()) {
-      log.debug("writing bundle {} to {}", kv(key.get(), "key"), kv(topic, "topic"));
+      log.debug("writing bundle {} to {}", kv("key", key.get()), kv("topic", topic));
       // sending is asynchronous, so wait for the broker to acknowledge the write to make failures
       // surface to the caller. Transient failures are already retried by the producer itself, up
       // to its delivery.timeout.ms.

@@ -25,7 +25,7 @@ To configure your deployment, you can change the following environment variables
 
 | Variable                                                        | Description                                                                                                                                                                                                                                                                                                                          | Default                                   |
 | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
-| SPRING_DATASOURCE_URL                                           | JDBC URL of the Postgres DB to store the received FHIR resources, needs to be set to an empty variable if no PSQL db is to be connected to                                                                                                                                                                                           | jdbc:postgresql://fhir-db:5432/fhir       |
+| SPRING_DATASOURCE_URL                                           | JDBC URL of the Postgres DB to store the received FHIR resources in. Only used if `SERVICES_PSQL_ENABLED` is `true`                                                                                                                                                                                                                  | jdbc:postgresql://fhir-db:5432/fhir       |
 | SPRING_DATASOURCE_USERNAME                                      | Username of the Postgres DB                                                                                                                                                                                                                                                                                                          | postgres                                  |
 | SPRING_DATASOURCE_PASSWORD                                      | Password for the Postgres DB                                                                                                                                                                                                                                                                                                         | postgres                                  |
 | SERVICES_LOINC_CONVERSIONS_ENABLED                              | Wether LOINC harmonization should be enabled                                                                                                                                                                                                                                                                                         | false                                     |
@@ -44,20 +44,20 @@ To configure your deployment, you can change the following environment variables
 | SERVICES_KAFKA_PROCESSOR_CONSUME_ONLY                           | Only reads FHIR resources from a Kafka cluster without writing them back                                                                                                                                                                                                                                                             | false                                     |
 | SERVICES_KAFKA_STORE_FROM_API_ENABLED                           | Wether storing resources in a Kafka topic should be enabled (only applicable for resources received by the FHIR Gateway's FHIR REST API                                                                                                                                                                                              | false                                     |
 | SERVICES_KAFKA_STORE_FROM_API_OUTPUT_TOPIC                      | Name of the topic where resources received from API should be written to                                                                                                                                                                                                                                                             | fhir.gateway.ouput                        |
-| `SERVICES_PSEUDONYMIZER_CLIENT_TIMEOUTS_{CALL, READ, CONNECT}`  | set the http client call, read, connect                                                                                                                                                                                                                                                                                              | 120s                                      |
+| `FHIR_CLIENT_TIMEOUTS_{CALL, READ, CONNECT}`                    | call, read, and connect timeouts of requests to the FHIR Pseudonymizer and the FHIR server. The previously used `SERVICES_PSEUDONYMIZER_CLIENT_TIMEOUTS_*` variables are still supported                                                                                                                                             | 120s                                      |
 
 For the Kafka configuration and other configuration options,
 see [application.yml](src/main/resources/application.yml).
 
-### Running without database persistence
+Only the `health`, `info`, and `prometheus` actuator endpoints are exposed by default. Use
+`MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE` to change this.
 
-By default, the FHIR gateway persists any received FHIR resource in a PostgreSQL database.
-To run without persistence, the following variables both need to be set:
+### Database persistence
 
-- `SPRING_SERVICE_PSQL_ENABLED="false"`
-- `SPRING_SQL_INIT_MODE="never"`
-
-this allows the gateway to start without the database.
+Persisting the received FHIR resources in a PostgreSQL database is disabled by default. To enable it, set
+`SERVICES_PSQL_ENABLED="true"` and configure the connection using `SPRING_DATASOURCE_URL`,
+`SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD`. The `resources` table is created at startup if it
+doesn't exist yet. If persistence is disabled, no database connection is made at all.
 
 ## Supported Operations
 
@@ -118,8 +118,9 @@ Run the FHIR Gateway from your terminal:
 ./gradlew :bootRun
 ```
 
-By default, this runs using Kafka as a source of FHIR resources to process. You can view the generated Kafka topics
-at <http://localhost:9000/ui/kafka/topic>.
+Unless `SPRING_PROFILES_ACTIVE` is set, this uses the `dev` profile, i.e. the settings in
+[application-dev.yml](src/main/resources/application-dev.yml). These use Kafka as a source of FHIR resources to
+process. You can view the generated Kafka topics at <http://localhost:9000/ui/kafka/topic>.
 
 ## Database Tuning
 

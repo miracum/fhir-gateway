@@ -48,6 +48,19 @@ class KafkaFhirResourceRepositoryTest {
     verify(kafkaTemplate).sendDefault(eq("Patient/123"), eq(bundle));
   }
 
+  @Test
+  void save_withDeleteRequest_usesTheRequestUrlAsKey() {
+    var bundle = new Bundle();
+    bundle.addEntry().getRequest().setMethod(Bundle.HTTPVerb.DELETE).setUrl("Patient/123");
+    when(kafkaTemplate.sendDefault(any(), any(Bundle.class)))
+        .thenReturn(CompletableFuture.completedFuture(new SendResult<>(null, null)));
+    var repository = new KafkaFhirResourceRepository("fhir.gateway.output", kafkaTemplate);
+
+    repository.save(bundle);
+
+    verify(kafkaTemplate).sendDefault(eq("Patient/123"), eq(bundle));
+  }
+
   private static Bundle createBundle() {
     var patient = new Patient();
     patient.setId("Patient/123");

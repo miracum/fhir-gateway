@@ -11,14 +11,13 @@ import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -75,9 +74,10 @@ public class AppConfig {
   private static final BinaryExceptionClassifier DATABASE_RETRY_CLASSIFIER =
       databaseRetryClassifier();
 
-  private static final AtomicInteger batchUpdateFailed =
-      Metrics.globalRegistry.gauge(
-          "fhirgateway.postgres.batchupdate.errors.total", new AtomicInteger(0));
+  private static final Counter BATCH_UPDATE_FAILED_COUNTER =
+      Counter.builder("fhirgateway.postgres.batchupdate.errors")
+          .description("Number of failed attempts to store a FHIR bundle in the database")
+          .register(Metrics.globalRegistry);
 
   @Bean
   FhirContext fhirContext(
@@ -232,7 +232,7 @@ public class AppConfig {
                 kv("attempt", context.getRetryCount()),
                 kv("maxAttempts", MAX_ATTEMPTS));
 
-            Objects.requireNonNull(batchUpdateFailed).incrementAndGet();
+            BATCH_UPDATE_FAILED_COUNTER.increment();
           }
         });
 

@@ -43,7 +43,6 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.h2database:h2:2.4.240'
     runtimeOnly 'org.postgresql:postgresql:42.7.13'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
@@ -61,6 +60,13 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.named('bootRun') {
+    // the dev profile is only meant for local development, so isn't active by default
+    if (!System.getenv('SPRING_PROFILES_ACTIVE')) {
+        systemProperty 'spring.profiles.active', 'dev'
+    }
 }
 
 jacocoTestReport {

@@ -3,10 +3,7 @@ package org.miracum.etl.fhirgateway.controllers;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,7 +38,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class FhirController {
   private static final Logger log = LoggerFactory.getLogger(FhirController.class);
 
-  private final IParser fhirParser;
+  private static final ClassPathResource CAPABILITY_STATEMENT =
+      new ClassPathResource("static/fhir-metadata.json");
+
+  private final FhirContext fhirContext;
   private final ResourcePipeline pipeline;
   private final Optional<KafkaFhirResourceRepository> kafkaStore;
 
@@ -50,7 +50,7 @@ public class FhirController {
       FhirContext fhirContext,
       ResourcePipeline pipeline,
       Optional<KafkaFhirResourceRepository> kafkaStore) {
-    this.fhirParser = fhirContext.newJsonParser();
+    this.fhirContext = fhirContext;
     this.pipeline = pipeline;
     this.kafkaStore = kafkaStore;
   }
@@ -61,7 +61,8 @@ public class FhirController {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    var resource = fhirParser.parseResource(body);
+    var parser = fhirContext.newJsonParser();
+    var resource = parser.parseResource(body);
 
     if (resource instanceof Bundle bundle) {
       log.debug("Got bundle of size {}", kv("bundleSize", bundle.getEntry().size()));
@@ -71,12 +72,7 @@ public class FhirController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
       }
 
-      var processed = pipeline.process(bundle);
-      if (kafkaStore.isPresent()) {
-        this.kafkaStore.get().save(processed);
-      }
-
-      return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
+      return ResponseEntity.ok(parser.encodeResourceToString(processAndStore(bundle)));
     } else {
       log.error("Received a non-Bundle resource on the base endpoint");
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -84,11 +80,8 @@ public class FhirController {
   }
 
   @GetMapping(value = "/metadata")
-  public Object getCapabilities() throws IOException {
-    var resource = new ClassPathResource("/static/fhir-metadata.json");
-    var mapper = new ObjectMapper();
-
-    return mapper.readValue(resource.getInputStream(), Object.class);
+  public ResponseEntity<ClassPathResource> getCapabilities() {
+    return ResponseEntity.ok(CAPABILITY_STATEMENT);
   }
 
   @PostMapping(value = {"/{resourceType}", "/{resourceType}/{id}"})
@@ -118,8 +111,8 @@ public class FhirController {
     bundle.setId(UUID.randomUUID().toString());
     bundle.addEntry().getRequest().setMethod(HTTPVerb.DELETE).setUrl(resourceUrl);
 
-    var processed = pipeline.process(bundle);
-    return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
+    var processed = processAndStore(bundle);
+    return ResponseEntity.ok(fhirContext.newJsonParser().encodeResourceToString(processed));
   }
 
   private ResponseEntity<String> handlePostPutResource(String body, RequestMethod method) {
@@ -130,7 +123,8 @@ public class FhirController {
 
     var httpMethodMap = Map.of(RequestMethod.POST, HTTPVerb.POST, RequestMethod.PUT, HTTPVerb.PUT);
 
-    var resource = (Resource) fhirParser.parseResource(body);
+    var parser = fhirContext.newJsonParser();
+    var resource = (Resource) parser.parseResource(body);
 
     Bundle bundle;
     if (resource instanceof Bundle b) {
@@ -148,10 +142,17 @@ public class FhirController {
           .setUrl(resource.getId());
     }
 
+    return ResponseEntity.ok(parser.encodeResourceToString(processAndStore(bundle)));
+  }
+
+  /**
+   * Runs the bundle through the pipeline and, if enabled, also stores the result in Kafka. Unlike
+   * the other stores, which are part of the pipeline, this only applies to bundles received via
+   * this API, not to the ones consumed from Kafka.
+   */
+  private Bundle processAndStore(Bundle bundle) {
     var processed = pipeline.process(bundle);
-    if (kafkaStore.isPresent()) {
-      this.kafkaStore.get().save(processed);
-    }
-    return ResponseEntity.ok(fhirParser.encodeResourceToString(processed));
+    kafkaStore.ifPresent(store -> store.save(processed));
+    return processed;
   }
 }

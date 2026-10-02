@@ -42,7 +42,7 @@ public class LoincHarmonizer {
   private static final HashMap<String, Counter> metricsLookup = new HashMap<>();
 
   private final RestTemplate restTemplate;
-  private final URI loincConverterBaseUri;
+  private final String conversionUrlTemplate;
   private final FhirSystemsConfig fhirSystems;
   private final RetryTemplate retryTemplate;
   private final boolean failOnError;
@@ -54,7 +54,14 @@ public class LoincHarmonizer {
       @Value("${services.loinc.conversions.failOnError}") boolean failOnError,
       RetryTemplate retryTemplate) {
     this.restTemplate = restTemplate;
-    this.loincConverterBaseUri = loincConverterUri;
+    this.conversionUrlTemplate =
+        UriComponentsBuilder.fromUri(loincConverterUri)
+            .path("/conversions")
+            .queryParam("loinc", "{loinc}")
+            .queryParam("unit", "{unit}")
+            .queryParam("value", "{value}")
+            .build()
+            .toUriString();
     this.fhirSystems = fhirSystems;
     this.failOnError = failOnError;
     this.retryTemplate = retryTemplate;
@@ -70,14 +77,14 @@ public class LoincHarmonizer {
             .filter(obs -> obs.getSystem().equals(fhirSystems.getLoinc()))
             .findFirst();
 
-    var harmonized = originalObservation.copy();
-
     // only process observation resources with a set quantity and code
     if (loincCode.isEmpty()
         || !originalObservation.hasValueQuantity()
         || !originalObservation.getValueQuantity().hasCode()) {
       return originalObservation;
     }
+
+    var harmonized = originalObservation.copy();
 
     try {
       var originalCode = loincCode.get().getCode();
@@ -150,24 +157,19 @@ public class LoincHarmonizer {
   private Optional<Pair<Quantity, LoincConversion>> getHarmonizedQuantity(
       Quantity input, String loincCode) {
 
-    var requestUrl =
-        UriComponentsBuilder.fromUri(loincConverterBaseUri)
-            .path("/conversions")
-            .queryParam("loinc", "{loinc}")
-            .queryParam("unit", "{unit}")
-            .queryParam("value", "{value}")
-            .build()
-            .toUriString();
+    var templateVars =
+        Map.of("loinc", loincCode, "unit", input.getCode(), "value", input.getValue());
 
     var response =
         retryTemplate.execute(
             ctx -> {
-              var templateVars =
-                  Map.of("loinc", loincCode, "unit", input.getCode(), "value", input.getValue());
-              log.debug(
-                  "Invoking LOINC harmonization service @ {}",
-                  kv("requestUrl", new UriTemplate(requestUrl).expand(templateVars)));
-              return restTemplate.getForObject(requestUrl, LoincConversion.class, templateVars);
+              if (log.isDebugEnabled()) {
+                log.debug(
+                    "Invoking LOINC harmonization service @ {}",
+                    kv("requestUrl", new UriTemplate(conversionUrlTemplate).expand(templateVars)));
+              }
+              return restTemplate.getForObject(
+                  conversionUrlTemplate, LoincConversion.class, templateVars);
             });
 
     if (response == null) {

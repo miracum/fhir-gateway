@@ -7,7 +7,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "health,info,prometheus"
   health:
     livenessstate:
       enabled: true
@@ -21,8 +21,6 @@ logging:
     org.springframework.cloud.stream.function: WARN
 
 spring:
-  profiles:
-    active: dev
   datasource:
     url: ""
     username: ""
@@ -92,12 +90,6 @@ services:
   pseudonymizer:
     enabled: false
     url: ""
-    request-compression:
-      enabled: false
-    client-timeouts:
-      call: 120s
-      read: 120s
-      connect: 120s
   fhirServer:
     enabled: false
     url: ""
@@ -128,6 +120,13 @@ services:
 fhir:
   systems:
     loinc: "http://loinc.org"
+  client:
+    # apply to all requests to FHIR servers, i.e. to both the pseudonymizer and the FHIR server.
+    # Fall back to the services.pseudonymizer.client-timeouts.* settings used by older versions.
+    timeouts:
+      call: ${services.pseudonymizer.client-timeouts.call:120s}
+      read: ${services.pseudonymizer.client-timeouts.read:120s}
+      connect: ${services.pseudonymizer.client-timeouts.connect:120s}
 
 app:
   version: 6.1.8
