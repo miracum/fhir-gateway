@@ -54,15 +54,18 @@ public class FhirServerResourceRepository implements FhirResourceRepository {
 
   @Override
   public void save(Bundle bundle) {
-    log.debug(
-        "Sending bundle {} with contents {}", bundle, fhirParser.encodeResourceToString(bundle));
+    if (log.isDebugEnabled()) {
+      log.debug("Sending bundle with contents {}", fhirParser.encodeResourceToString(bundle));
+    }
 
     var response =
         retryTemplate.execute(context -> client.transaction().withBundle(bundle).execute());
 
-    log.debug(
-        "Response for bundle {} with contents {}",
-        fhirParser.encodeResourceToString(bundle),
-        fhirParser.encodeResourceToString(response));
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Response for bundle {} with contents {}",
+          fhirParser.encodeResourceToString(bundle),
+          fhirParser.encodeResourceToString(response));
+    }
   }
 }
