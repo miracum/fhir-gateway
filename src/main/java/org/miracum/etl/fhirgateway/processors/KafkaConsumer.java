@@ -1,5 +1,6 @@
 package org.miracum.etl.fhirgateway.processors;
 
+import java.util.List;
 import java.util.function.Consumer;
 import org.hl7.fhir.r4.model.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -17,7 +18,7 @@ public class KafkaConsumer extends BaseKafkaProcessor {
   }
 
   @Bean
-  Consumer<Message<Resource>> process() {
-    return super::process;
+  Consumer<Message<List<Resource>>> process() {
+    return super::processBatch;
   }
 }
